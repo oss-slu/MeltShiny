@@ -17,13 +17,14 @@ connecter <- setRefClass(Class = "connecter",
                                     "fdData"
                          ),
                          methods = list(
-                           #Creates MeltR object. 
+                           #Creates MeltR object & first derivative data
                            constructObject = function(){
                              .self$object <- meltR.A(data_frame = df,
                                                      blank = blank,
                                                      NucAcid = NucAcid,
                                                      Mmodel = Mmodel)
-                             upper = 4000
+                             
+                             upper = 4000 #Static number to shrink data to scale
                              .self$fdData <- .self$object$Derivatives.data
                              .self$fdData <- cbind(.self$fdData,
                                             as.data.frame(
@@ -43,8 +44,8 @@ connecter <- setRefClass(Class = "connecter",
                              data = .self$fdData[.self$fdData == sampleNum,]
                              ggplot(data,aes(x = Temperature)) +
                                geom_point(aes(y = Absorbance)) +
-                               geom_point(aes(y = yPlot+min(data$Absorbance)),color="blue") +
-                               geom_point(aes(x = Temperature[which.max(yPlot)],y = max(yPlot)+min(data$Absorbance)),color="red") +
+                               geom_point(aes(y = yPlot+min(Absorbance)),color="blue") +
+                               geom_point(aes(x = Temperature[which.max(yPlot)],y = max(yPlot)+min(Absorbance)),color="red") +
                                theme_classic()
                            },
                            #Constructs a plot of the best fit and the raw data
