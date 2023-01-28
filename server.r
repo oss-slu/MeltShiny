@@ -101,28 +101,32 @@ server <- function(input,output, session){
                           #main-panel code
                           conditionalPanel(
                             condition = glue("!input.{firstDerivative} && !input.{bestFit}"),
-                            plotOutput(plotName)
+                            column(12,align="right",plotOutput(plotName,width="99%"))
                           ),
                           conditionalPanel(
                             condition = glue("input.{firstDerivative} && !input.{bestFit}"),
-                            plotOutput(plotDerivative)
+                            column(12,align="right",plotOutput(plotDerivative))
                           ),
                           conditionalPanel(
                             condition = glue("input.{bestFit} && !input.{firstDerivative}"),
-                            plotOutput(plotBestFit)
+                            column(12,align="right",plotOutput(plotBestFit))
                           ),
                           conditionalPanel(
                             condition = glue("input.{firstDerivative} && input.{bestFit}"),
-                            plotOutput(plotBoth)
+                            column(12,align="right",plotOutput(plotBoth))
                           ),
-                          sliderInput(plotSlider,
-                                      glue("Plot{i}: Range of values"),
-                                      min = xmin,
-                                      max = xmax,
-                                      value = c(xmin,xmax),
-                                      round = TRUE,
-                                      step = .10,
-                                      width = "85%")
+                          column(12, 
+                                 align = "left",
+                                 offset = 1,
+                                 sliderInput(plotSlider,
+                                             glue("Plot{i}: Range of values"),
+                                             min = xmin,
+                                             max = xmax,
+                                             value = c(xmin,xmax),
+                                             round = TRUE,
+                                             step = .10,
+                                             width = "88%")
+                          )
                         )
                       )
                     )
