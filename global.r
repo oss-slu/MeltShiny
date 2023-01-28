@@ -13,7 +13,8 @@ connecter <- setRefClass(Class = "connecter",
                                     "NucAcid",
                                     "blank",
                                     "Mmodel",
-                                    "object"
+                                    "object",
+                                    "fdData"
                          ),
                          methods = list(
                            #Creates MeltR object. 
@@ -22,6 +23,13 @@ connecter <- setRefClass(Class = "connecter",
                                                      blank = blank,
                                                      NucAcid = NucAcid,
                                                      Mmodel = Mmodel)
+                             upper = 4000
+                             .self$fdData <- .self$object$Derivatives.data
+                             .self$fdData <- cbind(.self$fdData,
+                                            as.data.frame(
+                                              .self$fdData$dA.dT/(.self$fdData$Pathlength*.self$fdData$Ct)/upper
+                                              ))
+                             names(.self$fdData)[ncol(.self$fdData)] <- "yPlot"
                            },
                            #Constructs a plot containing the raw data
                            constructRawPlot = function(sampleNum){
@@ -30,14 +38,13 @@ connecter <- setRefClass(Class = "connecter",
                                geom_point() +
                                theme_classic()
                            },
-                           #Constructs a plot of the first derivaitve and the raw data
+                           #Constructs a plot of the first derivative and the raw data
                            constructFirstDerivative = function(sampleNum){
-                             data = .self$object$Derivatives.data[.self$object$Derivatives.data == sampleNum,]
-                             coeff = 4000 #Static number to shrink data to scale
-                             upper = max(data$dA.dT)/max(data$Ct) + coeff
+                             data = .self$fdData[.self$fdData == sampleNum,]
                              ggplot(data,aes(x = Temperature)) +
                                geom_point(aes(y = Absorbance)) +
-                               geom_point(aes(y = (dA.dT/(Pathlength*Ct))/upper+min(Absorbance)),color="blue") +
+                               geom_point(aes(y = yPlot+min(data$Absorbance)),color="blue") +
+                               geom_point(aes(x = Temperature[which.max(yPlot)],y = max(yPlot)+min(data$Absorbance)),color="red") +
                                theme_classic()
                            },
                            #Constructs a plot of the best fit and the raw data
