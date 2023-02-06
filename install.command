@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-
-/Users/adhampton/Documents/GitHub/MeltWin2.0/install.R
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/"install.R"
+$SCRIPT_DIR
