@@ -64,6 +64,7 @@ connecter <- setRefClass(Class = "connecter",
                            #returns the data needed to create the vant hoff plot
                            gatherVantData = function(){
                              data = .self$object$Method.2.data
+                             print(data)
                              return(data)
                            },
                            #returns the individual fit table data
@@ -98,4 +99,3 @@ connecter <- setRefClass(Class = "connecter",
                            }
                          )
 )
-

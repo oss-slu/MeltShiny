@@ -7,7 +7,7 @@ params:
 ---
 
 ```{r}
-Make the variables
+#Make the variables
 individualFits <- myConnecter$fitData()
 summaryTable1<-myConnecter$summaryData1()
 summaryTable2<-myConnecter$summaryData2()
