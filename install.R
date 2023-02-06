@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript --vanilla
 requiredPackages <- c("dplyr",
                       "ggplot2",
                       "glue",
@@ -9,13 +10,11 @@ requiredPackages <- c("dplyr",
 #installs package if not found on the system
 installPackages <- function(packages) {
   for (p in packages) {
-    if (p %in% rownames(installed.packages())) {
-      print(paste(p,"has already been installed."))
-    }else{
+    if (!(p %in% rownames(installed.packages()))) {
       if (p == "MeltR") {
         remotes::install_github("JPSieg/MeltR")
       } else {
-        install.packages(p)
+        install.packages(p,repos = "http://cran.us.r-project.org")
       }
     }
   }
