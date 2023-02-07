@@ -266,24 +266,44 @@ server <- function(input,output, session){
   })
   
   output$downloadReport <- downloadHandler(
-    name <<- input$saveFile,
-    filename = function() {
-      paste(name, sep = '.', "pdf")
+    filename = function(){paste(input$dataset, '.pdf', sep = '')},
+    
+    content = function(file){
+      cairo_pdf(filename = file, onefile = T,width = 18, height = 10, pointsize = 12, family = "sans", bg = "transparent",
+                antialias = "subpixel",fallback_resolution = 300)
+      caluclations <- myConnecter$gatherVantData()
+      InverseTemp <- caluclations$invT
+      LnConcentraion <- caluclations$lnCt
+      plot.new()
+      grid.table(myConnecter$summaryData1())
+      plot.new()
+      grid.table(myConnecter$summaryData2())
+      plot.new()
+      grid.table(myConnecter$error())
+      plot(LnConcentraion,InverseTemp)
+      dev.off()
     },
-    content = function(file) {
-      src <- normalizePath('report.Rmd')
-      
-      # temporarily switch to the temp dir, in case you do not have write
-      # permission to the current working directory
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      file.copy(src, 'report.Rmd', overwrite = TRUE)
-      
-      library(rmarkdown)
-      out <- render('report.Rmd',pdf_document())
-      file.rename(out, file)
-    }
+    
+    contentType = "application/pdf"
   )
+  #   name <<- input$saveFile,
+  #   filename = function() {
+  #     paste(name, sep = '.', "pdf")
+  #   },
+  #   content = function(file) {
+  #     src <- normalizePath('report.Rmd')
+  #     
+  #     # temporarily switch to the temp dir, in case you do not have write
+  #     # permission to the current working directory
+  #     owd <- setwd(tempdir())
+  #     on.exit(setwd(owd))
+  #     file.copy(src, 'report.Rmd', overwrite = TRUE)
+  #     
+  #     library(rmarkdown)
+  #     out <- render('report.Rmd',pdf_document())
+  #     file.rename(out, file)
+  #   }
+  # )
 }
 
 
