@@ -85,7 +85,6 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                        mainPanel(
                                          plotOutput("vantplots"),
                                        ),
-                                       
                                      )
                                      )
                             ),
@@ -100,9 +99,17 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                          "Error",
                                          tableOutput("error")
                                        ),
+                                       sidebarLayout(
+                                         sidebarPanel(
+                                           "Download Excel Workbook with Multiple Sheets for the tables",
+                                           textInput(label = "Enter the file name",
+                                                    inputId = "saveFile"),
+                                           downloadButton("downloadExcelSheet"),
+                                         ),
                                          mainPanel(
                                            plotOutput('regPlot')
                                          )
+                                     )
                                        )
                                      )
                  )

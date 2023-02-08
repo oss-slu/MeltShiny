@@ -286,6 +286,22 @@ server <- function(input,output, session){
     
     contentType = "application/pdf"
   )
+  #userText = reactive({ input$saveFile })
+  output$downloadExcelSheet <- downloadHandler(
+    filename = function() {
+      "resultTable.xlsx"
+      #paste0(userText, ".xlsx")
+    },
+    content = function(file) {
+      # write workbook and first sheet
+      write.xlsx(myConnecter$summaryData1(), file, sheetName = "table1", append = FALSE)
+      
+      write.xlsx(myConnecter$summaryData2(), file, 
+                 sheetName = "table2", append = TRUE)
+      write.xlsx(myConnecter$error(), file, 
+                 sheetName = "error", append = TRUE)
+    }
+  )
   #   name <<- input$saveFile,
   #   filename = function() {
   #     paste(name, sep = '.', "pdf")
