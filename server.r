@@ -274,12 +274,12 @@ server <- function(input,output, session){
       caluclations <- myConnecter$gatherVantData()
       InverseTemp <- caluclations$invT
       LnConcentraion <- caluclations$lnCt
-      plot.new()
-      grid.table(myConnecter$summaryData1())
-      plot.new()
-      grid.table(myConnecter$summaryData2())
-      plot.new()
-      grid.table(myConnecter$error())
+      # plot.new()
+      # grid.table(myConnecter$summaryData1())
+      # plot.new()
+      # grid.table(myConnecter$summaryData2())
+      # plot.new()
+      # grid.table(myConnecter$error())
       plot(LnConcentraion,InverseTemp)
       dev.off()
     },

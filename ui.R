@@ -73,9 +73,20 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                  navbarMenu("Results",
                             tabPanel("Vant Hoff Plots", 
                                      fluidPage(
+                                       sidebarLayout(
+                                         sidebarPanel(
+                                           "Create a downloadable pdf of the Vant Hoff plot",
+                                           # textInput(label = "Enter the file name",
+                                           #           inputId = "saveFile"),
+                                           # radioButtons('format', 'Document format', c('PDF'),
+                                           #              inline = TRUE),
+                                           downloadButton('downloadReport')
+                                         ),
                                        mainPanel(
                                          plotOutput("vantplots"),
-                                       )
+                                       ),
+                                       
+                                     )
                                      )
                             ),
                             tabPanel("Results Table", 
@@ -89,20 +100,10 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                          "Error",
                                          tableOutput("error")
                                        ),
-                                       sidebarLayout(
-                                         sidebarPanel(
-                                           "Dowload includes tables and Vant Hoff Plots",
-                                           textInput(label = "Enter the file name",
-                                                     inputId = "saveFile"),
-                                           radioButtons('format', 'Document format', c('PDF'),
-                                                        inline = TRUE),
-                                           downloadButton('downloadReport')
-                                         ),
                                          mainPanel(
                                            plotOutput('regPlot')
                                          )
                                        )
                                      )
-                            )
                  )
 ) 
