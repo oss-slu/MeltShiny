@@ -3,8 +3,8 @@ counter <- 1 #Same as the "start" variable, but only utilized in processing data
 helix <- c() #The sequence information MeltR input.
 molStateVal <- "" #Molecular state MeltR input.
 myConnector = NULL #Variable in server that utilizes the "connecter" class.
-start <- 1 #Number that indicates the beggining iterations when implementing multiple datasets.
-fileName <- "" #Name for when user wants to save a file
+start <- 1 #Number that indicates the begining iterations when implementing multiple datasets.
+
 
 #Connector class that houses MeltR code
 #constructObject() has to be called for each new method implemented. 

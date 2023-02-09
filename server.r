@@ -265,6 +265,7 @@ server <- function(input,output, session){
     return(data)
   })
   
+  #save the vant hoff plot
   output$downloadReport <- downloadHandler(
     filename = function(){paste(input$dataset, '.pdf', sep = '')},
     
@@ -286,11 +287,10 @@ server <- function(input,output, session){
     
     contentType = "application/pdf"
   )
-  #userText = reactive({ input$saveFile })
+  #save the data tables
   output$downloadExcelSheet <- downloadHandler(
     filename = function() {
-      "resultTable.xlsx"
-      #paste0(userText, ".xlsx")
+      paste(input$saveFile, '.xlsx', sep='')
     },
     content = function(file) {
       # write workbook and first sheet
