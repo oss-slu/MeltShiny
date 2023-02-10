@@ -2,6 +2,7 @@ blank <- NULL #The blank for meltR input & background subtraction.
 counter <- 1 #Same as the "start" variable, but only utilized in processing dataset loop
 helix <- c() #The sequence information MeltR input.
 molStateVal <- "" #Molecular state MeltR input.
+wavelengthVal <- "" # Wavelength MeltR input.
 myConnector = NULL #Variable in server that utilizes the "connecter" class.
 start <- 1 #Number that indicates the begining iterations when implementing multiple datasets.
 
@@ -13,15 +14,24 @@ connecter <- setRefClass(Class = "connecter",
                                     "NucAcid",
                                     "blank",
                                     "Mmodel",
-                                    "object"
+                                    "object",
+                                    "fdData"
                          ),
                          methods = list(
-                           #Creates MeltR object. 
+                           #Creates MeltR object & first derivative data
                            constructObject = function(){
                              .self$object <- meltR.A(data_frame = df,
                                                      blank = blank,
                                                      NucAcid = NucAcid,
                                                      Mmodel = Mmodel)
+                             
+                             upper = 4000 #Static number to shrink data to scale
+                             .self$fdData <- .self$object$Derivatives.data
+                             .self$fdData <- cbind(.self$fdData,
+                                                   as.data.frame(
+                                                     .self$fdData$dA.dT/(.self$fdData$Pathlength*.self$fdData$Ct)/upper
+                                                   ))
+                             names(.self$fdData)[ncol(.self$fdData)] <- "yPlot"
                            },
                            #Constructs a plot containing the raw data
                            constructRawPlot = function(sampleNum){
@@ -30,14 +40,13 @@ connecter <- setRefClass(Class = "connecter",
                                geom_point() +
                                theme_classic()
                            },
-                           #Constructs a plot of the first derivaitve and the raw data
+                           #Constructs a plot of the first derivative and the raw data
                            constructFirstDerivative = function(sampleNum){
-                             data = .self$object$Derivatives.data[.self$object$Derivatives.data == sampleNum,]
-                             coeff = 4000 #Static number to shrink data to scale
-                             upper = max(data$dA.dT)/max(data$Ct) + coeff
+                             data = .self$fdData[.self$fdData == sampleNum,]
                              ggplot(data,aes(x = Temperature)) +
                                geom_point(aes(y = Absorbance)) +
-                               geom_point(aes(y = (dA.dT/(Pathlength*Ct))/upper+min(Absorbance)),color="blue") +
+                               geom_point(aes(y = yPlot+min(Absorbance)),color="blue") +
+                               geom_point(aes(x = Temperature[which.max(yPlot)],y = max(yPlot)+min(Absorbance)),color="red") +
                                theme_classic()
                            },
                            #Constructs a plot of the best fit and the raw data
@@ -64,11 +73,18 @@ connecter <- setRefClass(Class = "connecter",
                            #returns the data needed to create the vant hoff plot
                            gatherVantData = function(){
                              data = .self$object$Method.2.data
+                             
                              print(data)
                              return(data)
                            },
                            #returns the individual fit table data
                            fitData = function(){
+                             indvCurves=.self$object$Method.1.indvfits 
+                             return(indvCurves)
+                           },
+                           #returns the individual fit table data
+                           fitData = function(){
+                             
                              #sample = .self$object$Method.1.indvfits$Sample
                              #ct = .self$object$Method.1.indvfits$Ct
                              #h = .self$object$Method.1.indvfits$H
@@ -78,7 +94,9 @@ connecter <- setRefClass(Class = "connecter",
                              #indvCurves = data.frame(sample, ct,h,g,tm)
                              indvCurves=.self$object$Method.1.indvfits 
                              return(indvCurves)
+                             
                            },
+                           
                            summaryData1 = function(){
                              summaryData=.self$object$Summary
                              #indvidualfits = summaryData[1,]
