@@ -104,14 +104,14 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                          sidebarPanel(
                                            "Download Excel Workbook with Multiple Sheets for the tables",
                                            textInput(label = "Enter the file name",
-                                                    inputId = "saveFile"),
+                                                     inputId = "saveFile"),
                                            downloadButton("downloadExcelSheet"),
                                          ),
                                          mainPanel(
                                            plotOutput('regPlot')
                                          )
-                                     )
                                        )
                                      )
+                            )
                  )
 ) 
