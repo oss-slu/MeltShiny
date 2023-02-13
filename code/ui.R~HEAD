@@ -1,3 +1,15 @@
+<<<<<<< HEAD:code/ui.R
+=======
+library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
+library(glue)
+library(methods)
+library(MeltR)
+library(shiny)
+library(xlsx)
+
+
+>>>>>>> aa175916b336d28b34edfd90433cae7ac3b1a4b7:ui.R
 # The UI consists of a navbar page, with a single drop down menu, "File" , which contains a single option "Add data".
 
 ui <- navbarPage(title = "MeltShiny",id = "navbar",
@@ -59,12 +71,16 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                                       downloadButton('downloadReport')
                                          ),
                                          mainPanel(
+<<<<<<< HEAD:code/ui.R
                                            plotOutput("vantplots",
                                                       click = "vantClick",
                                                       brush = brushOpts(
                                                         id = "vantBrush"
                                                       )
                                            )
+=======
+                                           plotOutput("vantplots"),
+>>>>>>> aa175916b336d28b34edfd90433cae7ac3b1a4b7:ui.R
                                          )
                                        )
                                      )
@@ -94,6 +110,7 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                      )
                             )
                             # navbarMenu("Help",
+<<<<<<< HEAD:code/ui.R
                             #            tabPanel("Absorbance in MeltR", 
                             #                     fluidPage(
                             #                       sidebarLayout(
@@ -109,3 +126,19 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                  )
 )
 
+=======
+                 #            tabPanel("Absorbance in MeltR", 
+                 #                     fluidPage(
+                 #                       sidebarLayout(
+                 #                         sidebarPanel(
+                 #                         ),
+                 #                         mainPanel(
+                 #                           #tableOutput("Console")
+                 #                         )
+                 #                       )
+                 #                     )
+                 #            ),
+                 # )
+                 )
+) 
+>>>>>>> aa175916b336d28b34edfd90433cae7ac3b1a4b7:ui.R

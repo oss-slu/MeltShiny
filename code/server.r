@@ -48,9 +48,9 @@ server <- function(input,output, session){
                            values$numReadings <- counter - 1
                            values$masterFrame <- rbind(values$masterFrame, tempFrame)
                            myConnecter <<- connecter(df = values$masterFrame,
-                                                           NucAcid = helix,
-                                                           Mmodel = molStateVal,
-                                                           blank = blank)
+                                                     NucAcid = helix,
+                                                     Mmodel = molStateVal,
+                                                     blank = blank)
                            myConnecter$constructObject()
                            calculations <<- myConnecter$gatherVantData()
                            vals <<- reactiveValues(
@@ -131,7 +131,7 @@ server <- function(input,output, session){
                     )
                   ))
       }
-      })
+    })
     start <<- values$numReadings + 1
     showTab(inputId = "navbar",target = "Analysis")
     showTab(inputId = "navbar",target = "Results")
@@ -173,7 +173,7 @@ server <- function(input,output, session){
               geom_vline(xintercept = input[[plotSlider]][1]) +
               geom_vline(xintercept = input[[plotSlider]][2])
           })
-      })
+        })
       }
     }
   })
@@ -209,25 +209,51 @@ server <- function(input,output, session){
     vals$keeprows <- rep(TRUE, nrow(calculations))
   })
   
-#Code that outputs the results table
+  #Code that outputs the results table
   
-output$resulttable <- renderTable({
-  data <-myConnecter$fitData()
-  return(data)
-})
-output$summarytable <- renderTable({
-  data <-myConnecter$summaryData1()
-  return(data)
-})
-output$summarytable2 <- renderTable({
-  data <-myConnecter$summaryData2()
-  return(data)
-})
-output$error <- renderTable({
-  data <-myConnecter$error()
-  return(data)
-})
+  output$resulttable <- renderTable({
+    data <-myConnecter$fitData()
+    return(data)
+  })
+  output$summarytable <- renderTable({
+    data <-myConnecter$summaryData1()
+    return(data)
+  })
+  output$summarytable2 <- renderTable({
+    data <-myConnecter$summaryData2()
+    return(data)
+  })
+  output$error <- renderTable({
+    data <-myConnecter$error()
+    return(data)
+  })
+  output$downloadReport <- downloadHandler(
+    filename = function(){paste(input$dataset, '.pdf', sep = '')},
+    
+    content = function(file){
+      cairo_pdf(filename = file, onefile = T,width = 18, height = 10, pointsize = 12, family = "sans", bg = "transparent",
+                antialias = "subpixel",fallback_resolution = 300)
+      caluclations <- myConnecter$gatherVantData()
+      InverseTemp <- caluclations$invT
+      LnConcentraion <- caluclations$lnCt
+      plot(LnConcentraion,InverseTemp)
+      dev.off()
+    },
+    contentType = "application/pdf"
+  )
+  #save the data tables
+  output$downloadExcelSheet <- downloadHandler(
+    filename = function() {
+      paste(input$saveFile, '.xlsx', sep='')
+    },
+    content = function(file) {
+      # write workbook and first sheet
+      write.xlsx(myConnecter$summaryData1(), file, sheetName = "table1", append = FALSE)
+      
+      write.xlsx(myConnecter$summaryData2(), file, 
+                 sheetName = "table2", append = TRUE)
+      write.xlsx(myConnecter$error(), file, 
+                 sheetName = "error", append = TRUE)
+    }
+  )
 }
-
-
-
