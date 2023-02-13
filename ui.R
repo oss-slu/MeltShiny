@@ -55,7 +55,14 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                             tabPanel("Vant Hoff Plots", 
                                      fluidPage(
                                          mainPanel(
-                                           plotOutput("vantplots"),
+                                           plotOutput("vantplots",
+                                                      click = "vantClick",
+                                                      brush = brushOpts(
+                                                        id = "vantBrush"
+                                                      )
+                                           ),
+                                           actionButton("exclude_toggle", "Toggle points"),
+                                           actionButton("exclude_reset","Reset")
                                          )
                                        )
                                      ),

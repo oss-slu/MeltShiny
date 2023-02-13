@@ -174,15 +174,50 @@ server <- function(input,output, session){
       }
     }
   })
+  
+  # For storing which rows have been excluded
+  vals <- reactiveValues(
+    require(input$inputFile),
+    keeprows = rep(TRUE, nrow(myConnecter$gatherVantData()))
+  )
 
   #code that plots a van't hoff plot
   output$vantplots <- renderPlot({
-    caluclations <- myConnecter$gatherVantData()
-    InverseTemp <- caluclations$invT
-    LnConcentraion <- caluclations$lnCt
-    plot(LnConcentraion,InverseTemp)
+    require(input$inputFile)
+    calculations <- myConnecter$gatherVantData()
+    
+    #Plot the kept and excluded points as two seperate data sets
+    keep    <- calculations[ vals$keeprows, , drop = FALSE]
+    exclude <- calculations[!vals$keeprows, , drop = FALSE]
+    
+    InverseTemp <- calculations$invT
+    LnConcentration <- calculations$lnCt
+    #plot(LnConcentration,InverseTemp)
+    
+    ggplot(keep, aes(LnConcentration, InverseTemp)) + geom_point() +
+      geom_smooth(method = lm, fullrange = TRUE, color = "black") +
+      geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25)
     
   }, res = 100)
+  
+  # Toggle points that are clicked
+  observeEvent(input$vantClick, {
+    res <- nearPoints(calculations, input$vantClick, allRows = TRUE)
+    
+    vals$keeprows <- xor(vals$keeprows, res$selected_)
+  })
+  
+  # Toggle points that are brushed, when button is clicked
+  observeEvent(input$exclude_toggle, {
+    res <- brushedPoints(calculations, input$vantBrush, allRows = TRUE)
+    
+    vals$keeprows <- xor(vals$keeprows, res$selected_)
+  })
+  
+  # Reset all points
+  observeEvent(input$exclude_reset, {
+    vals$keeprows <- rep(TRUE, nrow(calculations))
+  })
   
 #Code that outputs the results table
   
