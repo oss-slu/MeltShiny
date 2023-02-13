@@ -52,6 +52,9 @@ server <- function(input,output, session){
                                                            Mmodel = molStateVal,
                                                            blank = blank)
                            myConnecter$constructObject()
+                           calculations <<- myConnecter$gatherVantData()
+                           vals <<- reactiveValues(
+                             keeprows = rep(TRUE, nrow(calculations)))
                          }
   )
   #Outputs the post-processed data frame
@@ -175,26 +178,13 @@ server <- function(input,output, session){
     }
   })
   
-  # For storing which rows have been excluded
-  vals <- reactiveValues(
-    require(input$inputFile),
-    keeprows = rep(TRUE, nrow(myConnecter$gatherVantData()))
-  )
-
   #code that plots a van't hoff plot
   output$vantplots <- renderPlot({
-    require(input$inputFile)
-    calculations <- myConnecter$gatherVantData()
-    
     #Plot the kept and excluded points as two seperate data sets
     keep    <- calculations[ vals$keeprows, , drop = FALSE]
     exclude <- calculations[!vals$keeprows, , drop = FALSE]
     
-    InverseTemp <- calculations$invT
-    LnConcentration <- calculations$lnCt
-    #plot(LnConcentration,InverseTemp)
-    
-    ggplot(keep, aes(LnConcentration, InverseTemp)) + geom_point() +
+    ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
       geom_smooth(method = lm, fullrange = TRUE, color = "black") +
       geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25)
     
