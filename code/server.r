@@ -8,11 +8,12 @@ server <- function(input,output, session){
                            req(input$inputFile)
                            pathlengths <- c(unlist(strsplit(input$pathlengths,",")))
                            molStateVal <<- input$molState
+                           wavelengthVal <<- as.numeric(input$wavelength)
                            helix <<- trimws(strsplit(input$helixInput,",")[[1]],which="both")
                            blank <<- as.numeric(input$blankSample)
-                           if(molStateVal == "Heteroduplex"){
+                           if (molStateVal == "Heteroduplex") {
                              molStateVal <<- "Heteroduplex.2State"
-                           }else if(molStateVal == "Homoduplex"){
+                           } else if (molStateVal == "Homoduplex") {
                              molStateVal <<- "Homoduplex.2State"
                            }else{
                              molStateVal <<- "Monomolecular.2State"
@@ -21,7 +22,7 @@ server <- function(input,output, session){
                              selector = "div:has(> #helixInput)"
                            )
                            removeUI(
-                             selector="div:has(> #molState)"
+                             selector = "div:has(> #molState)"
                            )
                            fileName <- input$inputFile$datapath
                            cd <- read.csv(file = fileName,header = FALSE)
@@ -51,17 +52,21 @@ server <- function(input,output, session){
                                                      Mmodel = molStateVal,
                                                      blank = blank)
                            myConnecter$constructObject()
+                           calculations <<- myConnecter$gatherVantData()
+                           vals <<- reactiveValues(
+                             keeprows = rep(TRUE, nrow(calculations)))
                          }
   )
   #Outputs the post-processed data frame
   output$Table <- renderTable({
     return(values$masterFrame)})
   
-  #Hides "Plots" drop-down hidden until file successfully uploads
+  #Hides "Analysis" and "Results tabs until file successfully uploads
   observeEvent(
     eventExpr = is.null(values$numReadings),
     handlerExpr = {
       hideTab(inputId = "navbar",target = "Analysis")
+      hideTab(inputId = "navbar",target = "Results")
     }
   )
   
@@ -70,7 +75,7 @@ server <- function(input,output, session){
   observe({
     req(values$numReadings)
     lapply(start:values$numReadings,function(i){
-      if(i != blank){
+      if (i != blank) {
         data = values$masterFrame[values$masterFrame$Sample == i,]
         xmin = round(min(data$Temperature),1)
         xmax = round(max(data$Temperature),1)
@@ -129,13 +134,14 @@ server <- function(input,output, session){
     })
     start <<- values$numReadings + 1
     showTab(inputId = "navbar",target = "Analysis")
+    showTab(inputId = "navbar",target = "Results")
   })
   
   #Dynamically creates a renderPlot object of each absorbance readings
   observe({
     req(input$inputFile)
     for (i in 1:values$numReadings) {
-      if(i != blank){
+      if (i != blank) {
         local({
           myI <- i 
           plotDerivative = paste0("plotDerivative",myI)
@@ -172,81 +178,38 @@ server <- function(input,output, session){
     }
   })
   
-  #Dynamically renders & outputs the created plots
-  #Dynamically renders & outputs inputSliders for each plot
-  #Output Structure: two plots & sliders per column
-  output$dataVisualContents <- renderUI({
-    req(input$inputFile)
-    lapply(1:values$numReadings, function(i){
-      plotSlider <- paste0("plotSlider",i)
-      plotName <- paste0("plot",i)
-      nextPlot <- paste0("plot",i + 1)
-      nextSlider = paste0("plotSlider",i + 1)
-      data <- values$masterFrame[values$masterFrame$Sample == i,]
-      xmin <- min(data$Temperature)
-      xmax <- max(data$Temperature)
-      #even # of plots
-      if (values$numReadings %% 2 == 0) {
-        if (i %% 2 != 0) {
-          div(
-            fluidRow(
-              column(6,plotOutput(plotName)),
-              column(6,plotOutput(nextPlot))
-            ),
-            fluidRow(
-              column(6,sliderInput(plotSlider,glue("Plot{i}: Range of values"),min = xmin,max = xmax,value = c(xmin,xmax))),
-              column(6,sliderInput(nextSlider,glue("Plot{i + 1}: Range of values"),min = xmin,max = xmax,value = c(xmin,xmax))),
-            ),
-            hr()
-          )
-        }
-        #odd # of plots
-      }else{
-        if (i == values$numReadings) {
-          tagList(
-            plotOutput(plotName),
-            sliderInput(plotSlider,glue("Plot{i}: Range of values"),min = xmin,max = xmax,value = c(xmin,xmax))
-          )
-        }else {
-          if (i %% 2 != 0) {
-            div(
-              fluidRow(
-                column(6,plotOutput(plotName)),
-                column(6,plotOutput(nextPlot))
-              ),
-              fluidRow(
-                column(6,sliderInput(plotSlider,glue("Plot{i}: Range of values"),min = xmin,max = xmax,value = c(xmin,xmax))),
-                column(6,sliderInput(nextSlider,glue("Plot{i+1}: Range of values"),min = xmin,max = xmax,value = c(xmin,xmax)))
-              ),
-              hr()
-            )
-          }
-        }
-      }
-    })
-  })
-  
-  #Dynamically output # of check boxes
-  output$checkboxes <- renderUI({
-    req(input$inputFile)
-    boxOutput <- lapply(1:values$numReadings, function(i){
-      plotName <- paste0("plot",i)
-      plotBox <- paste0("plotBox",i)
-      checkboxInput(plotBox,plotName,value = TRUE)
-    })
-    do.call(tagList,boxOutput)
-  })
-  
   #code that plots a van't hoff plot
   output$vantplots <- renderPlot({
-    caluclations <- myConnecter$gatherVantData()
-    InverseTemp <- caluclations$invT
-    LnConcentraion <- caluclations$lnCt
-    plot(LnConcentraion,InverseTemp)
+    #Plot the kept and excluded points as two seperate data sets
+    keep    <- calculations[ vals$keeprows, , drop = FALSE]
+    exclude <- calculations[!vals$keeprows, , drop = FALSE]
+    
+    ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
+      geom_smooth(method = lm, fullrange = TRUE, color = "black") +
+      geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25)
     
   }, res = 100)
   
-  #Code that outputs the results tables
+  # Toggle points that are clicked
+  observeEvent(input$vantClick, {
+    res <- nearPoints(calculations, input$vantClick, allRows = TRUE)
+    
+    vals$keeprows <- xor(vals$keeprows, res$selected_)
+  })
+  
+  # Toggle points that are brushed, when button is clicked
+  observeEvent(input$exclude_toggle, {
+    res <- brushedPoints(calculations, input$vantBrush, allRows = TRUE)
+    
+    vals$keeprows <- xor(vals$keeprows, res$selected_)
+  })
+  
+  # Reset all points
+  observeEvent(input$exclude_reset, {
+    vals$keeprows <- rep(TRUE, nrow(calculations))
+  })
+  
+  #Code that outputs the results table
   
   output$resulttable <- renderTable({
     data <-myConnecter$fitData()
@@ -264,8 +227,6 @@ server <- function(input,output, session){
     data <-myConnecter$error()
     return(data)
   })
-  
-  #save the vant hoff plot
   output$downloadReport <- downloadHandler(
     filename = function(){paste(input$dataset, '.pdf', sep = '')},
     
@@ -275,16 +236,9 @@ server <- function(input,output, session){
       caluclations <- myConnecter$gatherVantData()
       InverseTemp <- caluclations$invT
       LnConcentraion <- caluclations$lnCt
-      # plot.new()
-      # grid.table(myConnecter$summaryData1())
-      # plot.new()
-      # grid.table(myConnecter$summaryData2())
-      # plot.new()
-      # grid.table(myConnecter$error())
       plot(LnConcentraion,InverseTemp)
       dev.off()
     },
-    
     contentType = "application/pdf"
   )
   #save the data tables
@@ -302,26 +256,4 @@ server <- function(input,output, session){
                  sheetName = "error", append = TRUE)
     }
   )
-  #   name <<- input$saveFile,
-  #   filename = function() {
-  #     paste(name, sep = '.', "pdf")
-  #   },
-  #   content = function(file) {
-  #     src <- normalizePath('report.Rmd')
-  #     
-  #     # temporarily switch to the temp dir, in case you do not have write
-  #     # permission to the current working directory
-  #     owd <- setwd(tempdir())
-  #     on.exit(setwd(owd))
-  #     file.copy(src, 'report.Rmd', overwrite = TRUE)
-  #     
-  #     library(rmarkdown)
-  #     out <- render('report.Rmd',pdf_document())
-  #     file.rename(out, file)
-  #   }
-  # )
 }
-
-
-# Run the app
-#shinyApp(ui = ui, server = server)

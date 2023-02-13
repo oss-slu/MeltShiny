@@ -1,11 +1,3 @@
-library(dplyr, warn.conflicts = FALSE)
-library(ggplot2)
-library(glue)
-library(methods)
-library(MeltR)
-library(shiny)
-library(xlsx)
-
 # The UI consists of a navbar page, with a single drop down menu, "File" , which contains a single option "Add data".
 
 ui <- navbarPage(title = "MeltShiny",id = "navbar",
@@ -32,6 +24,12 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                                        "Select the molecular state.(Please note that your selection will apply to all samples, beyond just the ones in the current dataset.)", 
                                                        choices = c("Heteroduplex", "Homoduplex","Monomolecular"), 
                                                        selected = "Heteroduplex"),
+                                           selectInput("wavelength", 
+                                                       "Select the wavelength. (Note that thermodynamic parameters can only
+                                                                                 be collected for DNA at 260 nm.)", 
+                                                       choices = c("260", "300","295","290","285","280","275","270",
+                                                                   "265","260","255","250","245","240","235","230"), 
+                                                       selected = "260"),
                                            fileInput(label = "Select the dataset file.",                                        
                                                      inputId = "inputFile",
                                                      multiple = FALSE,
@@ -44,49 +42,31 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                      )
                             )
                  ),
-                 navbarMenu("Help",
-                            tabPanel("Absorbance in MeltR", 
-                                     fluidPage(
-                                       sidebarLayout(
-                                         sidebarPanel(
-                                         ),
-                                         mainPanel(
-                                           #tableOutput("Console")
-                                         )
-                                       )
-                                     )
-                            ),
-                 ),tabPanel("Analysis",
-                            tabsetPanel(id = "tabs")),
-                 tabPanel("Data Visualization",
-                          sidebarLayout(
-                            sidebarPanel(
-                              width = 3,
-                              h2(align = "center","Data Visualization"),
-                              strong("Check Which Plots to View"),
-                              uiOutput("checkboxes"),
-                              actionButton("automate","Automate Fitting Data")
-                            ),mainPanel(
-                              uiOutput("dataVisualContents"),
-                            )
-                          )
-                 ),
+                 tabPanel("Analysis",
+                          tabsetPanel(id = "tabs")),
                  navbarMenu("Results",
                             tabPanel("Vant Hoff Plots", 
                                      fluidPage(
                                        sidebarLayout(
-                                         sidebarPanel(
-                                           "Create a downloadable pdf of the Vant Hoff plot",
-                                           # textInput(label = "Enter the file name",
-                                           #           inputId = "saveFile"),
-                                           # radioButtons('format', 'Document format', c('PDF'),
-                                           #              inline = TRUE),
-                                           downloadButton('downloadReport')
+                                         sidebarPanel("Options:",
+                                                      actionButton("exclude_toggle", "Toggle points"),
+                                                      actionButton("exclude_reset","Reset"),
+                                                      "Create a downloadable pdf of the Vant Hoff plot",
+                                                      # textInput(label = "Enter the file name",
+                                                      #           inputId = "saveFile"),
+                                                      # radioButtons('format', 'Document format', c('PDF'),
+                                                      #              inline = TRUE),
+                                                      downloadButton('downloadReport')
                                          ),
-                                       mainPanel(
-                                         plotOutput("vantplots"),
-                                       ),
-                                     )
+                                         mainPanel(
+                                           plotOutput("vantplots",
+                                                      click = "vantClick",
+                                                      brush = brushOpts(
+                                                        id = "vantBrush"
+                                                      )
+                                           )
+                                         )
+                                       )
                                      )
                             ),
                             tabPanel("Results Table", 
@@ -113,5 +93,19 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                        )
                                      )
                             )
+                            # navbarMenu("Help",
+                            #            tabPanel("Absorbance in MeltR", 
+                            #                     fluidPage(
+                            #                       sidebarLayout(
+                            #                         sidebarPanel(
+                            #                         ),
+                            #                         mainPanel(
+                            #                           #tableOutput("Console")
+                            #                         )
+                            #                       )
+                            #                     )
+                            #            ),
+                            # )
                  )
-) 
+)
+
