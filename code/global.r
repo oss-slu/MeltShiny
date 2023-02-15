@@ -27,9 +27,9 @@ connecter <- setRefClass(Class = "connecter",
                              upper = 4000 #Static number to shrink data to scale
                              .self$fdData <- .self$object$Derivatives.data
                              .self$fdData <- cbind(.self$fdData,
-                                            as.data.frame(
-                                              .self$fdData$dA.dT/(.self$fdData$Pathlength*.self$fdData$Ct)/upper
-                                              ))
+                                                   as.data.frame(
+                                                     .self$fdData$dA.dT/(.self$fdData$Pathlength*.self$fdData$Ct)/upper
+                                                   ))
                              names(.self$fdData)[ncol(.self$fdData)] <- "yPlot"
                            },
                            #Constructs a plot containing the raw data
@@ -75,7 +75,7 @@ connecter <- setRefClass(Class = "connecter",
                              return(data)
                            },
                            #returns the individual fit table data
-                            fitData = function(){
+                           fitData = function(){
                              #sample = .self$object$Method.1.indvfits$Sample
                              #ct = .self$object$Method.1.indvfits$Ct
                              #h = .self$object$Method.1.indvfits$H
@@ -85,7 +85,7 @@ connecter <- setRefClass(Class = "connecter",
                              #indvCurves = data.frame(sample, ct,h,g,tm)
                              indvCurves=.self$object$Method.1.indvfits 
                              return(indvCurves)
-                            },
+                           },
                            summaryData1 = function(){
                              summaryData=.self$object$Summary
                              #indvidualfits = summaryData[1,]
@@ -106,4 +106,3 @@ connecter <- setRefClass(Class = "connecter",
                            }
                          )
 )
-

@@ -1,10 +1,3 @@
-library(dplyr, warn.conflicts = FALSE)
-library(ggplot2)
-library(glue)
-library(methods)
-library(MeltR)
-library(shiny)
-
 # The UI consists of a navbar page, with a single drop down menu, "File" , which contains a single option "Add data".
 
 ui <- navbarPage(title = "MeltShiny",id = "navbar",
@@ -50,15 +43,32 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                             )
                  ),
                  tabPanel("Analysis",
-                            tabsetPanel(id = "tabs")),
+                          tabsetPanel(id = "tabs")),
                  navbarMenu("Results",
                             tabPanel("Vant Hoff Plots", 
                                      fluidPage(
+                                       sidebarLayout(
+                                         sidebarPanel("Options:",
+                                                      actionButton("exclude_toggle", "Toggle points"),
+                                                      actionButton("exclude_reset","Reset"),
+                                                      "Create a downloadable pdf of the Vant Hoff plot",
+                                                      # textInput(label = "Enter the file name",
+                                                      #           inputId = "saveFile"),
+                                                      # radioButtons('format', 'Document format', c('PDF'),
+                                                      #              inline = TRUE),
+                                                      downloadButton('downloadReport')
+                                         ),
                                          mainPanel(
-                                           plotOutput("vantplots"),
+                                           plotOutput("vantplots",
+                                                      click = "vantClick",
+                                                      brush = brushOpts(
+                                                        id = "vantBrush"
+                                                      )
+                                           )
                                          )
                                        )
-                                     ),
+                                     )
+                            ),
                             tabPanel("Results Table", 
                                      fluidPage(
                                        mainPanel(
@@ -69,21 +79,33 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                                          tableOutput("summarytable2"),
                                          "Error",
                                          tableOutput("error")
+                                       ),
+                                       sidebarLayout(
+                                         sidebarPanel(
+                                           "Download Excel Workbook with Multiple Sheets for the tables",
+                                           textInput(label = "Enter the file name",
+                                                     inputId = "saveFile"),
+                                           downloadButton("downloadExcelSheet"),
+                                         ),
+                                         mainPanel(
+                                           plotOutput('regPlot')
+                                         )
                                        )
                                      )
                             )
-                 # navbarMenu("Help",
-                 #            tabPanel("Absorbance in MeltR", 
-                 #                     fluidPage(
-                 #                       sidebarLayout(
-                 #                         sidebarPanel(
-                 #                         ),
-                 #                         mainPanel(
-                 #                           #tableOutput("Console")
-                 #                         )
-                 #                       )
-                 #                     )
-                 #            ),
-                 # )
+                            # navbarMenu("Help",
+                            #            tabPanel("Absorbance in MeltR", 
+                            #                     fluidPage(
+                            #                       sidebarLayout(
+                            #                         sidebarPanel(
+                            #                         ),
+                            #                         mainPanel(
+                            #                           #tableOutput("Console")
+                            #                         )
+                            #                       )
+                            #                     )
+                            #            ),
+                            # )
                  )
 )
+
