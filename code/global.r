@@ -69,6 +69,26 @@ connecter <- setRefClass(Class = "connecter",
                                geom_point(data1, mapping = aes(x = Temperature, y = (dA.dT/(Pathlength*Ct))/upper+min(Absorbance)), color = "blue") + #first derivative
                                theme_classic()
                            },
+                           #returns the x value associated with the maximum y-value for the first derivative
+                           getFirstDerivativeMax = function(sampleNum) {
+                             data = .self$fdData[.self$fdData == sampleNum,]
+                             maxRowIndex = which.max(data[["yPlot"]])
+                             xVal = data[maxRowIndex,3]
+                             return(xVal)
+                           },
+                           #returns the start & end ranges for each respective slider
+                           getSliderBounds = function(sampleNum,maximum) {
+                             data = .self$fdData[.self$fdData == sampleNum,]
+                             minTemp = round(min(data$Temperature),4)
+                             maxTemp = round(max(data$Temperature),4)
+                             if (minTemp < maximum-20){
+                               minTemp = maximum - 20
+                             }
+                             if (maxTemp > maximum+20){
+                               maxTemp = maximum + 20
+                             }
+                             return(list(minTemp,maxTemp))
+                           },
                            #returns the data needed to create the vant hoff plot
                            gatherVantData = function(){
                              data = .self$object$Method.2.data
