@@ -77,8 +77,10 @@ server <- function(input,output, session){
     lapply(start:values$numReadings,function(i){
       if (i != blank) {
         data = values$masterFrame[values$masterFrame$Sample == i,]
-        xmin = round(min(data$Temperature),1)
-        xmax = round(max(data$Temperature),1)
+        n = myConnecter$getFirstDerivativeMax(i)
+        bounds = myConnecter$getSliderBounds(i,n)
+        xmin = round(min(data$Temperature),4)
+        xmax = round(max(data$Temperature),4)
         #output elements
         plotBoth = paste0("plotBoth",i)
         plotBestFit = paste0("plotBestFit",i)
@@ -99,7 +101,15 @@ server <- function(input,output, session){
                           #side-panel code
                           h2("Features"),
                           checkboxInput(inputId = bestFit,label = "Best Fit"),
-                          checkboxInput(inputId = firstDerivative,label = "First Derivative")
+                          checkboxInput(inputId = firstDerivative,label = "First Derivative"),
+                          conditionalPanel(
+                            condition = glue("{xmin} == {bounds[[1]][1]}"),
+                            p("Warning: Lower bound exceeds minimum x-value of data. Positioning lower-end bar as the minimum value of the data")
+                          ),
+                          conditionalPanel(
+                            condition = glue("{xmax} == {bounds[[2]][1]}"),
+                            p("Warning: Upper bound exceeds maximum x-value of data. Positioning uupper-end bar as the maximum value of the data",color="Red")
+                          )
                         ),mainPanel(
                           #main-panel code
                           conditionalPanel(
@@ -122,7 +132,7 @@ server <- function(input,output, session){
                                       glue("Plot{i}: Range of values"),
                                       min = xmin,
                                       max = xmax,
-                                      value = c(xmin,xmax),
+                                      value = c(bounds[[1]][1],bounds[[2]][1]),
                                       round = TRUE,
                                       step = .10,
                                       width = "85%")
