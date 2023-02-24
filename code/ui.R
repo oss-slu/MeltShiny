@@ -44,6 +44,13 @@ ui <- navbarPage(title = "MeltShiny",id = "navbar",
                  ),
                  tabPanel("Analysis",
                           tabsetPanel(id = "tabs")),
+                 tabPanel("Fit",
+                          tabsetPanel(
+                            type = "tabs",
+                            tabPanel("Manual"),
+                            tabPanel("Automatic")
+                          )),
+        
                  navbarMenu("Results",
                             tabPanel("Vant Hoff Plots", 
                                      fluidPage(
