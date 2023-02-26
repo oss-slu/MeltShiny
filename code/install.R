@@ -5,9 +5,10 @@ requiredPackages <- c("dplyr",
                       "remotes",
                       "methods",
                       "MeltR",
-                      "shiny")
+                      "shiny",
+                      "shinyjs")
 
-#installs package if not found on the system
+# Install packages if not found on the system.
 installPackages <- function(packages) {
   for (p in packages) {
     if (!(p %in% rownames(installed.packages()))) {
@@ -20,7 +21,7 @@ installPackages <- function(packages) {
   }
 }
 
-#checks the installation state of each required package
+# Check the installation state of each required package.
 checkPackages <- function(packages) {
   for (p in packages) {
     if (p %in% rownames(installed.packages())) {
