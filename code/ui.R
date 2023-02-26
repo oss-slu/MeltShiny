@@ -1,118 +1,113 @@
-# The UI consists of a navbar page, with a single drop down menu, "File" , which contains a single option "Add data".
-
-ui <- navbarPage(title = "MeltShiny",id = "navbar",
-                 navbarMenu("File",
-                            # When the user clicks the "Add Data" tab panel, a fluid page is created below the nav bar.
-                            # This page contains a side bar panel and a main panel.
-                            # The side bar contains the given options a user has when they click one of the options in the nav bar.
-                            # The main panel contains the graphs or tables.
-                            tabPanel("Add Data", 
+ui <- navbarPage(title = "MeltShiny",
+                 id = "navbarPageID",
+                 navbarMenu(title = "File",
+                            tabPanel(title = "Add Data", 
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(
-                                           textInput(label = "Enter the blank sample for the dataset",
+                                           useShinyjs(),
+                                           textInput(label = "Enter the blank sample.",
                                                      placeholder = "E.g: 1",
                                                      value = 1,
-                                                     inputId = "blankSample"),
-                                           textInput(label = "Enter the Pathlength for each absorbance reading. (Note, they should be separated by commas and have no spaces inbetween.)",
-                                                     placeholder = "E.g: 2,5,3,2,...",
-                                                     inputId = "pathlengths"),
-                                           textInput(label = "Enter the sequence information in the following order: Nucleic Acid, A sequence, and its complement)",
+                                                     inputId = "blankSampleID"
+                                                     ),
+                                           checkboxInput(label = "Show blank during analysis step",
+                                                         value = FALSE,
+                                                         inputId = "includeBlanksID"
+                                                         ),
+                                           textInput(label = "Enter the pathlength for each sample. (Note, these values should be separated by commas
+                                                     and have no spaces in between them.) If there are no blanks, enter the word none.",
+                                                     placeholder = "E.g: 2,5,3,2",
+                                                     inputId = "pathlengthID"
+                                                     ),
+                                           textInput(label = "Enter the sequence information in the following order: a nucleic acid, a sequence, and, if applicable, its complement).
+                                                              (Note, these values should be seperated by commas and have no spaces in between them.)",
                                                      placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
-                                                     inputId = "helixInput"),
-                                           selectInput("molState", 
-                                                       "Select the molecular state.(Please note that your selection will apply to all samples, beyond just the ones in the current dataset.)", 
-                                                       choices = c("Heteroduplex", "Homoduplex","Monomolecular"), 
-                                                       selected = "Heteroduplex"),
-                                           selectInput("wavelength", 
-                                                       "Select the wavelength. (Note that thermodynamic parameters can only
-                                                                                 be collected for DNA at 260 nm.)", 
-                                                       choices = c("260", "300","295","290","285","280","275","270",
-                                                                   "265","260","255","250","245","240","235","230"), 
-                                                       selected = "260"),
-                                           fileInput(label = "Select the dataset file.",                                        
-                                                     inputId = "inputFile",
+                                                     inputId = "helixID"
+                                                     ),
+                                           selectInput(label = "Select the molecular state.", 
+                                                       choices = c("Heteroduplex","Homoduplex","Monomolecular"), 
+                                                       selected = "Heteroduplex",
+                                                       inputId = "molecularStateID"
+                                                       ),
+                                           selectInput(label = "Select the wavelengthID. (Note, thermodynamic parameters can only be collected for DNA at 260 nm.)", 
+                                                       choices = c("300","295","290","285","280","275","270","265","260","255","250","245","240","235","230"), 
+                                                       selected = "260",
+                                                       inputId = "wavelengthID", 
+                                                       ),
+                                           fileInput(label = "Select the file containing the dataset.",
                                                      multiple = FALSE,
-                                                     accept = ".csv")
-                                         ),
-                                         mainPanel(
-                                           tableOutput("Table")
+                                                     accept = ".csv",
+                                                     inputId = "inputFileID",
+                                                     )
+                                           ),
+                                         mainPanel(tableOutput(outputId = "table"))
                                          )
                                        )
                                      )
-                            )
-                 ),
-                 tabPanel("Analysis",
-                          tabsetPanel(id = "tabs")),
-                 tabPanel("Fit",
-                          tabsetPanel(
-                            type = "tabs",
-                            tabPanel("Manual"),
-                            tabPanel("Automatic")
-                          )),
-        
-                 navbarMenu("Results",
-                            tabPanel("Vant Hoff Plots", 
+                            ),
+                 navbarMenu(title = "Analysis",
+                            tabPanel(title = "Graphs",
+                                     tabsetPanel(id = "tabs")
+                                     ),
+                            tabPanel(title = "Fit",
+                                     tabsetPanel(type = "tabs",
+                                                 tabPanel("Manual"),
+                                                 tabPanel("Automatic")
+                                                 )
+                                     )
+                            ),
+                 navbarMenu(title = "Results",
+                            tabPanel(title = "Van't Hoff Plot", 
                                      fluidPage(
                                        sidebarLayout(
-                                         sidebarPanel("Options:",
-                                                      actionButton("exclude_toggle", "Toggle points"),
-                                                      actionButton("exclude_reset","Reset"),
-                                                      "Create a downloadable pdf of the Vant Hoff plot",
-                                                      # textInput(label = "Enter the file name",
-                                                      #           inputId = "saveFile"),
-                                                      # radioButtons('format', 'Document format', c('PDF'),
-                                                      #              inline = TRUE),
-                                                      downloadButton('downloadReport')
+                                         sidebarPanel(h4("Options:"),
+                                                      h5("To remove more than one point at once, 
+                                                         click and drag a selection box over the region
+                                                         and press the button below."),
+                                                      actionButton(inputId = "removeBrushedID", 
+                                                                   label = "Remove brushed"
+                                                                   ),
+                                                      h5("To reset the plot, press the button below."),
+                                                      actionButton(inputId = "resetVantID",
+                                                                   label = "Reset plot"
+                                                                   ),
+                                                      h5("To download a pdf version of the Van't Hoff plot, use the widget below."),
+                                                      textInput(label = "Enter the file name.",
+                                                                inputId = "saveVantID"
+                                                                ),
+                                                      downloadButton(outputId = 'downloadVantID')
                                          ),
                                          mainPanel(
-                                           plotOutput("vantplots",
+                                           plotOutput(outputId = "vantPlot",
                                                       click = "vantClick",
-                                                      brush = brushOpts(
-                                                        id = "vantBrush"
+                                                      brush = brushOpts(id = "vantBrush")
                                                       )
+                                           )
+                                         )
+                                       )
+                                     ),
+                            tabPanel(title = "Table", 
+                                     fluidPage(
+                                       sidebarLayout(
+                                         sidebarPanel(h5("Download the table as an Excel file, with each of the three components on seperate sheets."),
+                                                      textInput(label = "Enter the file name.",
+                                                                inputId = "saveTableID"
+                                                                ),
+                                                      downloadButton(outputId = "downloadTableID")
+                                         ),
+                                         mainPanel(
+                                           h5("Results for Individual Fits:"),
+                                           tableOutput(outputId = "resulttable"),
+                                           h5("Summary of the Three Methods:"),
+                                           tableOutput(outputId = "summarytable"),
+                                           tableOutput(outputId = "summarytable2"),
+                                           h5("Percent Error Between Methods:"),
+                                           tableOutput(outputId = "error")
                                            )
                                          )
                                        )
                                      )
                             ),
-                            tabPanel("Results Table", 
-                                     fluidPage(
-                                       mainPanel(
-                                         "Individual fits",
-                                         tableOutput("resulttable"),
-                                         "Summary Tables",
-                                         tableOutput("summarytable"),
-                                         tableOutput("summarytable2"),
-                                         "Error",
-                                         tableOutput("error")
-                                       ),
-                                       sidebarLayout(
-                                         sidebarPanel(
-                                           "Download Excel Workbook with Multiple Sheets for the tables",
-                                           textInput(label = "Enter the file name",
-                                                     inputId = "saveFile"),
-                                           downloadButton("downloadExcelSheet"),
-                                         ),
-                                         mainPanel(
-                                           plotOutput('regPlot')
-                                         )
-                                       )
-                                     )
-                            )
-                            # navbarMenu("Help",
-                            #            tabPanel("Absorbance in MeltR", 
-                            #                     fluidPage(
-                            #                       sidebarLayout(
-                            #                         sidebarPanel(
-                            #                         ),
-                            #                         mainPanel(
-                            #                           #tableOutput("Console")
-                            #                         )
-                            #                       )
-                            #                     )
-                            #            ),
-                            # )
+                 tabPanel(title = "Help")
                  )
-)
-
