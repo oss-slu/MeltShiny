@@ -39,31 +39,19 @@ connecter <- setRefClass(Class = "connecter",
                           #Construct a plot containing the raw data
                            constructRawPlot = function(sampleNum){
                              data = df[df$Sample == sampleNum,]
-                             
-                             d <- event_data("plotly_relayout", source = "trajectory")
-                             
-                             selected_point <- if (!is.null(d[["shapes[0].x0"]])) {
-                               xint <- d[["shapes[0].x0"]]
-                               xpt <- data$Temperature[which.min(abs(data$Temperature - xint))]
-                               list(x = xpt, y = data$Absorbance[which.min(abs(data$Temperature - xint))])
-                             } else {
-                               list(x = min(data$Temperature), y = data$Absorbance[which(data$Temperature == min(data$Temperature))])
-                             }
-                             
                              plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
                                layout(showlegend = FALSE) %>%
                                layout(
                                  shapes = list(
-                                   type = "line",
-                                   line = list(color = "gray"),
-                                   x0 = 1,
-                                   x1 = 1,
-                                   y0 = 0,
-                                   y1 = 1,
-                                   yref = "paper"
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 40,x1 = 40,y0 = 0,y1 = 1,yref = "paper"),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 60,x1 = 60,y0 = 0,y1 = 1,yref = "paper")
                                    )
-                                 ) %>%
-                               config(editable = TRUE, displayModeBar = FALSE)
+                                 ) %>% 
+                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
+                               layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
+                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
+                             
+                             newData <- event_data("plotly_relayout")
                              },
                            
                            # Construct a plot of the first derivative and the raw data
@@ -72,8 +60,16 @@ connecter <- setRefClass(Class = "connecter",
                              plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
                                add_markers(x = data$Temperature, y = data$yPlot+min(data$Absorbance), color = "blue") %>%
                                add_markers(x = data$Temperature[which.max(data$yPlot)],y = max(data$yPlot)+min(data$Absorbance), color = "red") %>%
+                               layout(
+                                 shapes = list(
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 0,x1 = 0,y0 = 0,y1 = 1,yref = "paper"),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 4,x1 = 4,y0 = 0,y1 = 1,yref = "paper")
+                                 )
+                               ) %>%
                                layout(showlegend = FALSE) %>%
-                               config(editable = TRUE, displayModeBar = FALSE)
+                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
+                               layout(yaxis=list(fixedrange=TRUE, title = "Absorbance")) %>%
+                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
                              },
                            
                            # Construct a plot of the best fit and the raw data
@@ -82,8 +78,16 @@ connecter <- setRefClass(Class = "connecter",
                              data = data[data$Sample == sampleNum,]
                              plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
                                add_lines(x = data$Temperature,y = data$Model, color = "red") %>%
+                               layout(
+                                 shapes = list(
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 0,x1 = 0,y0 = 0,y1 = 1,yref = "paper"),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 4,x1 = 4,y0 = 0,y1 = 1,yref = "paper")
+                                 )
+                               ) %>%
                                layout(showlegend = FALSE) %>%
-                               config(editable = TRUE, displayModeBar = FALSE)
+                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
+                               layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
+                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
                              },
                            
                            # Construct a plot of the best fit, first derivative, and the raw data
@@ -95,8 +99,16 @@ connecter <- setRefClass(Class = "connecter",
                              plot_ly(data2, x = data2$Temperature, y = data2$Absorbance, type = "scatter", mode = "markers") %>%
                                add_lines(x = data2$Temperature, y = data2$Model, color = "red") %>%
                                add_markers(x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), color = "blue") %>%
+                               layout(
+                                 shapes = list(
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 0,x1 = 0,y0 = 0,y1 = 1,yref = "paper"),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 4,x1 = 4,y0 = 0,y1 = 1,yref = "paper")
+                                 )
+                               ) %>%
                                layout(showlegend = FALSE) %>%
-                               config(editable = TRUE, displayModeBar = FALSE)
+                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
+                               layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
+                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
                              },
                            
                            # Return the data needed to create the Van't Hoff plot

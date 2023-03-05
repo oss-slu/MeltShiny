@@ -1,3 +1,12 @@
+library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
+library(glue)
+library(methods)
+library(MeltR)
+library(shiny)
+library(shinyjs)
+library(plotly)
+library(openxlsx)
 server <- function(input,output, session){
   
   # Create a reactive value which can hold the growing dataset.
@@ -162,7 +171,7 @@ server <- function(input,output, session){
             myConnecter$constructFirstDerivative(myI)
             })
           
-           #Plot containing best fit with raw data
+          # Plot containing best fit with raw data
           output[[plotBestFit]] <- renderPlotly({
             myConnecter$constructBestFit(myI)
           })
