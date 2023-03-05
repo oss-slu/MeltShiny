@@ -98,17 +98,11 @@ server <- function(input,output, session){
            function(i){
              if (i != blank) {
                data = values$masterFrame[values$masterFrame$Sample == i,]
-               n = myConnecter$getFirstDerivativeMax(i)
-               bounds = myConnecter$getSliderBounds(i,n)
-               xmin = round(min(data$Temperature),4)
-               xmax = round(max(data$Temperature),4)
                plotBoth = paste0("plotBoth",i)
                plotBestFit = paste0("plotBestFit",i)
-               plotFit = paste0("plotFit",i)
                plotName = paste0("plot",i)
                plotSlider <- paste0("plotSlider",i)
                plotDerivative = paste0("plotDerivative",i)
-               #Check box and tab Panel variables
                firstDerivative = paste0("firstDerivative",i)
                bestFit = paste0("bestFit",i)
                tabName = paste("Sample",i,sep = " ")
@@ -120,34 +114,20 @@ server <- function(input,output, session){
                                               h4("Options:"),
                                               checkboxInput(inputId = bestFit,label = "Best Fit"),
                                               checkboxInput(inputId = firstDerivative,label = "First Derivative"),
-                                              conditionalPanel(condition = glue("{xmin} == {bounds[[1]][1]}"),
-                                                               p("Warning: Lower bound exceeds minimum x-value of data. Positioning lower-end bar as the minimum value of the data")
-                                                               ),
-                                              conditionalPanel(condition = glue("{xmax} == {bounds[[2]][1]}"),
-                                                               p("Warning: Upper bound exceeds maximum x-value of data. 
-                                                                 Positioning uupper-end bar as the maximum value of the data",color="Red"))
                                               ),
                                             mainPanel(
                                               conditionalPanel(condition = glue("!input.{firstDerivative} && !input.{bestFit}"),
-                                                               plotOutput(plotName)
+                                                               plotlyOutput(plotName)
                                                                ),
                                               conditionalPanel(condition = glue("input.{firstDerivative} && !input.{bestFit}"),
-                                                               plotOutput(plotDerivative)
+                                                               plotlyOutput(plotDerivative)
                                                                ),
                                               conditionalPanel(condition = glue("input.{bestFit} && !input.{firstDerivative}"),
-                                                               plotOutput(plotBestFit)
+                                                               plotlyOutput(plotBestFit)
                                                                ),
                                               conditionalPanel(condition = glue("input.{firstDerivative} && input.{bestFit}"),
-                                                               plotOutput(plotBoth)
+                                                               plotlyOutput(plotBoth)
                                                                ),
-                                              sliderInput(plotSlider,
-                                                          glue("Plot{i}: Range of values"),
-                                                          min = xmin,
-                                                          max = xmax,
-                                                          value = c(bounds[[1]][1],bounds[[2]][1]),
-                                                          round = TRUE,
-                                                          step = .10,
-                                                          width = "85%")
                                               )
                                             )
                                           )
@@ -171,30 +151,25 @@ server <- function(input,output, session){
           plotBestFit = paste0("plotBestFit",myI)
           plotBoth = paste0("plotBoth",myI)
           plotName = paste0("plot",myI)
-          plotSlider = paste0("plotSlider",myI)
+          
           # Plot containing raw data
-          output[[plotName]] <- renderPlot({
-            myConnecter$constructRawPlot(myI) +
-              geom_vline(xintercept = input[[plotSlider]][1]) +
-              geom_vline(xintercept = input[[plotSlider]][2])
+          output[[plotName]] <- renderPlotly({
+            myConnecter$constructRawPlot(myI)
             })
+          
           # Plot containing first derivative with raw data
-          output[[plotDerivative]] <- renderPlot({
-            myConnecter$constructFirstDerivative(myI) +
-              geom_vline(xintercept = input[[plotSlider]][1]) +
-              geom_vline(xintercept = input[[plotSlider]][2])
+          output[[plotDerivative]] <- renderPlotly({
+            myConnecter$constructFirstDerivative(myI)
             })
-          # Plot containing best fit with raw data
-          output[[plotBestFit]] <- renderPlot({
-            myConnecter$constructBestFit(myI) + 
-              geom_vline(xintercept = input[[plotSlider]][1]) +
-              geom_vline(xintercept = input[[plotSlider]][2])
+          
+           #Plot containing best fit with raw data
+          output[[plotBestFit]] <- renderPlotly({
+            myConnecter$constructBestFit(myI)
           })
+          
           # Plot containing best, first derivative, and raw data
-          output[[plotBoth]] <- renderPlot({
-            myConnecter$constructBoth(myI) + 
-              geom_vline(xintercept = input[[plotSlider]][1]) +
-              geom_vline(xintercept = input[[plotSlider]][2])
+          output[[plotBoth]] <- renderPlotly({
+            myConnecter$constructBoth(myI)
             })
           })
         }
