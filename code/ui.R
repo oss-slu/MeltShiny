@@ -41,7 +41,8 @@ ui <- navbarPage(title = "MeltShiny",
                                                      inputId = "inputFileID",
                                                      )
                                            ),
-                                         mainPanel(tableOutput(outputId = "table"))
+                                         #mainPanel(tableOutput(outputId = "table"))
+                                         mainPanel(DT::dataTableOutput(outputId = "table"))
                                          )
                                        )
                                      )
@@ -52,8 +53,8 @@ ui <- navbarPage(title = "MeltShiny",
                                      ),
                             tabPanel(title = "Fit",
                                      tabsetPanel(type = "tabs",
-                                                 tabPanel("Manual"),
-                                                 tabPanel("Automatic")
+                                                 tabPanel(title = "Manual"),
+                                                 tabPanel(title = "Automatic")
                                                  )
                                      )
                             ),

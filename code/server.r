@@ -1,12 +1,3 @@
-library(dplyr, warn.conflicts = FALSE)
-library(ggplot2)
-library(glue)
-library(methods)
-library(MeltR)
-library(shiny)
-library(shinyjs)
-library(plotly)
-library(openxlsx)
 server <- function(input,output, session){
   
   # Create a reactive value which can hold the growing dataset.
@@ -89,7 +80,8 @@ server <- function(input,output, session){
                          )
   
   # Output the post-processed data frame, which contains all the appended datasets.
-  output$table <- renderTable({return(values$masterFrame)})
+  #output$table <- renderTable({return(values$masterFrame)})
+  output$table = DT::renderDataTable({return(values$masterFrame)})
   
   # Hide "Analysis" and "Results tabs until a file is successfully uploaded
   observeEvent(eventExpr = is.null(values$numReadings),
