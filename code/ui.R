@@ -125,13 +125,13 @@ ui <- navbarPage(title = "MeltShiny",
                               HTML("<li>The file should be in a format of column for temperature, blank column, then the columns for absorbance each followed by a blank column.</li>"), 
                               HTML("<li>No headers are necessary on the input file.</li>"),
                               HTML("<li>After the data is loaded in the Analysis and Results tabs will appear</li>"),
-                              h1("Analysis Graphs"),
+                              h1("Analysis Graphs:"),
                               HTML("<li>To view the graph of a specific sample click on the tab labeled with the sample number you would like to work with.<li>"),
                               HTML("<li>The best fit and first derivative lines can be shown on the graph by clicking on the boxes.</li>"), 
                               HTML("<li>The slider on the bottom is used to indicate the minimum and maximum values you would like considered when making a fit for the line.</li>"), 
                               HTML("<li>The point where these minimum and maximum values occur are shown by the vertical black lines on the graph.</li>"),
                               #h1("Fits")
-                              h1("Van't Hoff Plots"),
+                              h1("Van't Hoff Plots:"),
                               HTML("<li>The van't hoff page under results shows the van't hoff plot</li>"), 
                               HTML("<li>You may click individual points to remove them from the plot.</li>"), 
                               HTML("<li>To remove multiple points in one go you can click and drag on the graph to make a box.</li>"), 
@@ -141,14 +141,13 @@ ui <- navbarPage(title = "MeltShiny",
                               HTML("<li>To save the version of the plot shown on the app enter a pdf of the van’t hoff plot, enter a name in the box and hit the download button.</li>"), 
                               HTML("<li>This will open the plot in a web browser.</li>"), 
                               HTML("<li>From there you may hit the print button on the webpage and instead of printing change the printer to save as pdf.</li>"),
-                              h1("Result Tables"),
+                              h1("Result Tables:"),
                               HTML("<li>To save all of the result tables into one excel file enter what you want the file to be called.</li>"), 
                               HTML("<li>Then hit the download button.</li>"), 
                               HTML("<li>This will open a file explorer where you can then select where on your device you want the file to be saved.</li>"), 
                               HTML("<li>The excel file stores the tables in 3 different worksheets, one for each table.</li>"), 
                               HTML("<li>Method one and method two appear on different worksheets.</li>")
-                              
+                              )
                             )
-                          )
                           )
                  )
