@@ -43,15 +43,15 @@ connecter <- setRefClass(Class = "connecter",
                                layout(showlegend = FALSE) %>%
                                layout(
                                  shapes = list(
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 40,x1 = 40,y0 = 0,y1 = 1,yref = "paper"),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 60,x1 = 60,y0 = 0,y1 = 1,yref = "paper")
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 40,x1 = 40,y0 = 0,y1 = 1, yref = "paper"),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = 60,x1 = 60,y0 = 0,y1 = 1, yref = "paper")
                                    )
                                  ) %>% 
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
                                config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
                              
-                             newData <- event_data("plotly_relayout")
+                             #newData <- event_data("plotly_relayout")
                              },
                            
                            # Construct a plot of the first derivative and the raw data
@@ -132,6 +132,11 @@ connecter <- setRefClass(Class = "connecter",
                              summaryData=.self$object$Summary
                              return(summaryData[2,])
                              },
+                           summaryData3 = function(){
+                             summaryData=.self$object$Summary
+                             return(summaryData[3,])
+                             },
+                          
                            
                            # Return the percent error for the methods
                            error = function(){

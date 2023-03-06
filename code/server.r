@@ -227,6 +227,10 @@ server <- function(input,output, session){
     data <-myConnecter$summaryData2()
     return(data)
   })
+  output$summarytable3 <- renderTable({
+    data <-myConnecter$summaryData3()
+    return(data)
+  })
   output$error <- renderTable({
     data <-myConnecter$error()
     return(data)
@@ -259,6 +263,7 @@ server <- function(input,output, session){
     content = function(file2) {
       write.xlsx(myConnecter$summaryData1(), file2, sheetName = "table1", append = FALSE)
       write.xlsx(myConnecter$summaryData2(), file2, sheetName = "table2", append = TRUE)
+      write.xlsx(myConnecter$summaryData3(), file2, sheetName = "table3", append = TRUE)
       write.xlsx(myConnecter$error(), file2, sheetName = "error", append = TRUE)
       }
     )
