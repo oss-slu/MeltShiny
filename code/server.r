@@ -4,6 +4,13 @@ server <- function(input,output, session){
   values <- reactiveValues(masterFrame = NULL,
                            numReadings = NULL
                            )
+  #input validation
+  iv <- InputValidator$new()
+  iv$add_rule("blankSampleID", sv_required())
+  iv$add_rule("pathlengthID", sv_required())
+  iv$add_rule("helixID", sv_required())
+  iv$enable()
+
   
   # Function that handles the dataset inputs, as wells as the dataset upload
   upload <- observeEvent(eventExpr = input$inputFileID,
@@ -14,9 +21,11 @@ server <- function(input,output, session){
                            
                            # Store the dataset user inputs in global variables
                            pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
+                           pathlengthInputs <- gsub(" ","",pathlengthInputs) #removes any spaces
                            wavelengthVal <<- as.numeric(input$wavelength)
                            blank <<- as.numeric(input$blankSampleID)
                            helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
+                           helix <- gsub(" ","",helix)
                            molStateVal <<- input$molecularStateID
                            
                            # Format stored molecular state choice
