@@ -1,9 +1,15 @@
 #!/usr/bin/env Rscript --vanilla
 requiredPackages <- c("dplyr",
+                      "DT",
                       "ggplot2",
                       "glue",
+                      "devtools",
+                      "openxlsx",
+                      "plotly",
+                      "tidyverse",
                       "remotes",
                       "methods",
+                      "ggrepel",
                       "MeltR",
                       "shiny",
                       "shinyjs")
