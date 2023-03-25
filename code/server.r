@@ -5,13 +5,15 @@ server <- function(input,output, session){
                            numReadings = NULL
                            )
   #input validation
-  iv <- InputValidator$new()
-  iv$add_rule("blankSampleID", sv_required())
-  iv$add_rule("pathlengthID", sv_required())
-  iv$add_rule("helixID", sv_required())
-  iv$enable()
-  continue <- FALSE
-  print(continue)
+  continue <- FALSE #used to stop the rest of the program from running if the inputs aren't valid
+  #function to check if an input can be converted to an int
+  can_convert_to_int <- function(x) {
+    all(grepl('^(?=.)([+-]?([0-9]*)?)$', x, perl = TRUE))  
+  }
+  can_convert_to_numeric <- function(x) {
+    all(grepl('^(?=.)([+-]?([0-9]*)(\\.([0-9]+))?)$', x, perl = TRUE))  
+  }
+  
 
   
   # Function that handles the dataset inputs, as wells as the dataset upload
@@ -19,16 +21,23 @@ server <- function(input,output, session){
                          handlerExpr = {
                            # Only proceed with the rest of function if a file has been uploaded
                            req(input$inputFileID)
-                           print((input$pathlengthID))
-                           if(input$pathlengthID == ""){
-                             print("h")
+                           print((input$blankSampleID))
+                           if(input$pathlengthID == "" ||input$blankSampleID == "" || input$helixID == ""){
                               showModal(modalDialog(
-                                title = "Important message",
-                                "This is an important message!"
+                                title = "Missing Inputs",
+                                "One or more of the input boxes are blank please fill them all in!"
                               ))
+                           }
+                           else if(can_convert_to_int(input$blankSampleID) == FALSE){
+                             showModal(modalDialog(
+                               title = "Not a number",
+                               "Please input one integer in the blanks box"
+                             ))
+
                            }
                            else{
                            continue <- TRUE
+                           print(is.numeric(input$blankSampleID))
                            # Store the dataset user inputs in global variables
                            pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
                            pathlengthInputs <- gsub(" ","",pathlengthInputs) #removes any spaces
@@ -98,7 +107,7 @@ server <- function(input,output, session){
                          }
                            }
                          )
-  
+  if(continue == TRUE){
   # Output the post-processed data frame, which contains all the appended datasets.
   output$table <- renderTable({return(values$masterFrame)})
   
@@ -114,7 +123,6 @@ server <- function(input,output, session){
   
   # Dynamically create n tabs (n = number of samples in master data frame) for 
   # the "Graphs" page under the "Analysis" navbarmenu.
-  if(continue == TRUE){
   observe({
     req(values$numReadings)
     lapply(start:values$numReadings,
