@@ -80,7 +80,6 @@ server <- function(input,output, session){
                          )
   
   # Output the post-processed data frame, which contains all the appended datasets.
-  #output$table <- renderTable({return(values$masterFrame)})
   output$table = DT::renderDataTable({return(values$masterFrame)})
   
   # Hide "Analysis" and "Results tabs until a file is successfully uploaded
@@ -141,7 +140,7 @@ server <- function(input,output, session){
     showTab(inputId = "navbarPageID",target = "Results")
     })
   
-  # Dynamically create a plot for of each of the n tabs.
+  # Dynamically create a plot for each of the n tabs.
   observe({
     req(input$inputFileID)
     for (i in 1:values$numReadings) {
@@ -208,23 +207,23 @@ server <- function(input,output, session){
   
   # Create the results table for the "Table" tab under the "Results" navbar menu.
   output$resulttable <- renderTable({
-    data <-myConnecter$fitData()
+    data <- myConnecter$fitData()
     return(data)
   })
   output$summarytable <- renderTable({
-    data <-myConnecter$summaryData1()
+    data <- myConnecter$summaryData1()
     return(data)
   })
   output$summarytable2 <- renderTable({
-    data <-myConnecter$summaryData2()
+    data <- myConnecter$summaryData2()
     return(data)
   })
   output$summarytable3 <- renderTable({
-    data <-myConnecter$summaryData3()
+    data <- myConnecter$summaryData3()
     return(data)
   })
   output$error <- renderTable({
-    data <-myConnecter$error()
+    data <- myConnecter$error()
     return(data)
   })
   

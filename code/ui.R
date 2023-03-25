@@ -41,7 +41,6 @@ ui <- navbarPage(title = "MeltShiny",
                                                      inputId = "inputFileID",
                                                      )
                                            ),
-                                         #mainPanel(tableOutput(outputId = "table"))
                                          mainPanel(DT::dataTableOutput(outputId = "table"))
                                          )
                                        )
