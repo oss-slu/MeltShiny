@@ -10,15 +10,25 @@ server <- function(input,output, session){
   iv$add_rule("pathlengthID", sv_required())
   iv$add_rule("helixID", sv_required())
   iv$enable()
+  continue <- FALSE
+  print(continue)
 
   
   # Function that handles the dataset inputs, as wells as the dataset upload
   upload <- observeEvent(eventExpr = input$inputFileID,
                          handlerExpr = {
-                           
                            # Only proceed with the rest of function if a file has been uploaded
                            req(input$inputFileID)
-                           
+                           print((input$pathlengthID))
+                           if(input$pathlengthID == ""){
+                             print("h")
+                              showModal(modalDialog(
+                                title = "Important message",
+                                "This is an important message!"
+                              ))
+                           }
+                           else{
+                           continue <- TRUE
                            # Store the dataset user inputs in global variables
                            pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
                            pathlengthInputs <- gsub(" ","",pathlengthInputs) #removes any spaces
@@ -85,22 +95,26 @@ server <- function(input,output, session){
                            # Necessary for removal of outliers from said plot.
                            vals <<- reactiveValues(
                              keeprows = rep(TRUE, nrow(calculations)))
+                         }
                            }
                          )
   
   # Output the post-processed data frame, which contains all the appended datasets.
   output$table <- renderTable({return(values$masterFrame)})
   
+  
   # Hide "Analysis" and "Results tabs until a file is successfully uploaded
   observeEvent(eventExpr = is.null(values$numReadings),
                handlerExpr = {
                  hideTab(inputId = "navbarPageID",target = "Analysis")
                  hideTab(inputId = "navbarPageID",target = "Results")
-                 }
+               }
                )
+  
   
   # Dynamically create n tabs (n = number of samples in master data frame) for 
   # the "Graphs" page under the "Analysis" navbarmenu.
+  if(continue == TRUE){
   observe({
     req(values$numReadings)
     lapply(start:values$numReadings,
@@ -169,6 +183,7 @@ server <- function(input,output, session){
     showTab(inputId = "navbarPageID",target = "Results")
     })
   
+  
   # Dynamically create a plot for of each of the n tabs.
   observe({
     req(input$inputFileID)
@@ -209,6 +224,7 @@ server <- function(input,output, session){
         }
       }
     })
+  
   
   # Create Van't Hoff plot for the "Van't Hoff Plot" Tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
@@ -287,4 +303,5 @@ server <- function(input,output, session){
       write.xlsx(myConnecter$error(), file2, sheetName = "error", append = TRUE)
       }
     )
+  }
   }
