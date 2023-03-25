@@ -1,4 +1,3 @@
-set SCRIPT_DIR="%CD%\code\app.R"
-set "SCRIPT_DIR=%SCRIPT_DIR:\=/%"
-
-R -e "shiny::runApp('%SCRIPT_DIR%',launch.browser=T)"
+@echo off
+"C:\Program Files\R\R-4.2.2\bin\Rscript.exe" -e "shiny::runApp('code/app.R',launch.browser=T)"
+pause
