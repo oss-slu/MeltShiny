@@ -1,4 +1,3 @@
-#!/usr/bin/env Rscript --vanilla
 # Load libraries and run application.
 library(dplyr, warn.conflicts = FALSE)
 library(DT)
@@ -10,5 +9,8 @@ library(plotly)
 library(openxlsx)
 library(shiny)
 library(shinyjs)
-#shinyApp(ui = ui, server = server)
+library(ggrepel)
+library(devtools, warn.conflicts = FALSE)
+library(remotes)
+library(tidyverse, warn.conflicts = FALSE)
 runApp(launch.browser = TRUE)

@@ -1,4 +1,3 @@
-#!/usr/bin/env Rscript --vanilla
 requiredPackages <- c("dplyr",
                       "DT",
                       "ggplot2",
