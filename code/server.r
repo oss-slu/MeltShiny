@@ -206,7 +206,7 @@ server <- function(input,output, session){
                  vals$keeprows <- rep(TRUE, nrow(calculations))
                  })
   
-  # Auxiliary function for creating the delete button on the table
+  # Function for dynamically creating the delete button on results table 1
   shinyInput <- function(FUN, len, id, ...) {
     inputs <- character(len)
     for (i in seq_len(len)) {
@@ -215,6 +215,7 @@ server <- function(input,output, session){
     inputs
   }
   
+  # Calls function above to create delete buttons and add IDs for each row in data table 1
   getListUnder <- reactive({
     req(input$inputFileID)
     df3 <- df2
@@ -226,20 +227,20 @@ server <- function(input,output, session){
     return(df3)
   })
   
-  # Assign reactive data.frame to reactiveValues
+  # Assign the reactive data.frame for data table 1 to a reactive value
   observe({
     req(input$inputFileID)
     valuesT <<- reactiveValues(df3 = NULL)
     valuesT$df3 <- isolate({getListUnder()})
   })
   
-  # When press delete_button, remove row
+  # When delete button is pressed, remove row from data table 1
   observeEvent( input$delete_button, {
     selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
     valuesT$df3 <<- subset(valuesT$df3, ID!=selectedRow)
   })
   
-  # Render data.table
+  # Render results table
   output$resulttable = DT::renderDataTable({
     table <- valuesT$df3 %>%
       DT::datatable(filter = "none", rownames = F,
@@ -248,7 +249,6 @@ server <- function(input,output, session){
                                    fixedColumns = list(leftColumns = 2)),
                     escape = F)
   })
-  
   output$summarytable <- renderTable({
     data <- myConnecter$summaryData1()
     return(data)
