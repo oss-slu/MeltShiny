@@ -71,6 +71,7 @@ server <- function(input,output, session){
                                                      )
                            myConnecter$constructObject()
                            calculations <<- myConnecter$gatherVantData()
+                           df2 <<- myConnecter$fitData()
                            
                            # Reactive variable that handles the points on the Van't Hoff plot.
                            # Necessary for removal of outliers from said plot.
@@ -205,11 +206,49 @@ server <- function(input,output, session){
                  vals$keeprows <- rep(TRUE, nrow(calculations))
                  })
   
-  # Create the results table for the "Table" tab under the "Results" navbar menu.
-  output$resulttable <- renderTable({
-    data <- myConnecter$fitData()
-    return(data)
+  # Auxiliary function for creating the delete button on the table
+  shinyInput <- function(FUN, len, id, ...) {
+    inputs <- character(len)
+    for (i in seq_len(len)) {
+      inputs[i] <- as.character(FUN(paste0(id, i), ...))
+    }
+    inputs
+  }
+  
+  getListUnder <- reactive({
+    req(input$inputFileID)
+    df3 <- df2
+    df3$Delete <- shinyInput(actionButton, nrow(df3),'delete_',label = "Delete",icon=icon("trash"),
+                            style = "color: red;background-color: white",
+                            onclick = paste0('Shiny.onInputChange( \"delete_button\" , this.id, {priority: \"event\"})'))
+    
+    df3$ID <- seq.int(nrow(df3))
+    return(df3)
   })
+  
+  # Assign reactive data.frame to reactiveValues
+  observe({
+    req(input$inputFileID)
+    valuesT <<- reactiveValues(df3 = NULL)
+    valuesT$df3 <- isolate({getListUnder()})
+  })
+  
+  # When press delete_button, remove row
+  observeEvent( input$delete_button, {
+    selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
+    valuesT$df3 <<- subset(valuesT$df3, ID!=selectedRow)
+  })
+  
+  # Render data.table
+  output$resulttable = DT::renderDataTable({
+    table <- valuesT$df3 %>%
+      DT::datatable(filter = "none", rownames = F,
+                    extensions = 'FixedColumns',
+                    options = list(pageLength = 10, scrollX = TRUE,
+                                   fixedColumns = list(leftColumns = 2)),
+                    escape = F)
+  })
+  
   output$summarytable <- renderTable({
     data <- myConnecter$summaryData1()
     return(data)
