@@ -1,11 +1,10 @@
+#!/usr/bin/env Rscript --vanilla
 requiredPackages <- c("dplyr",
                       "DT",
                       "ggplot2",
                       "glue",
-                      "devtools",
                       "openxlsx",
                       "plotly",
-                      "tidyverse",
                       "remotes",
                       "methods",
                       "ggrepel",
@@ -32,7 +31,7 @@ checkPackages <- function(packages) {
     if (p %in% rownames(installed.packages())) {
       print(paste0("[\u2713] ",p))
     }else{
-      cat(paste0("[X]",p,"\n",
+      cat(paste0("[X] ",p,"\n",
                    p,' was not successfully installed.
         Try entering the following command into the RStudio console:
         install.packages("',p,'")'))
