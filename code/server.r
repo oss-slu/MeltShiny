@@ -117,7 +117,6 @@ server <- function(input,output, session){
     # Output the post-processed data frame, which contains all the appended datasets.
     output$table <- renderTable({return(values$masterFrame)})
     
-    if(continue == TRUE){
     # Hide "Analysis" and "Results tabs until a file is successfully uploaded
     observeEvent(eventExpr = is.null(values$numReadings),
                  handlerExpr = {
@@ -126,12 +125,10 @@ server <- function(input,output, session){
                  }
     )
     
-    
     # Dynamically create n tabs (n = number of samples in master data frame) for 
     # the "Graphs" page under the "Analysis" navbarmenu.
-    
     observe({
-      req(values$numReadings)
+      req(values$numReadings) && continue == TRUE
       lapply(start:values$numReadings,
              function(i){
                if (i != blank) {
@@ -201,7 +198,7 @@ server <- function(input,output, session){
     
     # Dynamically create a plot for of each of the n tabs.
     observe({
-      req(input$inputFileID)
+      req(values$numReadings)
       for (i in 1:values$numReadings) {
         if (i != blank) {
           local({
@@ -318,5 +315,4 @@ server <- function(input,output, session){
         write.xlsx(myConnecter$error(), file2, sheetName = "error", append = TRUE)
       }
     )
-  }
 }
