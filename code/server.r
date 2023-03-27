@@ -218,8 +218,8 @@ server <- function(input,output, session){
   # Calls function above to create delete buttons and add IDs for each row in data table 1
   getListUnder <- reactive({
     req(input$inputFileID)
-    df3 <- df2
-    df3$Delete <- shinyInput(actionButton, nrow(df3),'delete_',label = "Delete",icon=icon("trash"),
+    df3 <<- df2
+    df3$Delete <- shinyInput(actionButton, nrow(df3),'delete_',label = "Remove",
                             style = "color: red;background-color: white",
                             onclick = paste0('Shiny.onInputChange( \"delete_button\" , this.id, {priority: \"event\"})'))
     
@@ -239,6 +239,12 @@ server <- function(input,output, session){
     selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
     valuesT$df3 <<- subset(valuesT$df3, ID!=selectedRow)
   })
+  
+  # When reset button is pressed, reset table 1 to original
+  observeEvent(eventExpr = input$resetTable1ID, 
+               handlerExpr = {
+                 valuesT$df3 <- isolate({getListUnder()})
+               })
   
   # Render results table
   output$resulttable = DT::renderDataTable({

@@ -90,7 +90,11 @@ ui <- navbarPage(title = "MeltShiny",
                             tabPanel(title = "Table", 
                                      fluidPage(
                                        sidebarLayout(
-                                         sidebarPanel(h5("Download the table as an Excel file, with each of the three components on seperate sheets."),
+                                         sidebarPanel(h5("To reset table 1, press the button below."),
+                                                      actionButton(inputId = "resetTable1ID",
+                                                                   label = "Reset"
+                                                      ),
+                                                      h5("Download the table as an Excel file, with each of the three components on seperate sheets."),
                                                       textInput(label = "Enter the file name.",
                                                                 inputId = "saveTableID"
                                                                 ),

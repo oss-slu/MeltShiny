@@ -8,6 +8,7 @@ myConnector = NULL
 start <- 1 
 df2 <- NULL
 valuesT <- NULL
+df3 <- NULL
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
