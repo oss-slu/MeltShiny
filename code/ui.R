@@ -76,7 +76,7 @@ ui <- navbarPage(title = "MeltShiny",
                                                       textInput(label = "Enter the file name.",
                                                                 inputId = "saveVantID"
                                                                 ),
-                                                      downloadButton(outputId = 'downloadVantID')
+                                                      downloadButton(outputId = 'downloadVantID', "Download")
                                          ),
                                          mainPanel(
                                            plotOutput(outputId = "vantPlot",
@@ -98,7 +98,7 @@ ui <- navbarPage(title = "MeltShiny",
                                                       textInput(label = "Enter the file name.",
                                                                 inputId = "saveTableID"
                                                                 ),
-                                                      downloadButton(outputId = "downloadTableID")
+                                                      downloadButton(outputId = "downloadTableID", "Download")
                                          ),
                                          mainPanel(
                                            h5("Results for Individual Fits:"),

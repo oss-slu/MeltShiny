@@ -276,7 +276,7 @@ server <- function(input,output, session){
   output$downloadVantID <- downloadHandler(
     filename = function(){
       paste(input$saveVantID, '.pdf', sep = '')
-      },
+    },
     content = function(file1){
       cairo_pdf(filename = file1, onefile = T,width = 18, 
                 height = 10, pointsize = 12, family = "sans", bg = "transparent",
