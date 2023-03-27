@@ -194,7 +194,6 @@ server <- function(input,output, session){
       showTab(inputId = "navbarPageID",target = "Analysis")
       showTab(inputId = "navbarPageID",target = "Results")
     })
-    #if(continue == TRUE){
     
     
     # Dynamically create a plot for of each of the n tabs.
@@ -316,5 +315,4 @@ server <- function(input,output, session){
         write.xlsx(myConnecter$error(), file2, sheetName = "error", append = TRUE)
       }
     )
-  #}
 }
