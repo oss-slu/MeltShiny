@@ -1,13 +1,14 @@
-blank <- NULL #The blank for meltR input & background subtraction.
-counter <- 1 #Same as the "start" variable, but only utilized in processing dataset loop
-helix <- c() #The sequence information MeltR input.
-molStateVal <- "" #Molecular state MeltR input.
-wavelengthVal <- "" # Wavelength MeltR input.
-myConnector = NULL #Variable in server that utilizes the "connecter" class.
-start <- 1 #Number that indicates the beggining iterations when implementing multiple datasets.
+# List of global variables
+blank <- NULL 
+counter <- 1 
+helix <- c() 
+molStateVal <- "" 
+wavelengthVal <- ""
+myConnector = NULL 
+start <- 1 
 
-#Connector class that houses MeltR code
-#constructObject() has to be called for each new method implemented. 
+# Connector class that interacts with MeltR.
+# constructObject() has to be called for each new method implemented. 
 connecter <- setRefClass(Class = "connecter",
                          fields = c("df",
                                     "NucAcid",
@@ -15,31 +16,34 @@ connecter <- setRefClass(Class = "connecter",
                                     "Mmodel",
                                     "object",
                                     "fdData"
-                         ),
+                                    ),
                          methods = list(
-                           #Creates MeltR object & first derivative data
+                           # Create MeltR object & first derivative data
                            constructObject = function(){
                              .self$object <- meltR.A(data_frame = df,
                                                      blank = blank,
                                                      NucAcid = NucAcid,
-                                                     Mmodel = Mmodel)
-                             
+                                                     Mmodel = Mmodel
+                                                     )
                              upper = 4000 #Static number to shrink data to scale
                              .self$fdData <- .self$object$Derivatives.data
                              .self$fdData <- cbind(.self$fdData,
                                                    as.data.frame(
                                                      .self$fdData$dA.dT/(.self$fdData$Pathlength*.self$fdData$Ct)/upper
-                                                   ))
+                                                     )
+                                                   )
                              names(.self$fdData)[ncol(.self$fdData)] <- "yPlot"
-                           },
-                           #Constructs a plot containing the raw data
+                             },
+                           
+                           # Construct a plot containing the raw data
                            constructRawPlot = function(sampleNum){
                              data = df[df$Sample == sampleNum,]
                              ggplot(data, aes(x = Temperature, y = Absorbance)) +
                                geom_point() +
                                theme_classic()
-                           },
-                           #Constructs a plot of the first derivative and the raw data
+                             },
+                           
+                           # Construct a plot of the first derivative and the raw data
                            constructFirstDerivative = function(sampleNum){
                              data = .self$fdData[.self$fdData == sampleNum,]
                              ggplot(data,aes(x = Temperature)) +
@@ -47,8 +51,9 @@ connecter <- setRefClass(Class = "connecter",
                                geom_point(aes(y = yPlot+min(Absorbance)),color="blue") +
                                geom_point(aes(x = Temperature[which.max(yPlot)],y = max(yPlot)+min(Absorbance)),color="red") +
                                theme_classic()
-                           },
-                           #Constructs a plot of the best fit and the raw data
+                             },
+                           
+                           # Construct a plot of the best fit and the raw data
                            constructBestFit = function(sampleNum){
                              data = .self$object$Method.1.data
                              data = data[data$Sample == sampleNum,]
@@ -56,8 +61,9 @@ connecter <- setRefClass(Class = "connecter",
                                geom_point(aes(y = Absorbance), color = "black") +
                                geom_line(aes(y = Model), color = "red") +
                                theme_classic()
-                           },
-                           #Constructs a plot of the best fit, first derivative, and the raw data
+                             },
+                           
+                           # Construct a plot of the best fit, first derivative, and the raw data
                            constructBoth = function(sampleNum){
                              data1 = .self$object$Derivatives.data[.self$object$Derivatives.data == 4,]
                              data2 = .self$object$Method.1.data[.self$object$Method.1.data$Sample == 4,]
@@ -68,41 +74,56 @@ connecter <- setRefClass(Class = "connecter",
                                geom_line(data2,mapping = aes(x = Temperature, y = Model), color = "red") + #best fit 
                                geom_point(data1, mapping = aes(x = Temperature, y = (dA.dT/(Pathlength*Ct))/upper+min(Absorbance)), color = "blue") + #first derivative
                                theme_classic()
-                           },
-                           #returns the data needed to create the vant hoff plot
+                             },
+                           
+                           # Return the x value associated with the maximum y-value for the first derivative
+                           getFirstDerivativeMax = function(sampleNum) {
+                             data = .self$fdData[.self$fdData == sampleNum,]
+                             maxRowIndex = which.max(data[["yPlot"]])
+                             xVal = data[maxRowIndex,3]
+                             return(xVal)
+                             },
+                           
+                           # Return the start & end ranges for each respective slider
+                           getSliderBounds = function(sampleNum,maximum) {
+                             data = .self$fdData[.self$fdData == sampleNum,]
+                             minTemp = round(min(data$Temperature),4)
+                             maxTemp = round(max(data$Temperature),4)
+                             if (minTemp < maximum-20){
+                               minTemp = maximum - 20
+                               }
+                             if (maxTemp > maximum+20){
+                               maxTemp = maximum + 20
+                               }
+                             return(list(minTemp,maxTemp))
+                             },
+                           
+                           # Return the data needed to create the Van't Hoff plot
                            gatherVantData = function(){
                              data = .self$object$Method.2.data
                              return(data)
-                           },
-                           #returns the individual fit table data
+                             },
+                           
+                           # Return the individual fit table data
                            fitData = function(){
-                             #sample = .self$object$Method.1.indvfits$Sample
-                             #ct = .self$object$Method.1.indvfits$Ct
-                             #h = .self$object$Method.1.indvfits$H
-                             #s = .self$object$Method.1.indvfits$S
-                             #g = .self$object$Method.1.indvfits$G
-                             #tm = .self$object$Method.1.indvfits$Tm
-                             #indvCurves = data.frame(sample, ct,h,g,tm)
-                             indvCurves=.self$object$Method.1.indvfits 
+                             indvCurves = .self$object$Method.1.indvfits 
                              return(indvCurves)
-                           },
+                             },
+                           
+                           # Return the results for the three methods
                            summaryData1 = function(){
                              summaryData=.self$object$Summary
-                             #indvidualfits = summaryData[1,]
-                             #Tmversuslnct = summaryData[2,]
-                             #summary = data.frame(indvidualfits, Tmversuslnct)
                              return(summaryData[1,])
-                           },
+                             },
                            summaryData2 = function(){
                              summaryData=.self$object$Summary
-                             #indvidualfits = summaryData[1,]
-                             #Tmversuslnct = summaryData[2,]
-                             #summary = data.frame(indvidualfits, Tmversuslnct)
                              return(summaryData[2,])
-                           },
+                             },
+                           
+                           # Return the percent error for the methods
                            error = function(){
                              error = .self$object[3]
                              return(error)
-                           }
+                             }
+                           )
                          )
-)

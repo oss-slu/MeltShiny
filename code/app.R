@@ -1,9 +1,14 @@
-#!/usr/bin/env Rscript --vanilla
-#Loads libraries and calls runApp() to build application 
+# Load libraries and run application.
 library(dplyr, warn.conflicts = FALSE)
+library(DT)
 library(ggplot2)
 library(glue)
 library(methods)
 library(MeltR)
+library(plotly)
+library(openxlsx)
 library(shiny)
-runApp()
+library(shinyjs)
+library(ggrepel)
+library(remotes)
+runApp(launch.browser = TRUE)
