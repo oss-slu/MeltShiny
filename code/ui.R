@@ -1,47 +1,56 @@
 ui <- navbarPage(title = "MeltShiny",
                  id = "navbarPageID",
                  navbarMenu(title = "File",
-                            tabPanel(title = "Add Data", 
+                            tabPanel(title = "Add Dataset", 
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(
                                            useShinyjs(),
-                                           textInput(label = "Enter the blank sample.",
+                                           textInput(label = "Enter the blank sample",
                                                      placeholder = "E.g: 1",
                                                      value = 1,
                                                      inputId = "blankSampleID"
                                                      ),
-                                           checkboxInput(label = "Show blank during analysis step",
+                                           checkboxInput(label = "Show blank(s)",
                                                          value = FALSE,
                                                          inputId = "includeBlanksID"
                                                          ),
-                                           textInput(label = "Enter the pathlength for each sample. (Note, these values should be separated by commas
-                                                     and have no spaces in between them.) If there are no blanks, enter the word none.",
+                                           textInput(label = "Enter the pathlength for each sample.",
                                                      placeholder = "E.g: 2,5,3,2",
                                                      inputId = "pathlengthID"
                                                      ),
-                                           textInput(label = "Enter the sequence information in the following order: a nucleic acid, a sequence, and, if applicable, its complement).
-                                                              (Note, these values should be seperated by commas and have no spaces in between them.)",
+                                           textInput(label = "Specify the extinction coefficients",
                                                      placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
                                                      inputId = "helixID"
                                                      ),
-                                           selectInput(label = "Select the molecular state.", 
+                                           selectInput(label = "Select the wavelengthID", 
+                                                       choices = c("300","295","290","285","280","275","270","265","260","255","250","245","240","235","230"), 
+                                                       selected = "260",
+                                                       inputId = "wavelengthID"
+                                                       ),
+                                           textInput(label = "Enter the temperature",
+                                                     placeholder = "E.g: 75",
+                                                     value = 90,
+                                                     inputId = "temperatureID"
+                                                     ),
+                                           checkboxGroupInput(label = "Choose methods",
+                                                              inputId = "methodsID", 
+                                                              choices = list("Method 1" = 1, 
+                                                                             "Method 2" = 2, 
+                                                                             "Method 3" = 3),
+                                                              selected = c(1,2,3)),
+                                           selectInput(label = "Select the molecular state", 
                                                        choices = c("Heteroduplex","Homoduplex","Monomolecular"), 
                                                        selected = "Heteroduplex",
                                                        inputId = "molecularStateID"
                                                        ),
-                                           selectInput(label = "Select the wavelengthID. (Note, thermodynamic parameters can only be collected for DNA at 260 nm.)", 
-                                                       choices = c("300","295","290","285","280","275","270","265","260","255","250","245","240","235","230"), 
-                                                       selected = "260",
-                                                       inputId = "wavelengthID", 
-                                                       ),
-                                           fileInput(label = "Select the file containing the dataset.",
+                                           fileInput(label = "Select the dataset file",
                                                      multiple = FALSE,
                                                      accept = ".csv",
-                                                     inputId = "inputFileID",
+                                                     inputId = "inputFileID"
                                                      )
                                            ),
-                                         mainPanel(DT::dataTableOutput(outputId = "table"))
+                                         mainPanel(DT::dataTableOutput(outputId = "inputTable"))
                                          )
                                        )
                                      )

@@ -26,7 +26,9 @@ connecter <- setRefClass(Class = "connecter",
                              .self$object <- meltR.A(data_frame = df,
                                                      blank = blank,
                                                      NucAcid = NucAcid,
-                                                     Mmodel = Mmodel
+                                                     Mmodel = Mmodel,
+                                                     Save_results = "none",
+                                                     Silent = TRUE
                                                      )
                              upper = 4000 #Static number to shrink data to scale
                              .self$fdData <- .self$object$Derivatives.data
