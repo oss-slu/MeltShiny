@@ -75,7 +75,13 @@ connecter <- setRefClass(Class = "connecter",
                                geom_point(data1, mapping = aes(x = Temperature, y = (dA.dT/(Pathlength*Ct))/upper+min(Absorbance)), color = "blue") + #first derivative
                                theme_classic()
                              },
-                           
+
+                            # Automatically Fit MeltR.A Object Through BLTrimmer
+                            executeBLTrimmer = function(object,iterations) {
+                              BLTrimmer(object,
+                                n.combinations = iterations)
+                            },
+
                            # Return the x value associated with the maximum y-value for the first derivative
                            getFirstDerivativeMax = function(sampleNum) {
                              data = .self$fdData[.self$fdData == sampleNum,]

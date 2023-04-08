@@ -236,6 +236,15 @@ server <- function(input,output, session){
         }
       }
     })
+
+    # Automatically Fit Data
+    observeEvent(input$automaticFit,
+    handlerExpr = {
+      req(input$inputFileID)
+      object = myConnecter$object
+      n = input$automaticIterations
+      myConnecter$executeBLTrimmer(object,n)
+    })
     
     
     # Create Van't Hoff plot for the "Van't Hoff Plot" Tab under the "Results" navbar menu.
