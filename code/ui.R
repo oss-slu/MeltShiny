@@ -17,12 +17,14 @@ ui <- navbarPage(title = "MeltShiny",
                                                          ),
                                            textInput(label = "Enter the pathlength for each sample. (Note, these values should be separated by commas
                                                      and have no spaces in between them.) If there are no blanks, enter the word none.",
-                                                     placeholder = "E.g: 2,5,3,2",
+                                                     #placeholder = "E.g: 2,5,3,2",
+                                                     value = "1,1,1,1,1,1,1,1,1,1",
                                                      inputId = "pathlengthID"
                                                      ),
                                            textInput(label = "Enter the sequence information in the following order: a nucleic acid, a sequence, and, if applicable, its complement).
                                                               (Note, these values should be seperated by commas and have no spaces in between them.)",
-                                                     placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
+                                                     #placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
+                                                     value = "RNA, CGAAAGGU, ACCUUUCG",
                                                      inputId = "helixID"
                                                      ),
                                            selectInput(label = "Select the molecular state.", 
@@ -52,9 +54,22 @@ ui <- navbarPage(title = "MeltShiny",
                                      ),
                             tabPanel(title = "Fit",
                                      tabsetPanel(type = "tabs",
-                                                 tabPanel("Manual"),
-                                                 tabPanel("Automatic")
-                                                 )
+                                      tabPanel("Manual"),
+                                      tabPanel("Automatic",
+                                        fluidPage(
+                                          mainPanel(
+                                            h2("Automatic Fitting"),
+                                            textInput(label = "Enter the iterations for BLTrimmer to test.",
+                                            value = 10000,
+                                            inputId = "automaticIterations"
+                                            ),
+                                            actionButton(inputId = "automaticFit",
+                                              label = "Fit"
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
                                      )
                             ),
                  navbarMenu(title = "Results",
