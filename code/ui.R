@@ -17,14 +17,12 @@ ui <- navbarPage(title = "MeltShiny",
                                                          ),
                                            textInput(label = "Enter the pathlength for each sample. (Note, these values should be separated by commas
                                                      and have no spaces in between them.) If there are no blanks, enter the word none.",
-                                                     #placeholder = "E.g: 2,5,3,2",
-                                                     value = "1,1,1,1,1,1,1,1,1,1",
+                                                     placeholder = "E.g: 2,5,3,2",
                                                      inputId = "pathlengthID"
                                                      ),
                                            textInput(label = "Enter the sequence information in the following order: a nucleic acid, a sequence, and, if applicable, its complement).
                                                               (Note, these values should be seperated by commas and have no spaces in between them.)",
-                                                     #placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
-                                                     value = "RNA, CGAAAGGU, ACCUUUCG",
+                                                     placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
                                                      inputId = "helixID"
                                                      ),
                                            selectInput(label = "Select the molecular state.", 

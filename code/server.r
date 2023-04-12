@@ -92,10 +92,11 @@ server <- function(input,output, session){
                                tempFrame <- rbind(tempFrame, t)
                                p <- p + 1
                                counter <<- counter + 1
+                               #print(head(tempFrame))
                              }
                              values$numReadings <- counter - 1
                              values$masterFrame <- rbind(values$masterFrame, tempFrame)
-                             
+                             print(head(values$masterFrame))
                              # Send stored input values to the connecter abstraction class, create 
                              # a connecter object, and store the result of calling one of it's functions.
                              myConnecter <<- connecter(df = values$masterFrame,
@@ -118,7 +119,10 @@ server <- function(input,output, session){
   )
 
     # Output the post-processed data frame, which contains all the appended datasets.
-    output$table <- renderTable({return(values$masterFrame)})
+    output$table <- renderTable({
+      req(input$inputFileID)
+      values$masterFrame$Absorbance <- sprintf("%.11s", values$masterFrame$Absorbance)
+      return(values$masterFrame)})
     
     # Hide "Analysis" and "Results tabs until a file is successfully uploaded
     observeEvent(eventExpr = is.null(values$numReadings),
