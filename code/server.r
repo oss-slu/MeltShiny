@@ -92,11 +92,10 @@ server <- function(input,output, session){
                                tempFrame <- rbind(tempFrame, t)
                                p <- p + 1
                                counter <<- counter + 1
-                               #print(head(tempFrame))
                              }
                              values$numReadings <- counter - 1
                              values$masterFrame <- rbind(values$masterFrame, tempFrame)
-                             print(head(values$masterFrame))
+                             
                              # Send stored input values to the connecter abstraction class, create 
                              # a connecter object, and store the result of calling one of it's functions.
                              myConnecter <<- connecter(df = values$masterFrame,
