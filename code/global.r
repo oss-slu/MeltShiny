@@ -15,7 +15,8 @@ connecter <- setRefClass(Class = "connecter",
                                     "blank",
                                     "Mmodel",
                                     "object",
-                                    "fdData"
+                                    "fdData",
+                                    "fittedObject"
                                     ),
                          methods = list(
                            # Create MeltR object & first derivative data
@@ -78,7 +79,7 @@ connecter <- setRefClass(Class = "connecter",
 
                             # Automatically Fit MeltR.A Object Through BLTrimmer
                             executeBLTrimmer = function(object,iterations) {
-                              BLTrimmer(object,
+                              .self$fittedObject <- BLTrimmer(object,
                                 n.combinations = iterations)
                             },
 
@@ -118,12 +119,30 @@ connecter <- setRefClass(Class = "connecter",
                            
                            # Return the results for the three methods
                            summaryData1 = function(){
+                            if ( typeof(.self$fittedObject) == "S4" ) {
                              summaryData=.self$object$Summary
-                             return(summaryData[1,])
+                            } else{
+                              summaryData=.self$fittedObject$Ensemble.energies
+                              
+                            }
+                            return(summaryData[1,])
                              },
                            summaryData2 = function(){
+                             if ( typeof(.self$fittedObject) == "S4" ) {
                              summaryData=.self$object$Summary
-                             return(summaryData[2,])
+                            } else{
+                              summaryData=.self$fittedObject$Ensemble.energies
+                            }
+                            return(summaryData[2,])
+                             },
+
+                            summaryData3 = function(){
+                             if ( typeof(.self$fittedObject) == "S4" ) {
+                             summaryData=.self$object$Summary
+                            } else{
+                              summaryData=.self$fittedObject$Ensemble.energies
+                            }
+                            return(summaryData[3,])
                              },
                            
                            # Return the percent error for the methods

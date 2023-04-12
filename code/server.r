@@ -110,6 +110,9 @@ server <- function(input,output, session){
                              # Necessary for removal of outliers from said plot.
                              vals <<- reactiveValues(
                                keeprows = rep(TRUE, nrow(calculations)))
+
+                            # Reeactive variable that handles the data outputted for the Results Table
+                            results <<- reactiveValues(methodOne=NULL,methodTwo=NULL,methodThree=NULL)
                            }
                          }
   )
@@ -244,6 +247,9 @@ server <- function(input,output, session){
       object = myConnecter$object
       n = input$automaticIterations
       myConnecter$executeBLTrimmer(object,n)
+      results$methodOne <- myConnecter$summaryData1()
+      results$methodTwo <- myConnecter$summaryData2()
+      results$methodThree <- myConnecter$summaryData3()
     })
     
     
@@ -282,12 +288,17 @@ server <- function(input,output, session){
       return(data)
     })
     output$summarytable <- renderTable({
-      data <-myConnecter$summaryData1()
-      return(data)
+      
+      results$methodOne <- myConnecter$summaryData1()
+      return(results$methodOne)
     })
     output$summarytable2 <- renderTable({
-      data <-myConnecter$summaryData2()
-      return(data)
+      results$methodTwo <-myConnecter$summaryData2()
+      return(results$methodTwo)
+    })
+    output$summarytable3 <- renderTable({
+      results$methodThree <- myConnecter$summaryData3()
+      return(results$methodThree)
     })
     output$error <- renderTable({
       data <-myConnecter$error()
