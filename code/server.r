@@ -250,6 +250,7 @@ server <- function(input,output, session){
       results$methodOne <- myConnecter$summaryData1()
       results$methodTwo <- myConnecter$summaryData2()
       results$methodThree <- myConnecter$summaryData3()
+      results$error <- myConnecter$error()
     })
     
     
@@ -301,8 +302,8 @@ server <- function(input,output, session){
       return(results$methodThree)
     })
     output$error <- renderTable({
-      data <-myConnecter$error()
-      return(data)
+      results$error <-myConnecter$error()
+      return(results$error)
     })
     
     # Save the Van't Hoff Plot as a pdf.

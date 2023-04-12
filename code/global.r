@@ -147,8 +147,12 @@ connecter <- setRefClass(Class = "connecter",
                            
                            # Return the percent error for the methods
                            error = function(){
-                             error = .self$object[3]
-                             return(error)
-                             }
+                            if ( typeof(.self$fittedObject) == "S4" ) {
+                              error = .self$object[3]
+                            } else {
+                              error = .self$fittedObject$Fractional.error.between.methods
+                            }
+                            return(error)
+                            }
                            )
                          )
