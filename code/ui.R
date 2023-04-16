@@ -55,16 +55,13 @@ ui <- navbarPage(title = "MeltShiny",
                                       tabPanel("Manual"),
                                       tabPanel("Automatic",
                                         fluidPage(
-                                          mainPanel(
-                                            h2("Automatic Fitting"),
-                                            textInput(label = "Enter the iterations for BLTrimmer to test.",
+                                            textInput(label = "Number to fit data to",
                                             value = 1000,
                                             inputId = "automaticIterations"
                                             ),
                                             actionButton(inputId = "automaticFit",
-                                              label = "Fit"
+                                              label = "Fit Data"
                                             )
-                                          )
                                         )
                                       )
                                     )
