@@ -23,13 +23,15 @@ connecter <- setRefClass(Class = "connecter",
                          methods = list(
                            # Create MeltR object & first derivative data
                            constructObject = function(){
-                             .self$object <- meltR.A(data_frame = df,
-                                                     blank = blank,
-                                                     NucAcid = NucAcid,
-                                                     Mmodel = Mmodel,
-                                                     Save_results = "none",
-                                                     Silent = TRUE
-                                                     )
+                             capture.output(.self$object <- meltR.A(data_frame = df,
+                                                                    blank = blank,
+                                                                    NucAcid = NucAcid,
+                                                                    Mmodel = Mmodel,
+                                                                    Save_results = "none",
+                                                                    Silent = FALSE
+                                                                    ), 
+                                            file = nullfile()
+                                            )
                              upper = 4000 #Static number to shrink data to scale
                              .self$fdData <- .self$object$Derivatives.data
                              .self$fdData <- cbind(.self$fdData,
@@ -55,9 +57,7 @@ connecter <- setRefClass(Class = "connecter",
                                  ) %>% 
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance")) %>%
-                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
-                             
-                             #newData <- event_data("plotly_relayout")
+                               config(displayModeBar = FALSE)
                              },
                            
                            # Construct a plot of the first derivative and the raw data
@@ -66,18 +66,19 @@ connecter <- setRefClass(Class = "connecter",
                              xmin = round(min(data$Temperature), digits = 4)
                              xmax = round(max(data$Temperature), digits = 4)
                              plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
-                               add_markers(x = data$Temperature, y = data$yPlot+min(data$Absorbance), color = "blue") %>%
-                               add_markers(x = data$Temperature[which.max(data$yPlot)],y = max(data$yPlot)+min(data$Absorbance), color = "red") %>%
+                               add_markers(x = data$Temperature, y = data$yPlot+min(data$Absorbance), color = "green") %>%
                                layout(
                                  shapes = list(
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper"),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper")
+                                   list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$yPlot)], 
+                                        x1 = data$Temperature[which.max(data$yPlot)], line = list(width = 1, dash = "dot"), editable = FALSE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
                                  )
                                ) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance")) %>%
-                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
+                               config(displayModeBar = FALSE)
                              },
                            
                            # Construct a plot of the best fit and the raw data
@@ -97,7 +98,7 @@ connecter <- setRefClass(Class = "connecter",
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
-                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
+                               config(displayModeBar = FALSE)
                              },
                            
                            # Construct a plot of the best fit, first derivative, and the raw data
@@ -110,17 +111,19 @@ connecter <- setRefClass(Class = "connecter",
                              upper = max(data1$dA.dT)/max(data1$Ct) + coeff
                              plot_ly(data2, x = data2$Temperature, y = data2$Absorbance, type = "scatter", mode = "markers") %>%
                                add_lines(x = data2$Temperature, y = data2$Model, color = "red") %>%
-                               add_markers(x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), color = "blue") %>%
+                               add_markers(x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), color = "green") %>%
                                layout(
                                  shapes = list(
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper"),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper")
+                                   list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data1$Temperature[which.max(data1$dA.dT)], 
+                                        x1 = data1$Temperature[which.max(data1$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
                                  )
                                ) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
-                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
+                               config(displayModeBar = FALSE)
                              },
                           
                            # Return the x value associated with the maximum y-value for the first derivative
@@ -133,8 +136,8 @@ connecter <- setRefClass(Class = "connecter",
                            
                            # Return the data needed to create the Van't Hoff plot
                            gatherVantData = function(){
-                             data = .self$object$Method.2.data
-                             return(data)
+                             vantData = .self$object$Method.2.data
+                             return(vantData)
                              },
                            
                            # Return the individual fit data
@@ -145,22 +148,23 @@ connecter <- setRefClass(Class = "connecter",
                            
                            # Return the results for the three methods
                            summaryData1 = function(){
-                             summaryData=.self$object$Summary
+                             summaryData = .self$object$Summary
                              return(summaryData[1,])
                              },
                            summaryData2 = function(){
-                             summaryData=.self$object$Summary
+                             summaryData = .self$object$Summary
                              return(summaryData[2,])
                              },
                            summaryData3 = function(){
-                             summaryData=.self$object$Summary
+                             summaryData = .self$object$Summary
                              return(summaryData[3,])
                              },
                            
                            # Return the percent error for the methods
-                           error = function(){
-                             error = .self$object[3]
-                             return(error)
+                           errorData = function(){
+                             errorData = .self$object$Range
+                             #print()
+                             return(errorData)
                              }
                            )
                          )

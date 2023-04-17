@@ -117,9 +117,11 @@ server <- function(input,output, session){
                                                      Mmodel = molStateVal,
                                                      blank = blank
                                                      )
-                             myConnecter$constructObject()
-                             calculations <<- myConnecter$gatherVantData()
-                             df2 <<- myConnecter$fitData()
+
+                           myConnecter$constructObject()
+                           
+                           calculations <<- myConnecter$gatherVantData()
+                           df2 <<- myConnecter$fitData()
                            
                              # Reactive variable that handles the points on the Van't Hoff plot.
                              # Necessary for removal of outliers from said plot.
@@ -140,8 +142,8 @@ server <- function(input,output, session){
   # Hide "Analysis" and "Results tabs until a file is successfully uploaded
   observeEvent(eventExpr = is.null(values$numReadings),
                handlerExpr = {
-                 hideTab(inputId = "navbarPageID",target = "Analysis")
-                 hideTab(inputId = "navbarPageID",target = "Results")
+                 shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
+                 shinyjs::disable(selector = '.navbar-nav a[data-value="Results"')
                  }
                )
   
@@ -156,7 +158,6 @@ server <- function(input,output, session){
                plotBoth = paste0("plotBoth",i)
                plotBestFit = paste0("plotBestFit",i)
                plotName = paste0("plot",i)
-               plotSlider <- paste0("plotSlider",i)
                plotDerivative = paste0("plotDerivative",i)
                firstDerivative = paste0("firstDerivative",i)
                bestFit = paste0("bestFit",i)
@@ -191,8 +192,8 @@ server <- function(input,output, session){
              }
            )
     start <<- values$numReadings + 1
-    showTab(inputId = "navbarPageID",target = "Analysis")
-    showTab(inputId = "navbarPageID",target = "Results")
+    shinyjs::enable(selector = '.navbar-nav a[data-value="Analysis"')
+    shinyjs::enable(selector = '.navbar-nav a[data-value="Results"')
     })
   
   # Dynamically create a plot for each of the n tabs.
@@ -237,7 +238,9 @@ server <- function(input,output, session){
     exclude <- calculations[!vals$keeprows, , drop = FALSE]
     ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
       geom_smooth(method = lm, fullrange = TRUE, color = "black") +
-      geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25)
+      geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
+      labs(y = "ln(Concentration)", x = "Inverse Temperature (°C)", title = "Van't Hoff") +
+      theme(plot.title = element_text(hjust = 0.5))
     }, res = 100)
   
   # Remove points from Van't Hoff that are clicked.
@@ -301,7 +304,7 @@ server <- function(input,output, session){
                })
   
   # Render results table
-  output$resulttable = DT::renderDataTable({
+  output$individualFitsTable = DT::renderDataTable({
     table <- valuesT$df3 %>%
       DT::datatable(filter = "none", 
                     rownames = F,
@@ -318,20 +321,20 @@ server <- function(input,output, session){
     
     
   })
-  output$summarytable <- renderTable({
+  output$method1Table <- renderTable({
     data <- myConnecter$summaryData1()
     return(data)
   })
-  output$summarytable2 <- renderTable({
+  output$method2Table <- renderTable({
     data <- myConnecter$summaryData2()
     return(data)
   })
-  output$summarytable3 <- renderTable({
+  output$method3Table <- renderTable({
     data <- myConnecter$summaryData3()
     return(data)
   })
-  output$error <- renderTable({
-    data <- myConnecter$error()
+  output$errorTable <- renderTable({
+    data <- myConnecter$errorData()
     return(data)
   })
   
