@@ -57,7 +57,7 @@ connecter <- setRefClass(Class = "connecter",
                                  ) %>% 
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance")) %>%
-                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
+                               config(displayModeBar = FALSE)
                              },
                            
                            # Construct a plot of the first derivative and the raw data
@@ -70,15 +70,15 @@ connecter <- setRefClass(Class = "connecter",
                                layout(
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$yPlot)], 
-                                        x1 = data$Temperature[which.max(data$yPlot)], line = list(width = 1, dash = "dot")),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper"),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper")
+                                        x1 = data$Temperature[which.max(data$yPlot)], line = list(width = 1, dash = "dot"), editable = FALSE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
                                  )
                                ) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance")) %>%
-                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
+                               config(displayModeBar = FALSE)
                              },
                            
                            # Construct a plot of the best fit and the raw data
@@ -98,7 +98,7 @@ connecter <- setRefClass(Class = "connecter",
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
-                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
+                               config(displayModeBar = FALSE)
                              },
                            
                            # Construct a plot of the best fit, first derivative, and the raw data
@@ -115,15 +115,15 @@ connecter <- setRefClass(Class = "connecter",
                                layout(
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data1$Temperature[which.max(data1$dA.dT)], 
-                                        x1 = data1$Temperature[which.max(data1$dA.dT)], line = list(width = 1, dash = "dot")),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper"),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper")
+                                        x1 = data1$Temperature[which.max(data1$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
                                  )
                                ) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
-                               config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
+                               config(displayModeBar = FALSE)
                              },
                           
                            # Return the x value associated with the maximum y-value for the first derivative
