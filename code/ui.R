@@ -1,12 +1,12 @@
 css <- "
 .nav li a.disabled {
-background-color: #aaa !important;
+background-color: #D4D4D4 !important;
 color: #333 !important;
 cursor: not-allowed !important;
-border-color: #aaa !important;
 }"
 
 ui <- navbarPage(title = "MeltShiny",
+                 theme = shinytheme('flatly'),
                  id = "navbarPageID",
                  navbarMenu(title = "File",
                             tabPanel(title = "Add Dataset", 
@@ -84,7 +84,8 @@ ui <- navbarPage(title = "MeltShiny",
                                                                      align = "center",
                                                                      actionButton(inputId = "manualFitID",
                                                                                   label = "Fit Data"
-                                                                                  )                                                                   )
+                                                                                  )
+                                                                     )
                                                               )
                                                             )
                                                           ),
