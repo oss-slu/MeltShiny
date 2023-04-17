@@ -70,6 +70,7 @@ server <- function(input,output, session){
                                                      blank = blank
                                                      )
                            myConnecter$constructObject()
+                           
                            calculations <<- myConnecter$gatherVantData()
                            df2 <<- myConnecter$fitData()
                            
