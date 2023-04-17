@@ -254,7 +254,7 @@ server <- function(input,output, session){
                })
   
   # Render results table
-  output$resulttable = DT::renderDataTable({
+  output$individualFitsTable = DT::renderDataTable({
     table <- valuesT$df3 %>%
       DT::datatable(filter = "none", 
                     rownames = F,
@@ -271,15 +271,15 @@ server <- function(input,output, session){
     
     
   })
-  output$summarytable <- renderTable({
+  output$method1Table <- renderTable({
     data <- myConnecter$summaryData1()
     return(data)
   })
-  output$summarytable2 <- renderTable({
+  output$method2Table <- renderTable({
     data <- myConnecter$summaryData2()
     return(data)
   })
-  output$summarytable3 <- renderTable({
+  output$method3Table <- renderTable({
     data <- myConnecter$summaryData3()
     return(data)
   })
