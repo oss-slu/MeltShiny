@@ -23,13 +23,15 @@ connecter <- setRefClass(Class = "connecter",
                          methods = list(
                            # Create MeltR object & first derivative data
                            constructObject = function(){
-                             .self$object <- meltR.A(data_frame = df,
-                                                     blank = blank,
-                                                     NucAcid = NucAcid,
-                                                     Mmodel = Mmodel,
-                                                     Save_results = "none",
-                                                     Silent = TRUE
-                                                     )
+                             capture.output(.self$object <- meltR.A(data_frame = df,
+                                                                    blank = blank,
+                                                                    NucAcid = NucAcid,
+                                                                    Mmodel = Mmodel,
+                                                                    Save_results = "none",
+                                                                    Silent = FALSE
+                                                                    ), 
+                                            file = nullfile()
+                                            )
                              upper = 4000 #Static number to shrink data to scale
                              .self$fdData <- .self$object$Derivatives.data
                              .self$fdData <- cbind(.self$fdData,
@@ -157,8 +159,8 @@ connecter <- setRefClass(Class = "connecter",
                            
                            # Return the percent error for the methods
                            errorData = function(){
-                             errorData = .self$object[3]
-                             #print(errorData)
+                             errorData = .self$object$Range
+                             #print()
                              return(errorData)
                              }
                            )
