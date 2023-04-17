@@ -280,8 +280,8 @@ server <- function(input,output, session){
     data <- myConnecter$summaryData3()
     return(data)
   })
-  output$error <- renderTable({
-    data <- myConnecter$error()
+  output$errorTable <- renderTable({
+    data <- myConnecter$errorData()
     return(data)
   })
   

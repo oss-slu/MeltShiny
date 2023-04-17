@@ -56,8 +56,6 @@ connecter <- setRefClass(Class = "connecter",
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance")) %>%
                                config(edits = list(shapePosition = TRUE), displayModeBar = FALSE)
-                             
-                             #newData <- event_data("plotly_relayout")
                              },
                            
                            # Construct a plot of the first derivative and the raw data
@@ -133,8 +131,8 @@ connecter <- setRefClass(Class = "connecter",
                            
                            # Return the data needed to create the Van't Hoff plot
                            gatherVantData = function(){
-                             data = .self$object$Method.2.data
-                             return(data)
+                             vantData = .self$object$Method.2.data
+                             return(vantData)
                              },
                            
                            # Return the individual fit data
@@ -145,22 +143,23 @@ connecter <- setRefClass(Class = "connecter",
                            
                            # Return the results for the three methods
                            summaryData1 = function(){
-                             summaryData=.self$object$Summary
+                             summaryData = .self$object$Summary
                              return(summaryData[1,])
                              },
                            summaryData2 = function(){
-                             summaryData=.self$object$Summary
+                             summaryData = .self$object$Summary
                              return(summaryData[2,])
                              },
                            summaryData3 = function(){
-                             summaryData=.self$object$Summary
+                             summaryData = .self$object$Summary
                              return(summaryData[3,])
                              },
                            
                            # Return the percent error for the methods
-                           error = function(){
-                             error = .self$object[3]
-                             return(error)
+                           errorData = function(){
+                             errorData = .self$object[3]
+                             #print(errorData)
+                             return(errorData)
                              }
                            )
                          )

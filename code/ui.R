@@ -112,13 +112,12 @@ ui <- navbarPage(title = "MeltShiny",
                                          mainPanel(
                                            h5("Results for Individual Fits:"),
                                            DT::dataTableOutput(outputId = "resulttable"),
-                                           #tableOutput(outputId = "resulttable"),
                                            h5("Summary of the Three Methods:"),
                                            tableOutput(outputId = "summarytable"),
                                            tableOutput(outputId = "summarytable2"),
                                            tableOutput(outputId = "summarytable3"),
                                            h5("Percent Error Between Methods:"),
-                                           tableOutput(outputId = "error")
+                                           tableOutput(outputId = "errorTable")
                                            )
                                          )
                                        )
