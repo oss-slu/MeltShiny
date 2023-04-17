@@ -91,8 +91,8 @@ server <- function(input,output, session){
   # Hide "Analysis" and "Results tabs until a file is successfully uploaded
   observeEvent(eventExpr = is.null(values$numReadings),
                handlerExpr = {
-                 hideTab(inputId = "navbarPageID",target = "Analysis")
-                 hideTab(inputId = "navbarPageID",target = "Results")
+                 shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
+                 shinyjs::disable(selector = '.navbar-nav a[data-value="Results"')
                  }
                )
   
@@ -142,8 +142,8 @@ server <- function(input,output, session){
              }
            )
     start <<- values$numReadings + 1
-    showTab(inputId = "navbarPageID",target = "Analysis")
-    showTab(inputId = "navbarPageID",target = "Results")
+    shinyjs::enable(selector = '.navbar-nav a[data-value="Analysis"')
+    shinyjs::enable(selector = '.navbar-nav a[data-value="Results"')
     })
   
   # Dynamically create a plot for each of the n tabs.
