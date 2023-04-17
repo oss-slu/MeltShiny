@@ -64,7 +64,7 @@ ui <- navbarPage(title = "MeltShiny",
                                       tabPanel("Manual"),
                                       tabPanel("Automatic",
                                         fluidPage(
-                                            textInput(label = "Number to fit data to",
+                                            textInput(label = "Please enter a number larger than 10",
                                             value = 1000,
                                             inputId = "automaticIterations"
                                             ),

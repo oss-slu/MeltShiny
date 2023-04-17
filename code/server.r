@@ -247,16 +247,26 @@ server <- function(input,output, session){
     observeEvent(input$automaticFit,
     handlerExpr = {
       req(input$inputFileID)
-      showModal(modalDialog("Please wait while we fit your data...", footer=NULL))
-      object = myConnecter$object
-      n = input$automaticIterations
-      myConnecter$executeBLTrimmer(object,n)
-      results$methodOne <- myConnecter$summaryData1()
-      results$methodTwo <- myConnecter$summaryData2()
-      results$methodThree <- myConnecter$summaryData3()
-      results$error <- myConnecter$error()
-      showModal(modalDialog("Your data has been fit successfully! View ", HTML("<b>Results</b>"), " tab for updated results."))
-      shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
+      value = input$automaticIterations
+      if(!can_convert_to_numeric(value)) {
+        showModal(modalDialog("Please enter a number."))
+      } else {
+        value = as.integer(value)
+        if (value<=10) {
+        showModal(modalDialog("Please enter a number larger than 10."))
+        } else {
+          showModal(modalDialog("Please wait while we fit your data...", footer=NULL))
+          object = myConnecter$object
+          n = input$automaticIterations
+          myConnecter$executeBLTrimmer(object,n)
+          results$methodOne <- myConnecter$summaryData1()
+          results$methodTwo <- myConnecter$summaryData2()
+          results$methodThree <- myConnecter$summaryData3()
+          results$error <- myConnecter$error()
+          showModal(modalDialog("Your data has been fit successfully! View ", HTML("<b>Results</b>"), " tab for updated results."))
+          shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
+        }
+      }
     })
     
     
