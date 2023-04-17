@@ -66,7 +66,7 @@ connecter <- setRefClass(Class = "connecter",
                              xmin = round(min(data$Temperature), digits = 4)
                              xmax = round(max(data$Temperature), digits = 4)
                              plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
-                               add_markers(x = data$Temperature, y = data$yPlot+min(data$Absorbance), color = "blue") %>%
+                               add_markers(x = data$Temperature, y = data$yPlot+min(data$Absorbance), color = "green") %>%
                                layout(
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$yPlot)], 
@@ -111,7 +111,7 @@ connecter <- setRefClass(Class = "connecter",
                              upper = max(data1$dA.dT)/max(data1$Ct) + coeff
                              plot_ly(data2, x = data2$Temperature, y = data2$Absorbance, type = "scatter", mode = "markers") %>%
                                add_lines(x = data2$Temperature, y = data2$Model, color = "red") %>%
-                               add_markers(x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), color = "blue") %>%
+                               add_markers(x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), color = "green") %>%
                                layout(
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data1$Temperature[which.max(data1$dA.dT)], 

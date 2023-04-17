@@ -107,7 +107,6 @@ server <- function(input,output, session){
                plotBoth = paste0("plotBoth",i)
                plotBestFit = paste0("plotBestFit",i)
                plotName = paste0("plot",i)
-               plotSlider <- paste0("plotSlider",i)
                plotDerivative = paste0("plotDerivative",i)
                firstDerivative = paste0("firstDerivative",i)
                bestFit = paste0("bestFit",i)

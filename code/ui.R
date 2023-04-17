@@ -79,13 +79,14 @@ ui <- navbarPage(title = "MeltShiny",
                                      tabsetPanel(type = "tabs",
                                                  tabPanel(title = "Manual",
                                                           fluidPage(
-                                                            fluidRow(
-                                                              column(12,
-                                                                     align = "center",
-                                                                     actionButton(inputId = "manualFitID",
-                                                                                  label = "Fit Data"
-                                                                                  )
-                                                                     )
+                                                            sidebarLayout(
+                                                              sidebarPanel(
+                                                                h5("Click to fit all graphs based on the chosen baselines."),
+                                                                actionButton(inputId = "manualFitID",
+                                                                             label = "Fit Data"
+                                                                             )
+                                                                ),
+                                                              mainPanel()
                                                               )
                                                             )
                                                           ),
