@@ -4,6 +4,16 @@ server <- function(input,output, session){
   values <- reactiveValues(masterFrame = NULL,
                            numReadings = NULL
                            )
+  continue <- FALSE
+  can_convert_to_int <- function(x) {
+    all(grepl('^(?=.)([+-]?([0-9]*)?)$', x, perl = TRUE))  
+  }
+  dna_letters_only <- function(x){
+    all(!grepl("[^A,^G,^C,^T]",x))
+  }
+  rna_letters_only <- function(x){
+    all(!grepl("[^A,^G,^C,^U]",x))
+  }
   
   # Function that handles the dataset inputs, as wells as the dataset upload
   upload <- observeEvent(eventExpr = input$inputFileID,
@@ -11,74 +21,114 @@ server <- function(input,output, session){
                            
                            # Only proceed with the rest of function if a file has been uploaded
                            req(input$inputFileID)
-                        
-                           # Store the dataset user inputs in global variables
-                           pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
-                           wavelengthVal <<- as.numeric(input$wavelength)
-                           blank <<- as.numeric(input$blankSampleID)
-                           helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
-                           molStateVal <<- input$molecularStateID
-                           
-                           # Format stored molecular state choice
-                           # and re-store it in the same global variable
-                           if (molStateVal == "Heteroduplex") {
-                             molStateVal <<- "Heteroduplex.2State"
-                           } else if (molStateVal == "Homoduplex") {
-                             molStateVal <<- "Homoduplex.2State"
-                           }else{
-                             molStateVal <<- "Monomolecular.2State"
+                           if(input$pathlengthID == "" ||input$blankSampleID == "" || input$helixID == ""){
+                             showModal(modalDialog(
+                               title = "Missing Inputs",
+                               "One or more of the input boxes are blank please fill them all in!"
+                             ))
+                           }
+                           else if(can_convert_to_int(input$blankSampleID) == FALSE){
+                             showModal(modalDialog(
+                               title = "Not a number",
+                               "Please input one integer in the blanks box"
+                             ))
+                             
                            }
                            
-                           # Disable widgets from inputs page whose values apply to all datasets.
-                           disable('helixID')
-                           disable('molecularStateID')
-                           disable('wavelengthID')
-                           
-                           # Extract the file and remove any columns/rows with NA's.
-                           fileName <- input$inputFileID$datapath
-                           cd <- read.csv(file = fileName,header = FALSE)
-                           df <- cd %>% select_if(~ !any(is.na(.)))
-                           
-                           # Create temporary data frame to store data from each uploaded file.
-                           # Also process data to fit MeltR's format. 
-                           columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
-                           tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
-                           colnames(tempFrame) <- columns
-                           readings <- ncol(df)
-                           
-                           # Append each individual temporary data frame into a larger dataframe
-                           p <- 1
-                           for (x in 2:readings) {
-                             col <- df[x]
-                             sample <- rep(c(counter),times = nrow(df[x]))
-                             pathlength <- rep(c(as.numeric(pathlengthInputs[p])),times = nrow(df[x]))
-                             col <- df[x]
-                             t <- data.frame(sample,pathlength,df[1],df[x])
-                             names(t) <- names(tempFrame)
-                             tempFrame <- rbind(tempFrame, t)
-                             p <- p + 1
-                             counter <<- counter + 1
+                           else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !input$wavelengthID == "260"){
+                             showModal(modalDialog(
+                               title = "Not a number",
+                               "Please only use wavelength 260 with DNA inputs"
+                             ))
+                             
                            }
-                           values$numReadings <- counter - 1
-                           values$masterFrame <- rbind(values$masterFrame, tempFrame)
+                           else if(strsplit(input$helixID,",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular")&& 
+                                   ((rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
+                                    (rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][3]))) == FALSE))){
+                             showModal(modalDialog(
+                               title = "Not a RNA input",
+                               "Please only use AGCU with RNA inputs",
+                             ))
+                           }
+                           else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular")&& 
+                                   ((dna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
+                                    (dna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][3]))) == FALSE))){
+                             showModal(modalDialog(
+                               title = "Not a DNA input",
+                               "Please only use AGCT with DNA inputs",
+                             ))
+                           }
+                           else{
+                             continue <- TRUE
+                             # Store the dataset user inputs in global variables
+                             pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
+                             wavelengthVal <<- as.numeric(input$wavelength)
+                             blank <<- as.numeric(input$blankSampleID)
+                             helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
+                             molStateVal <<- input$molecularStateID
                            
-                           # Send stored input values to the connecter abstraction class, create 
-                           # a connecter object, and store the result of calling one of it's functions.
-                           myConnecter <<- connecter(df = values$masterFrame,
+                             # Format stored molecular state choice
+                             # and re-store it in the same global variable
+                             if (molStateVal == "Heteroduplex") {
+                               molStateVal <<- "Heteroduplex.2State"
+                             } else if (molStateVal == "Homoduplex") {
+                               molStateVal <<- "Homoduplex.2State"
+                             }else{
+                               molStateVal <<- "Monomolecular.2State"
+                             }
+                           
+                             # Disable widgets from inputs page whose values apply to all datasets.
+                             disable('helixID')
+                             disable('molecularStateID')
+                             disable('wavelengthID')
+                           
+                             # Extract the file and remove any columns/rows with NA's.
+                             fileName <- input$inputFileID$datapath
+                             cd <- read.csv(file = fileName,header = FALSE)
+                             df <- cd %>% select_if(~ !any(is.na(.)))
+                           
+                             # Create temporary data frame to store data from each uploaded file.
+                             # Also process data to fit MeltR's format. 
+                             columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
+                             tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
+                             colnames(tempFrame) <- columns
+                             readings <- ncol(df)
+                           
+                             # Append each individual temporary data frame into a larger dataframe
+                             p <- 1
+                             for (x in 2:readings) {
+                               col <- df[x]
+                               sample <- rep(c(counter),times = nrow(df[x]))
+                               pathlength <- rep(c(as.numeric(pathlengthInputs[p])),times = nrow(df[x]))
+                               col <- df[x]
+                               t <- data.frame(sample,pathlength,df[1],df[x])
+                               names(t) <- names(tempFrame)
+                               tempFrame <- rbind(tempFrame, t)
+                               p <- p + 1
+                               counter <<- counter + 1
+                             }
+                             values$numReadings <- counter - 1
+                             values$masterFrame <- rbind(values$masterFrame, tempFrame)
+                           
+                             # Send stored input values to the connecter abstraction class, create 
+                             # a connecter object, and store the result of calling one of it's functions.
+                             myConnecter <<- connecter(df = values$masterFrame,
                                                      NucAcid = helix,
                                                      Mmodel = molStateVal,
                                                      blank = blank
                                                      )
-                           myConnecter$constructObject()
-                           calculations <<- myConnecter$gatherVantData()
-                           df2 <<- myConnecter$fitData()
+                             myConnecter$constructObject()
+                             calculations <<- myConnecter$gatherVantData()
+                             df2 <<- myConnecter$fitData()
                            
-                           # Reactive variable that handles the points on the Van't Hoff plot.
-                           # Necessary for removal of outliers from said plot.
-                           vals <<- reactiveValues(
-                             keeprows = rep(TRUE, nrow(calculations)))
+                             # Reactive variable that handles the points on the Van't Hoff plot.
+                             # Necessary for removal of outliers from said plot.
+                             vals <<- reactiveValues(
+                               keeprows = rep(TRUE, nrow(calculations)))
                            }
-                         )
+                         }
+                        )
+                         
   
   # Output the post-processed data frame, which contains all the appended datasets.
   output$inputTable = DT::renderDataTable({datatable(values$masterFrame, 
@@ -98,7 +148,7 @@ server <- function(input,output, session){
   # Dynamically create n tabs (n = number of samples in master data frame) for 
   # the "Graphs" page under the "Analysis" navbarmenu.
   observe({
-    req(values$numReadings)
+    req(values$numReadings) && continue == TRUE
     lapply(start:values$numReadings,
            function(i){
              if (i != blank) {
@@ -147,7 +197,7 @@ server <- function(input,output, session){
   
   # Dynamically create a plot for each of the n tabs.
   observe({
-    req(input$inputFileID)
+    req(values$numReadings)
     for (i in 1:values$numReadings) {
       if (i != blank) {
         local({
@@ -221,7 +271,7 @@ server <- function(input,output, session){
   
   # Calls function above to create delete buttons and add IDs for each row in data table 1
   getListUnder <- reactive({
-    req(input$inputFileID)
+    req(values$numReadings) 
     df3 <<- df2
     df3$Delete <- shinyInput(actionButton, nrow(df3),'delete_',label = "Remove",
                             style = "color: red;background-color: white",
@@ -233,7 +283,7 @@ server <- function(input,output, session){
   
   # Assign the reactive data.frame for data table 1 to a reactive value
   observe({
-    req(input$inputFileID)
+    req(values$numReadings) 
     valuesT <<- reactiveValues(df3 = NULL)
     valuesT$df3 <- isolate({getListUnder()})
   })
