@@ -67,9 +67,10 @@ connecter <- setRefClass(Class = "connecter",
                              xmax = round(max(data$Temperature), digits = 4)
                              plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
                                add_markers(x = data$Temperature, y = data$yPlot+min(data$Absorbance), color = "blue") %>%
-                               add_markers(x = data$Temperature[which.max(data$yPlot)],y = max(data$yPlot)+min(data$Absorbance), color = "red") %>%
                                layout(
                                  shapes = list(
+                                   list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$yPlot)], 
+                                        x1 = data$Temperature[which.max(data$yPlot)], line = list(width = 1, dash = "dot")),
                                    list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper"),
                                    list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper")
                                  )
@@ -113,6 +114,8 @@ connecter <- setRefClass(Class = "connecter",
                                add_markers(x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), color = "blue") %>%
                                layout(
                                  shapes = list(
+                                   list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data1$Temperature[which.max(data1$dA.dT)], 
+                                        x1 = data1$Temperature[which.max(data1$dA.dT)], line = list(width = 1, dash = "dot")),
                                    list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper"),
                                    list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper")
                                  )
