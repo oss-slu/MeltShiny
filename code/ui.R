@@ -16,7 +16,7 @@ ui <- navbarPage(title = "MeltShiny",
                                                          inputId = "includeBlanksID"
                                                          ),
                                            hr(style = "border-top: 1px solid #000000;"),
-                                           textInput(label = "Enter the pathlength for each sample.",
+                                           textInput(label = "Enter the pathlength for each sample",
                                                      placeholder = "E.g: 2,5,3,2",
                                                      inputId = "pathlengthID"
                                                      ),
@@ -68,7 +68,17 @@ ui <- navbarPage(title = "MeltShiny",
                                      ),
                             tabPanel(title = "Fit",
                                      tabsetPanel(type = "tabs",
-                                                 tabPanel(title = "Manual"),
+                                                 tabPanel(title = "Manual",
+                                                          fluidPage(
+                                                            fluidRow(
+                                                              column(12,
+                                                                     align = "center",
+                                                                     actionButton(inputId = "manualFitID",
+                                                                                  label = "Fit Data"
+                                                                                  )                                                                   )
+                                                              )
+                                                            )
+                                                          ),
                                                  tabPanel(title = "Automatic")
                                                  )
                                      )
