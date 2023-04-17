@@ -15,40 +15,48 @@ ui <- navbarPage(title = "MeltShiny",
                                                          value = FALSE,
                                                          inputId = "includeBlanksID"
                                                          ),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            textInput(label = "Enter the pathlength for each sample.",
                                                      placeholder = "E.g: 2,5,3,2",
                                                      inputId = "pathlengthID"
                                                      ),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            textInput(label = "Specify the extinction coefficients",
                                                      placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
                                                      inputId = "helixID"
                                                      ),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            selectInput(label = "Select the wavelengthID", 
                                                        choices = c("300","295","290","285","280","275","270","265","260","255","250","245","240","235","230"), 
                                                        selected = "260",
                                                        inputId = "wavelengthID"
                                                        ),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            textInput(label = "Enter the temperature",
                                                      placeholder = "E.g: 75",
                                                      value = 90,
                                                      inputId = "temperatureID"
                                                      ),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            checkboxGroupInput(label = "Choose methods",
                                                               inputId = "methodsID", 
                                                               choices = list("Method 1" = 1, 
                                                                              "Method 2" = 2, 
                                                                              "Method 3" = 3),
                                                               selected = c(1,2,3)),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            selectInput(label = "Select the molecular state", 
                                                        choices = c("Heteroduplex","Homoduplex","Monomolecular"), 
                                                        selected = "Heteroduplex",
                                                        inputId = "molecularStateID"
                                                        ),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            fileInput(label = "Select the dataset file",
                                                      multiple = FALSE,
                                                      accept = ".csv",
                                                      inputId = "inputFileID"
-                                                     )
+                                                     ),
+                                           hr(style = "border-top: 1px solid #000000;")
                                            ),
                                          mainPanel(DT::dataTableOutput(outputId = "inputTable"))
                                          )
