@@ -1,3 +1,11 @@
+css <- "
+.nav li a.disabled {
+background-color: #aaa !important;
+color: #333 !important;
+cursor: not-allowed !important;
+border-color: #aaa !important;
+}"
+
 ui <- navbarPage(title = "MeltShiny",
                  id = "navbarPageID",
                  navbarMenu(title = "File",
@@ -5,7 +13,8 @@ ui <- navbarPage(title = "MeltShiny",
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(
-                                           useShinyjs(),
+                                           shinyjs::useShinyjs(),
+                                           shinyjs::inlineCSS(css),
                                            textInput(label = "Enter the blank sample.",
                                                      placeholder = "E.g: 1",
                                                      value = 1,

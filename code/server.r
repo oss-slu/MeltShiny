@@ -256,6 +256,7 @@ server <- function(input,output, session){
       results$methodThree <- myConnecter$summaryData3()
       results$error <- myConnecter$error()
       showModal(modalDialog("Your data has been fit successfully! View ", HTML("<b>Results</b>"), " tab for updated results."))
+      shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
     })
     
     
