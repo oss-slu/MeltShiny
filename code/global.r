@@ -47,7 +47,9 @@ connecter <- setRefClass(Class = "connecter",
                              data = df[df$Sample == sampleNum,]
                              xmin = round(min(data$Temperature),digits = 4)
                              xmax = round(max(data$Temperature),digits = 4)
-                             plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
+                             plot_ly(type = "scatter", mode = "markers") %>%
+                               add_trace(data = data, x = data$Temperature, y = data$Absorbance,
+                                         marker = list(color = "blue")) %>%
                                layout(showlegend = FALSE) %>%
                                layout(
                                  shapes = list(
@@ -65,8 +67,9 @@ connecter <- setRefClass(Class = "connecter",
                              data = .self$fdData[.self$fdData == sampleNum,]
                              xmin = round(min(data$Temperature), digits = 4)
                              xmax = round(max(data$Temperature), digits = 4)
-                             plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
-                               add_markers(x = data$Temperature, y = data$yPlot+min(data$Absorbance), color = "green") %>%
+                             plot_ly(type = "scatter", mode = "markers") %>%
+                               add_trace(data = data, x = data$Temperature, y = data$Absorbance, marker = list(color = "blue")) %>%
+                               add_trace(data = data, x = data$Temperature, y = data$yPlot+min(data$Absorbance), marker = list(color = "green")) %>%
                                layout(
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$yPlot)], 
@@ -87,8 +90,9 @@ connecter <- setRefClass(Class = "connecter",
                              data = data[data$Sample == sampleNum,]
                              xmin = round(min(data$Temperature), digits = 4)
                              xmax = round(max(data$Temperature), digits = 4)
-                             plot_ly(data, x = data$Temperature, y = data$Absorbance, type = "scatter", mode = "markers") %>%
-                               add_lines(x = data$Temperature,y = data$Model, color = "red") %>%
+                             plot_ly(type = "scatter", mode = "markers") %>%
+                               add_trace(data = data, x = data$Temperature, y = data$Absorbance, marker = list(color = "blue")) %>%
+                               add_lines(data = data, x = data$Temperature,y = data$Model, color = "red") %>%
                                layout(
                                  shapes = list(
                                    list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper"),
@@ -109,9 +113,11 @@ connecter <- setRefClass(Class = "connecter",
                              xmax = round(max(data1$Temperature), digits = 4)
                              coeff = 4000 #Static number to shrink data to scale
                              upper = max(data1$dA.dT)/max(data1$Ct) + coeff
-                             plot_ly(data2, x = data2$Temperature, y = data2$Absorbance, type = "scatter", mode = "markers") %>%
-                               add_lines(x = data2$Temperature, y = data2$Model, color = "red") %>%
-                               add_markers(x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), color = "green") %>%
+                             plot_ly(type = "scatter", mode = "markers") %>%
+                               add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
+                               add_lines(data = data2, x = data2$Temperature, y = data2$Model, color = "red") %>%
+                               add_trace(data = data1, x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), 
+                                         marker = list(color = "green")) %>%
                                layout(
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data1$Temperature[which.max(data1$dA.dT)], 

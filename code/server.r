@@ -1,4 +1,6 @@
 server <- function(input,output, session){
+  # Prevent Rplots.pdf from generating
+  if(!interactive()) pdf(NULL)
   
   # Create a reactive value which can hold the growing dataset.
   values <- reactiveValues(masterFrame = NULL,
@@ -118,18 +120,18 @@ server <- function(input,output, session){
                                                      blank = blank
                                                      )
 
-                           myConnecter$constructObject()
-                           
-                           calculations <<- myConnecter$gatherVantData()
-                           df2 <<- myConnecter$fitData()
-                           
-                             # Reactive variable that handles the points on the Van't Hoff plot.
-                             # Necessary for removal of outliers from said plot.
-                             vals <<- reactiveValues(
-                               keeprows = rep(TRUE, nrow(calculations)))
+                             myConnecter$constructObject()
+                             
+                             calculations <<- myConnecter$gatherVantData()
+                             df2 <<- myConnecter$fitData()
+                             
+                               # Reactive variable that handles the points on the Van't Hoff plot.
+                               # Necessary for removal of outliers from said plot.
+                               vals <<- reactiveValues(
+                                 keeprows = rep(TRUE, nrow(calculations)))
+                               }
                            }
-                         }
-                        )
+                         )
                          
   
   # Output the post-processed data frame, which contains all the appended datasets.
@@ -139,7 +141,7 @@ server <- function(input,output, session){
                                                 options = list(searching = FALSE, ordering = FALSE),
                                                 caption = 'Table 1. Dataset 1.')})
   
-  # Hide "Analysis" and "Results tabs until a file is successfully uploaded
+  # Disable "Analysis" and "Results tabs until a file is successfully uploaded
   observeEvent(eventExpr = is.null(values$numReadings),
                handlerExpr = {
                  shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
@@ -348,9 +350,9 @@ server <- function(input,output, session){
                 height = 10, pointsize = 12, family = "sans", bg = "transparent",
                 antialias = "subpixel",fallback_resolution = 300
                 )
-      caluclations <- myConnecter$gatherVantData()
-      InverseTemp <- caluclations$invT
-      LnConcentraion <- caluclations$lnCt
+      calculations <- myConnecter$gatherVantData()
+      InverseTemp <- calculations$invT
+      LnConcentraion <- calculations$lnCt
       plot(LnConcentraion,InverseTemp)
       dev.off()
     },
