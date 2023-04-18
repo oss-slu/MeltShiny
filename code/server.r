@@ -227,7 +227,7 @@ server <- function(input,output, session){
           
           # Plot containing best, first derivative, and raw data
           output[[plotBoth]] <- renderPlotly({
-            myConnecter$constructBoth(myI)
+            myConnecter$constructAllPlots(myI)
             })
           })
         }

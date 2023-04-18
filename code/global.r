@@ -9,6 +9,8 @@ start <- 1
 df2 <- NULL
 valuesT <- NULL
 df3 <- NULL
+xmin <- 0
+xmax <- 0
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
@@ -40,21 +42,26 @@ connecter <- setRefClass(Class = "connecter",
                                                      )
                                                    )
                              names(.self$fdData)[ncol(.self$fdData)] <- "yPlot"
+                             
+                             # Need to position the starting baseline bars at the min and max of temperature
+                             data = df[df$Sample == 1,]
+                             xmin <<- round(min(data$Temperature),digits = 4)
+                             xmax <<- round(max(data$Temperature),digits = 4)
                              },
-                           
+
                           #Construct a plot containing the raw data
                            constructRawPlot = function(sampleNum){
                              data = df[df$Sample == sampleNum,]
-                             xmin = round(min(data$Temperature),digits = 4)
-                             xmax = round(max(data$Temperature),digits = 4)
+                             #xmin = round(min(data$Temperature),digits = 4)
+                             #xmax = round(max(data$Temperature),digits = 4)
                              plot_ly(type = "scatter", mode = "markers") %>%
                                add_trace(data = data, x = data$Temperature, y = data$Absorbance,
                                          marker = list(color = "blue")) %>%
                                layout(showlegend = FALSE) %>%
                                layout(
                                  shapes = list(
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1, yref = "paper"),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1, yref = "paper")
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1, yref = "paper", editable = TRUE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1, yref = "paper", editable = TRUE)
                                    )
                                  ) %>% 
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
@@ -65,8 +72,8 @@ connecter <- setRefClass(Class = "connecter",
                            # Construct a plot of the first derivative and the raw data
                            constructFirstDerivative = function(sampleNum){
                              data = .self$fdData[.self$fdData == sampleNum,]
-                             xmin = round(min(data$Temperature), digits = 4)
-                             xmax = round(max(data$Temperature), digits = 4)
+                             #xmin = round(min(data$Temperature), digits = 4)
+                             #xmax = round(max(data$Temperature), digits = 4)
                              plot_ly(type = "scatter", mode = "markers") %>%
                                add_trace(data = data, x = data$Temperature, y = data$Absorbance, marker = list(color = "blue")) %>%
                                add_trace(data = data, x = data$Temperature, y = data$yPlot+min(data$Absorbance), marker = list(color = "green")) %>%
@@ -88,40 +95,13 @@ connecter <- setRefClass(Class = "connecter",
                            constructBestFit = function(sampleNum){
                              data = .self$object$Method.1.data
                              data = data[data$Sample == sampleNum,]
-                             xmin = round(min(data$Temperature), digits = 4)
-                             xmax = round(max(data$Temperature), digits = 4)
+                             #xmin = round(min(data$Temperature), digits = 4)
+                             #xmax = round(max(data$Temperature), digits = 4)
                              plot_ly(type = "scatter", mode = "markers") %>%
                                add_trace(data = data, x = data$Temperature, y = data$Absorbance, marker = list(color = "blue")) %>%
                                add_lines(data = data, x = data$Temperature,y = data$Model, color = "red") %>%
                                layout(
                                  shapes = list(
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper"),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper")
-                                 )
-                               ) %>%
-                               layout(showlegend = FALSE) %>%
-                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
-                               layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
-                               config(displayModeBar = FALSE)
-                             },
-                           
-                           # Construct a plot of the best fit, first derivative, and the raw data
-                           constructBoth = function(sampleNum){
-                             data1 = .self$object$Derivatives.data[.self$object$Derivatives.data == sampleNum,]
-                             data2 = .self$object$Method.1.data[.self$object$Method.1.data$Sample == sampleNum,]
-                             xmin = round(min(data1$Temperature), digits = 4)
-                             xmax = round(max(data1$Temperature), digits = 4)
-                             coeff = 4000 #Static number to shrink data to scale
-                             upper = max(data1$dA.dT)/max(data1$Ct) + coeff
-                             plot_ly(type = "scatter", mode = "markers") %>%
-                               add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
-                               add_lines(data = data2, x = data2$Temperature, y = data2$Model, color = "red") %>%
-                               add_trace(data = data1, x = data1$Temperature, y = (data1$dA.dT/(data1$Pathlength*data1$Ct))/upper+min(data1$Absorbance), 
-                                         marker = list(color = "green")) %>%
-                               layout(
-                                 shapes = list(
-                                   list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data1$Temperature[which.max(data1$dA.dT)], 
-                                        x1 = data1$Temperature[which.max(data1$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE),
                                    list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
                                    list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
                                  )
@@ -131,7 +111,34 @@ connecter <- setRefClass(Class = "connecter",
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
                                config(displayModeBar = FALSE)
                              },
-                          
+                           
+                           # Construct a plot of the best fit, first derivative, and the raw data
+                           constructAllPlots = function(sampleNum){
+                             data = .self$object$Derivatives.data[.self$object$Derivatives.data == sampleNum,]
+                             data2 = .self$object$Method.1.data[.self$object$Method.1.data$Sample == sampleNum,]
+                             #xmin = round(min(data$Temperature), digits = 4)
+                             #xmax = round(max(data$Temperature), digits = 4)
+                             coeff = 4000 #Static number to shrink data to scale
+                             upper = max(data$dA.dT)/max(data$Ct) + coeff
+                             plot_ly(type = "scatter", mode = "markers") %>%
+                               add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
+                               add_lines(data = data2, x = data2$Temperature, y = data2$Model, color = "red") %>%
+                               add_trace(data = data, x = data$Temperature, y = (data$dA.dT/(data$Pathlength*data$Ct))/upper+min(data$Absorbance), 
+                                         marker = list(color = "green")) %>%
+                               layout(
+                                 shapes = list(
+                                   list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$dA.dT)], 
+                                        x1 = data$Temperature[which.max(data$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmin,x1 = xmin,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
+                                   list(type = "line", width = 4,line = list(color = "black"),x0 = xmax,x1 = xmax,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
+                                 )
+                               ) %>%
+                               layout(showlegend = FALSE) %>%
+                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
+                               layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
+                               config(displayModeBar = FALSE)
+                             },
+                        
                            # Return the x value associated with the maximum y-value for the first derivative
                            getFirstDerivativeMax = function(sampleNum) {
                              data = .self$fdData[.self$fdData == sampleNum,]
