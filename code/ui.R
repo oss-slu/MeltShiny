@@ -64,7 +64,11 @@ ui <- navbarPage(title = "MeltShiny",
                                                      multiple = FALSE,
                                                      accept = ".csv",
                                                      inputId = "inputFileID"
-                                                     )
+                                                     ),
+                                           checkboxInput(label = "All Datasets Uploaded?",
+                                                         value = FALSE,
+                                                         inputId = "datasetsUploadedID"
+                                                         ),
                                            ),
                                          mainPanel(DT::dataTableOutput(outputId = "inputTable"))
                                          )

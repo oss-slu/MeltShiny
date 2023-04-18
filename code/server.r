@@ -3,9 +3,10 @@ server <- function(input,output, session){
   if(!interactive()) pdf(NULL)
   
   # Create a reactive value which can hold the growing dataset.
-  values <- reactiveValues(masterFrame = NULL,
+  values <<- reactiveValues(masterFrame = NULL,
                            numReadings = NULL
                            )
+  
   continue <- FALSE
   can_convert_to_int <- function(x) {
     all(grepl('^(?=.)([+-]?([0-9]*)?)$', x, perl = TRUE))  
@@ -17,12 +18,9 @@ server <- function(input,output, session){
     all(!grepl("[^A,^G,^C,^U]",x))
   }
   
-  # Function that handles the dataset inputs, as wells as the dataset upload
+  # Function that handles the dataset inputs as well as the dataset upload
   upload <- observeEvent(eventExpr = input$inputFileID,
                          handlerExpr = {
-                           
-                           # Only proceed with the rest of function if a file has been uploaded
-                           req(input$inputFileID)
                            if(input$pathlengthID == "" ||input$blankSampleID == "" || input$helixID == ""){
                              showModal(modalDialog(
                                title = "Missing Inputs",
@@ -111,28 +109,32 @@ server <- function(input,output, session){
                              }
                              values$numReadings <- counter - 1
                              values$masterFrame <- rbind(values$masterFrame, tempFrame)
-                           
-                             # Send stored input values to the connecter abstraction class, create 
-                             # a connecter object, and store the result of calling one of it's functions.
-                             myConnecter <<- connecter(df = values$masterFrame,
-                                                     NucAcid = helix,
-                                                     Mmodel = molStateVal,
-                                                     blank = blank
-                                                     )
-
-                             myConnecter$constructObject()
-                             
-                             calculations <<- myConnecter$gatherVantData()
-                             df2 <<- myConnecter$fitData()
-                             
-                               # Reactive variable that handles the points on the Van't Hoff plot.
-                               # Necessary for removal of outliers from said plot.
-                               vals <<- reactiveValues(
-                                 keeprows = rep(TRUE, nrow(calculations)))
-                               }
-                           }
-                         )
-                         
+                             }
+                           })
+  
+  # Once all datasets have been uploaded, the MeltR object can be created
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID== TRUE){
+                   # Send stored input values to the connecter abstraction class, create 
+                   # a connecter object, and store the result of calling one of it's functions.
+                   myConnecter <<- connecter(df = values$masterFrame,
+                                             NucAcid = helix,
+                                             Mmodel = molStateVal,
+                                             blank = blank
+                                             )
+                   myConnecter$constructObject()
+                   calculations <<- myConnecter$gatherVantData()
+                   df2 <<- myConnecter$fitData()
+                   
+                   # Reactive variable that handles the points on the Van't Hoff plot.
+                   # Necessary for removal of outliers from said plot.
+                   vals <<- reactiveValues(
+                     keeprows = rep(TRUE, nrow(calculations))
+                     )
+                   }
+                 }
+               )
   
   # Output the post-processed data frame, which contains all the appended datasets.
   output$inputTable = DT::renderDataTable({datatable(values$masterFrame, 
@@ -141,100 +143,109 @@ server <- function(input,output, session){
                                                 options = list(searching = FALSE, ordering = FALSE),
                                                 caption = 'Table 1. Dataset 1.')})
   
-  # Disable "Analysis" and "Results tabs until a file is successfully uploaded
-  observeEvent(eventExpr = is.null(values$numReadings),
+  # Disable "Analysis" and "Results tabs until all files have successfully been uploaded
+  observeEvent(eventExpr = input$datasetsUploadedID,
                handlerExpr = {
-                 shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
-                 shinyjs::disable(selector = '.navbar-nav a[data-value="Results"')
+                 if(input$datasetsUploadedID == FALSE){
+                   shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
+                   shinyjs::disable(selector = '.navbar-nav a[data-value="Results"')
+                   }
                  }
                )
   
   # Dynamically create n tabs (n = number of samples in master data frame) for 
   # the "Graphs" page under the "Analysis" navbarmenu.
-  observe({
-    req(values$numReadings) && continue == TRUE
-    lapply(start:values$numReadings,
-           function(i){
-             if (i != blank) {
-               data = values$masterFrame[values$masterFrame$Sample == i,]
-               plotBoth = paste0("plotBoth",i)
-               plotBestFit = paste0("plotBestFit",i)
-               plotName = paste0("plot",i)
-               plotDerivative = paste0("plotDerivative",i)
-               firstDerivative = paste0("firstDerivative",i)
-               bestFit = paste0("bestFit",i)
-               tabName = paste("Sample",i,sep = " ")
-               appendTab(inputId = "tabs",
-                         tab = tabPanel(tabName,
-                                        fluidPage(
-                                          sidebarLayout(
-                                            sidebarPanel(
-                                              h4("Options:"),
-                                              checkboxInput(inputId = bestFit,label = "Best Fit"),
-                                              checkboxInput(inputId = firstDerivative,label = "First Derivative"),
-                                              ),
-                                            mainPanel(
-                                              conditionalPanel(condition = glue("!input.{firstDerivative} && !input.{bestFit}"),
-                                                               plotlyOutput(plotName)
-                                                               ),
-                                              conditionalPanel(condition = glue("input.{firstDerivative} && !input.{bestFit}"),
-                                                               plotlyOutput(plotDerivative)
-                                                               ),
-                                              conditionalPanel(condition = glue("input.{bestFit} && !input.{firstDerivative}"),
-                                                               plotlyOutput(plotBestFit)
-                                                               ),
-                                              conditionalPanel(condition = glue("input.{firstDerivative} && input.{bestFit}"),
-                                                               plotlyOutput(plotBoth)
-                                                               ),
-                                              )
-                                            )
-                                          )
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 #req(input$datasetsUploadedID) && continue == TRUE
+                 if(input$datasetsUploadedID == TRUE){
+                   lapply(start:values$numReadings,
+                          function(i){
+                            if (i != blank) {
+                              data = values$masterFrame[values$masterFrame$Sample == i,]
+                              plotBoth = paste0("plotBoth",i)
+                              plotBestFit = paste0("plotBestFit",i)
+                              plotName = paste0("plot",i)
+                              plotDerivative = paste0("plotDerivative",i)
+                              firstDerivative = paste0("firstDerivative",i)
+                              bestFit = paste0("bestFit",i)
+                              tabName = paste("Sample",i,sep = " ")
+                              appendTab(inputId = "tabs",
+                                        tab = tabPanel(tabName,
+                                                       fluidPage(
+                                                         sidebarLayout(
+                                                           sidebarPanel(
+                                                             h4("Options:"),
+                                                             checkboxInput(inputId = bestFit,label = "Best Fit"),
+                                                             checkboxInput(inputId = firstDerivative,label = "First Derivative"),
+                                                             ),
+                                                           mainPanel(
+                                                             conditionalPanel(condition = glue("!input.{firstDerivative} && !input.{bestFit}"),
+                                                                              plotlyOutput(plotName)
+                                                                              ),
+                                                             conditionalPanel(condition = glue("input.{firstDerivative} && !input.{bestFit}"),
+                                                                              plotlyOutput(plotDerivative)
+                                                                              ),
+                                                             conditionalPanel(condition = glue("input.{bestFit} && !input.{firstDerivative}"),
+                                                                              plotlyOutput(plotBestFit)
+                                                                              ),
+                                                             conditionalPanel(condition = glue("input.{firstDerivative} && input.{bestFit}"),
+                                                                              plotlyOutput(plotBoth)
+                                                                              ),
+                                                             )
+                                                           )
+                                                         )
+                                                       )
                                         )
-               )}
-             }
-           )
-    start <<- values$numReadings + 1
-    shinyjs::enable(selector = '.navbar-nav a[data-value="Analysis"')
-    shinyjs::enable(selector = '.navbar-nav a[data-value="Results"')
-    })
+                              }
+                            }
+                         )
+                   start <<- values$numReadings + 1
+                   shinyjs::enable(selector = '.navbar-nav a[data-value="Analysis"')
+                   shinyjs::enable(selector = '.navbar-nav a[data-value="Results"')
+                   }
+                 }
+               )
   
-  # Dynamically create a plot for each of the n tabs.
-  observe({
-    req(values$numReadings)
-    for (i in 1:values$numReadings) {
-      if (i != blank) {
-        local({
-          myI <- i 
-          plotDerivative = paste0("plotDerivative",myI)
-          plotBestFit = paste0("plotBestFit",myI)
-          plotBoth = paste0("plotBoth",myI)
-          plotName = paste0("plot",myI)
-          
-          # Plot containing raw data
-          output[[plotName]] <- renderPlotly({
-            myConnecter$constructRawPlot(myI)
-            })
-          
-          # Plot containing first derivative with raw data
-          output[[plotDerivative]] <- renderPlotly({
-            myConnecter$constructFirstDerivative(myI)
-            })
-          
-          # Plot containing best fit with raw data
-          output[[plotBestFit]] <- renderPlotly({
-            myConnecter$constructBestFit(myI)
-          })
-          
-          # Plot containing best, first derivative, and raw data
-          output[[plotBoth]] <- renderPlotly({
-            myConnecter$constructAllPlots(myI)
-            })
-          })
-        }
-      }
-    })
+  # Dynamically create the three plots for each of the n sample tabs.
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID == TRUE){
+                   for (i in 1:values$numReadings) {
+                     if (i != blank) {
+                       local({
+                         myI <- i 
+                         plotDerivative = paste0("plotDerivative",myI)
+                         plotBestFit = paste0("plotBestFit",myI)
+                         plotBoth = paste0("plotBoth",myI)
+                         plotName = paste0("plot",myI)
+                        
+                         # Plot containing raw data
+                         output[[plotName]] <- renderPlotly({
+                           myConnecter$constructRawPlot(myI)
+                           })
+                        
+                         # Plot containing first derivative with raw data
+                         output[[plotDerivative]] <- renderPlotly({
+                           myConnecter$constructFirstDerivative(myI)
+                           })
+                        
+                         # Plot containing best fit with raw data
+                         output[[plotBestFit]] <- renderPlotly({
+                           myConnecter$constructBestFit(myI)
+                         })
+                        
+                         # Plot containing best, first derivative, and raw data
+                         output[[plotBoth]] <- renderPlotly({
+                           myConnecter$constructAllPlots(myI)
+                           })
+                         })
+                       }
+                     }
+                   }
+                 })
   
-  # Create Van't Hoff plot for the "Van't Hoff Plot" Tab under the "Results" navbar menu.
+  # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
     keep <- calculations[vals$keeprows, , drop = FALSE]
     exclude <- calculations[!vals$keeprows, , drop = FALSE]
@@ -243,7 +254,7 @@ server <- function(input,output, session){
       geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
       labs(y = "ln(Concentration)", x = "Inverse Temperature (°C)", title = "Van't Hoff") +
       theme(plot.title = element_text(hjust = 0.5))
-    }, res = 100)
+    })
   
   # Remove points from Van't Hoff that are clicked.
   observeEvent(eventExpr = input$vantClick, 
@@ -252,20 +263,20 @@ server <- function(input,output, session){
                  vals$keeprows <- xor(vals$keeprows, res$selected_)
                  })
   
-  # Remove points that are brushed when the appropriate button is clicked.
+  # Remove brushed points from Van't Hoff when the "Brushed" button is clicked.
   observeEvent(eventExpr = input$removeBrushedID, 
                handlerExpr = {
                  res <- brushedPoints(calculations, input$vantBrush, allRows = TRUE)
                  vals$keeprows <- xor(vals$keeprows, res$selected_)
                  })
   
-  # Reset all the Van't Hoff plot when the reset button is clicked.
+  # Reset the Van't Hoff plot when the "Reset" button is clicked.
   observeEvent(eventExpr = input$resetVantID, 
                handlerExpr = {
                  vals$keeprows <- rep(TRUE, nrow(calculations))
                  })
   
-  # Function for dynamically creating the delete button on results table 1
+  # Function for dynamically creating the delete button on the individual fits table
   shinyInput <- function(FUN, len, id, ...) {
     inputs <- character(len)
     for (i in seq_len(len)) {
@@ -274,38 +285,42 @@ server <- function(input,output, session){
     inputs
   }
   
-  # Calls function above to create delete buttons and add IDs for each row in data table 1
+  # Calls function above to create delete buttons and add IDs for each row in the individual fits table
   getListUnder <- reactive({
-    req(values$numReadings) 
-    df3 <<- df2
-    df3$Delete <- shinyInput(actionButton, nrow(df3),'delete_',label = "Remove",
-                            style = "color: red;background-color: white",
-                            onclick = paste0('Shiny.onInputChange( \"delete_button\" , this.id, {priority: \"event\"})'))
+    if(input$datasetsUploadedID == TRUE){
     
-    df3$ID <- seq.int(nrow(df3))
-    return(df3)
+      df3 <<- df2
+      df3$Delete <- shinyInput(actionButton, nrow(df3),'delete_',label = "Remove",
+                               style = "color: red;background-color: white",
+                               onclick = paste0('Shiny.onInputChange( \"delete_button\" , this.id, {priority: \"event\"})'))
+    
+      df3$ID <- seq.int(nrow(df3))
+      return(df3)
+      }
   })
   
-  # Assign the reactive data.frame for data table 1 to a reactive value
-  observe({
-    req(values$numReadings) 
-    valuesT <<- reactiveValues(df3 = NULL)
-    valuesT$df3 <- isolate({getListUnder()})
-  })
+  # Assign the reactive data frame for the individual fits table to a reactive value
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID==TRUE){
+                   valuesT <<- reactiveValues(df3 = NULL)
+                   valuesT$df3 <- isolate({getListUnder()})
+                   }
+                 })
   
-  # When delete button is pressed, remove row from data table 1
-  observeEvent( input$delete_button, {
+  # Remove row from individual fits table when its respective "Remove" button is pressed.
+  observeEvent( eventExpr = input$delete_button, handlerExpr = {
     selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
     valuesT$df3 <<- subset(valuesT$df3, ID!=selectedRow)
   })
   
-  # When reset button is pressed, reset table 1 to original
-  observeEvent(eventExpr = input$resetTable1ID, 
+  # Reset the individual fits table to original when "Reset" button is pressed.
+  observeEvent(eventExpr = input$resetTable1ID == TRUE, 
                handlerExpr = {
                  valuesT$df3 <- isolate({getListUnder()})
                })
   
-  # Render results table
+  # Render all parts of the results table.
   output$individualFitsTable = DT::renderDataTable({
     table <- valuesT$df3 %>%
       DT::datatable(filter = "none", 
@@ -320,8 +335,6 @@ server <- function(input,output, session){
                                    pageLength = 100,
                                    columnDefs = list(list(targets = c(7), visible = FALSE))),
                     escape = F)
-    
-    
   })
   output$method1Table <- renderTable({
     data <- myConnecter$summaryData1()
