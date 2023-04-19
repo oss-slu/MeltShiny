@@ -7,8 +7,6 @@ server <- function(input,output, session){
                            numReadings = NULL
                            )
   
-  continue <- FALSE
-  
   # Check if the value is an int.
   can_convert_to_int <- function(x) {
     all(grepl('^(?=.)([+-]?([0-9]*)?)$', x, perl = TRUE))  
@@ -40,14 +38,17 @@ server <- function(input,output, session){
                              if(can_convert_to_int(input$blankSampleID) == FALSE){
                                showModal(modalDialog(
                                  title = "Not a number",
-                                 "Please input an integer in the blanks box."
+                                 "Please input an integer in the blanks box.",
+                                 footer = modalButton("Understood"),
+                                 easyClose = FALSE,
+                                 fade = TRUE
                                ))
                              }
                            }
                            if(input$pathlengthID == "" || input$helixID == "" || input$blankSampleID == ""){
                              showModal(modalDialog(
                                title = "Missing Inputs",
-                               "Please ensure that all inputs have been filled out!",
+                               "Please ensure that all inputs have been filled out.",
                                footer = modalButton("Understood"),
                                easyClose = FALSE,
                                fade = TRUE
@@ -55,28 +56,36 @@ server <- function(input,output, session){
                            }
                            else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !input$wavelengthID == "260"){
                              showModal(modalDialog(
-                               title = "Not a number",
-                               "Please only use wavelength 260 with DNA inputs"
+                               title = "Nucleotide to Absorbance Mis-Pair",
+                               "Please use a wavelength value of 260 with DNA sequences.",
+                               footer = modalButton("Understood"),
+                               easyClose = FALSE,
+                               fade = TRUE
                                ))
                            }
                            else if(strsplit(input$helixID,",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular")&& 
                                    ((rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
                                     (rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][3]))) == FALSE))){
                              showModal(modalDialog(
-                               title = "Not a RNA input",
-                               "Please only use AGCU with RNA inputs",
+                               title = "Not a RNA Nucleotide",
+                               "Please use nucleotide U with RNA inputs",
+                               footer = modalButton("Understood"),
+                               easyClose = FALSE,
+                               fade = TRUE
                              ))
                            }
                            else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular")&& 
                                    ((dna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
                                     (dna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][3]))) == FALSE))){
                              showModal(modalDialog(
-                               title = "Not a DNA input",
-                               "Please only use AGCT with DNA inputs",
+                               title = "Not a DNA Nucleotide",
+                               "Please use the nucleotide T with DNA inputs.",
+                               footer = modalButton("Understood"),
+                               easyClose = FALSE,
+                               fade = TRUE
                              ))
                            }
                            else{
-                             continue <- TRUE
                              # Store the dataset user inputs in global variables
                              pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
                              wavelengthVal <<- as.numeric(input$wavelength)
