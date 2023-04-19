@@ -8,23 +8,37 @@ server <- function(input,output, session){
                            )
   
   continue <- FALSE
+  
+  # Check if the value is an int.
   can_convert_to_int <- function(x) {
     all(grepl('^(?=.)([+-]?([0-9]*)?)$', x, perl = TRUE))  
   }
+  
+  # Check the nucleotide sequence to check if it belongs to DNA.
   dna_letters_only <- function(x){
     all(!grepl("[^A,^G,^C,^T]",x))
   }
+  
+  # Check the nucleotide sequence to check if it belongs to RNA.
   rna_letters_only <- function(x){
     all(!grepl("[^A,^G,^C,^U]",x))
   }
   
-  # Function that handles the dataset inputs as well as the dataset upload
+  observeEvent(eventExpr = input$noBlanksID,
+               handlerExpr = {
+                 if (input$noBlanksID == TRUE){
+                   updateTextInput(session,"blankSampleID",value = "none")
+                   disable('blankSampleID')
+                 }
+               })
+  
+  # Handle the dataset inputs and append additional datasets.
   upload <- observeEvent(eventExpr = input$inputFileID,
                          handlerExpr = {
                            if(input$pathlengthID == "" ||input$blankSampleID == "" || input$helixID == ""){
                              showModal(modalDialog(
                                title = "Missing Inputs",
-                               "One or more of the input boxes are blank please fill them all in!"
+                               "One or more of the input boxes are blank. Please fill them all in!"
                              ))
                            }
                            else if(can_convert_to_int(input$blankSampleID) == FALSE){
@@ -63,12 +77,16 @@ server <- function(input,output, session){
                              # Store the dataset user inputs in global variables
                              pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
                              wavelengthVal <<- as.numeric(input$wavelength)
-                             blank <<- as.numeric(input$blankSampleID)
+                             if(input$noBlanksID == TRUE){
+                               blank <<- "none"
+                               }
+                             else{
+                               blank <<- as.numeric(input$blankSampleID)
+                               }
                              helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
                              molStateVal <<- input$molecularStateID
                            
-                             # Format stored molecular state choice
-                             # and re-store it in the same global variable
+                             # Format stored molecular state choice and re-store it in the same global variable.
                              if (molStateVal == "Heteroduplex") {
                                molStateVal <<- "Heteroduplex.2State"
                              } else if (molStateVal == "Homoduplex") {
@@ -109,13 +127,16 @@ server <- function(input,output, session){
                              }
                              values$numReadings <- counter - 1
                              values$masterFrame <- rbind(values$masterFrame, tempFrame)
+                             enable('blankSampleID')
+                             updateTextInput(session,"blankSampleID",value = 1)
+                             updateCheckboxInput(session,"noBlanksID", value = FALSE)
                              }
                            })
   
   # Once all datasets have been uploaded, the MeltR object can be created
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
-                 if(input$datasetsUploadedID== TRUE){
+                 if(input$datasetsUploadedID == TRUE){
                    # Send stored input values to the connecter abstraction class, create 
                    # a connecter object, and store the result of calling one of it's functions.
                    myConnecter <<- connecter(df = values$masterFrame,
@@ -135,6 +156,20 @@ server <- function(input,output, session){
                    }
                  }
                )
+  
+  # Disable remaining widgets on "Upload" page when all datasets have been uploaded.
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID == TRUE){
+                   disable('temperatureID')
+                   disable('methodsID')
+                   disable('blankSampleID')
+                   disable('pathlengthID')
+                   disable('inputFileID')
+                   disable('datasetsUploadedID')
+                   disable('includeBlanksID')
+                   }
+                 })
   
   # Output the post-processed data frame, which contains all the appended datasets.
   output$inputTable = DT::renderDataTable({datatable(values$masterFrame, 
