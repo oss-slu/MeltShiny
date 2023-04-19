@@ -1,5 +1,6 @@
 # List of global variables
-blank <- NULL 
+blank <- NULL
+blankInt <- NULL
 counter <- 1 
 helix <- c() 
 molStateVal <- "" 

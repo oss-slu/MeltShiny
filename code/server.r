@@ -24,10 +24,11 @@ server <- function(input,output, session){
     all(!grepl("[^A,^G,^C,^U]",x))
   }
   
+  # Handle the situation in which the user clicks the "No Blanks" checkbox.
   observeEvent(eventExpr = input$noBlanksID,
                handlerExpr = {
                  if (input$noBlanksID == TRUE){
-                   updateTextInput(session,"blankSampleID",value = "none")
+                   updateTextInput(session,"blankSampleID", value = "none")
                    disable('blankSampleID')
                  }
                })
@@ -35,26 +36,28 @@ server <- function(input,output, session){
   # Handle the dataset inputs and append additional datasets.
   upload <- observeEvent(eventExpr = input$inputFileID,
                          handlerExpr = {
-                           if(input$pathlengthID == "" ||input$blankSampleID == "" || input$helixID == ""){
+                           if(input$noBlanksID == FALSE){
+                             if(can_convert_to_int(input$blankSampleID) == FALSE){
+                               showModal(modalDialog(
+                                 title = "Not a number",
+                                 "Please input an integer in the blanks box."
+                               ))
+                             }
+                           }
+                           if(input$pathlengthID == "" || input$helixID == "" || input$blankSampleID == ""){
                              showModal(modalDialog(
                                title = "Missing Inputs",
-                               "One or more of the input boxes are blank. Please fill them all in!"
+                               "Please ensure that all inputs have been filled out!",
+                               footer = modalButton("Understood"),
+                               easyClose = FALSE,
+                               fade = TRUE
                              ))
                            }
-                           else if(can_convert_to_int(input$blankSampleID) == FALSE){
-                             showModal(modalDialog(
-                               title = "Not a number",
-                               "Please input one integer in the blanks box"
-                             ))
-                             
-                           }
-                           
                            else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !input$wavelengthID == "260"){
                              showModal(modalDialog(
                                title = "Not a number",
                                "Please only use wavelength 260 with DNA inputs"
-                             ))
-                             
+                               ))
                            }
                            else if(strsplit(input$helixID,",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular")&& 
                                    ((rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
@@ -79,9 +82,11 @@ server <- function(input,output, session){
                              wavelengthVal <<- as.numeric(input$wavelength)
                              if(input$noBlanksID == TRUE){
                                blank <<- "none"
+                               blankInt <<- 0
                                }
                              else{
                                blank <<- as.numeric(input$blankSampleID)
+                               blankInt <<- blank
                                }
                              helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
                              molStateVal <<- input$molecularStateID
@@ -128,7 +133,7 @@ server <- function(input,output, session){
                              values$numReadings <- counter - 1
                              values$masterFrame <- rbind(values$masterFrame, tempFrame)
                              enable('blankSampleID')
-                             updateTextInput(session,"blankSampleID",value = 1)
+                             updateTextInput(session,"blankSampleID", value = 1)
                              updateCheckboxInput(session,"noBlanksID", value = FALSE)
                              }
                            })
@@ -168,6 +173,8 @@ server <- function(input,output, session){
                    disable('inputFileID')
                    disable('datasetsUploadedID')
                    disable('includeBlanksID')
+                   disable('blankPairsID')
+                   disable('noBlanksID')
                    }
                  })
   
@@ -182,8 +189,8 @@ server <- function(input,output, session){
   observeEvent(eventExpr = input$datasetsUploadedID,
                handlerExpr = {
                  if(input$datasetsUploadedID == FALSE){
-                   shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
-                   shinyjs::disable(selector = '.navbar-nav a[data-value="Results"')
+                   disable(selector = '.navbar-nav a[data-value="Analysis"')
+                   disable(selector = '.navbar-nav a[data-value="Results"')
                    }
                  }
                )
@@ -192,11 +199,10 @@ server <- function(input,output, session){
   # the "Graphs" page under the "Analysis" navbarmenu.
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
-                 #req(input$datasetsUploadedID) && continue == TRUE
                  if(input$datasetsUploadedID == TRUE){
                    lapply(start:values$numReadings,
                           function(i){
-                            if (i != blank) {
+                            if (i != blankInt) {
                               data = values$masterFrame[values$masterFrame$Sample == i,]
                               plotBoth = paste0("plotBoth",i)
                               plotBestFit = paste0("plotBestFit",i)
@@ -236,8 +242,8 @@ server <- function(input,output, session){
                             }
                          )
                    start <<- values$numReadings + 1
-                   shinyjs::enable(selector = '.navbar-nav a[data-value="Analysis"')
-                   shinyjs::enable(selector = '.navbar-nav a[data-value="Results"')
+                   enable(selector = '.navbar-nav a[data-value="Analysis"')
+                   enable(selector = '.navbar-nav a[data-value="Results"')
                    }
                  }
                )
@@ -247,7 +253,7 @@ server <- function(input,output, session){
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
                    for (i in 1:values$numReadings) {
-                     if (i != blank) {
+                     if (i != blankInt) {
                        local({
                          myI <- i 
                          plotDerivative = paste0("plotDerivative",myI)
@@ -337,7 +343,7 @@ server <- function(input,output, session){
   # Assign the reactive data frame for the individual fits table to a reactive value
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
-                 if(input$datasetsUploadedID==TRUE){
+                 if(input$datasetsUploadedID == TRUE){
                    valuesT <<- reactiveValues(df3 = NULL)
                    valuesT$df3 <- isolate({getListUnder()})
                    }

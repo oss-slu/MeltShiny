@@ -20,13 +20,13 @@ ui <- navbarPage(title = "MeltShiny",
                                                      value = 1,
                                                      inputId = "blankSampleID"
                                                      ),
+                                           checkboxInput(label = "Blank Pairs",
+                                                         value = FALSE,
+                                                         inputId = "blankPairsID"
+                                           ),
                                            checkboxInput(label = "No Blanks",
                                                          value = FALSE,
                                                          inputId = "noBlanksID"
-                                           ),
-                                           checkboxInput(label = "Show blank(s)",
-                                                         value = FALSE,
-                                                         inputId = "includeBlanksID"
                                                          ),
                                            hr(style = "border-top: 1px solid #000000;"),
                                            textInput(label = "Enter the pathlength for each sample",
