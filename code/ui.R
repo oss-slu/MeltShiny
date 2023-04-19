@@ -130,10 +130,12 @@ ui <- navbarPage(title = "MeltShiny",
                                                       actionButton(inputId = "removeBrushedID", 
                                                                    label = "Remove brushed"
                                                                    ),
+                                                      hr(style = "border-top: 1px solid #000000;"),
                                                       h5("To reset the plot, press the button below."),
                                                       actionButton(inputId = "resetVantID",
                                                                    label = "Reset plot"
                                                                    ),
+                                                      hr(style = "border-top: 1px solid #000000;"),
                                                       h5("To download a pdf version of the Van't Hoff plot, use the widget below."),
                                                       textInput(label = "Enter the file name.",
                                                                 inputId = "saveVantID"
@@ -156,6 +158,7 @@ ui <- navbarPage(title = "MeltShiny",
                                                       actionButton(inputId = "resetTable1ID",
                                                                    label = "Reset"
                                                       ),
+                                                      hr(style = "border-top: 1px solid #000000;"),
                                                       h5("Download the table as an Excel file, with each of the three components on seperate sheets."),
                                                       textInput(label = "Enter the file name.",
                                                                 inputId = "saveTableID"
