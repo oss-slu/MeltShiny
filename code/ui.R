@@ -1,3 +1,5 @@
+source("style.R")
+
 ui <- navbarPage(title = "MeltShiny",
                  id = "navbarPageID",
                  navbarMenu(title = "File",
@@ -5,7 +7,8 @@ ui <- navbarPage(title = "MeltShiny",
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(
-                                           useShinyjs(),
+                                           shinyjs::useShinyjs(),
+                                           shinyjs::inlineCSS(css),
                                            textInput(label = "Enter the blank sample.",
                                                      placeholder = "E.g: 1",
                                                      value = 1,
@@ -52,9 +55,19 @@ ui <- navbarPage(title = "MeltShiny",
                                      ),
                             tabPanel(title = "Fit",
                                      tabsetPanel(type = "tabs",
-                                                 tabPanel("Manual"),
-                                                 tabPanel("Automatic")
-                                                 )
+                                      tabPanel("Manual"),
+                                      tabPanel("Automatic",
+                                        fluidPage(
+                                            textInput(label = "Please enter a number larger than 10",
+                                            value = 1000,
+                                            inputId = "automaticIterations"
+                                            ),
+                                            actionButton(inputId = "automaticFit",
+                                              label = "Fit Data"
+                                            )
+                                        )
+                                      )
+                                    )
                                      )
                             ),
                  navbarMenu(title = "Results",
@@ -102,6 +115,7 @@ ui <- navbarPage(title = "MeltShiny",
                                            h5("Summary of the Three Methods:"),
                                            tableOutput(outputId = "summarytable"),
                                            tableOutput(outputId = "summarytable2"),
+                                           tableOutput(outputId = "summarytable3"),
                                            h5("Percent Error Between Methods:"),
                                            tableOutput(outputId = "error")
                                            )

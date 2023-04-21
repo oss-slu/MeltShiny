@@ -15,7 +15,8 @@ connecter <- setRefClass(Class = "connecter",
                                     "blank",
                                     "Mmodel",
                                     "object",
-                                    "fdData"
+                                    "fdData",
+                                    "fittedObject"
                                     ),
                          methods = list(
                            # Create MeltR object & first derivative data
@@ -75,7 +76,13 @@ connecter <- setRefClass(Class = "connecter",
                                geom_point(data1, mapping = aes(x = Temperature, y = (dA.dT/(Pathlength*Ct))/upper+min(Absorbance)), color = "blue") + #first derivative
                                theme_classic()
                              },
-                           
+
+                            # Automatically Fit MeltR.A Object Through BLTrimmer
+                            executeBLTrimmer = function(object,iterations) {
+                              .self$fittedObject <- BLTrimmer(object,
+                                n.combinations = iterations)
+                            },
+
                            # Return the x value associated with the maximum y-value for the first derivative
                            getFirstDerivativeMax = function(sampleNum) {
                              data = .self$fdData[.self$fdData == sampleNum,]
@@ -112,18 +119,40 @@ connecter <- setRefClass(Class = "connecter",
                            
                            # Return the results for the three methods
                            summaryData1 = function(){
+                            if ( typeof(.self$fittedObject) == "S4" ) {
                              summaryData=.self$object$Summary
-                             return(summaryData[1,])
+                            } else{
+                              summaryData=.self$fittedObject$Ensemble.energies
+                              
+                            }
+                            return(summaryData[1,])
                              },
                            summaryData2 = function(){
+                             if ( typeof(.self$fittedObject) == "S4" ) {
                              summaryData=.self$object$Summary
-                             return(summaryData[2,])
+                            } else{
+                              summaryData=.self$fittedObject$Ensemble.energies
+                            }
+                            return(summaryData[2,])
+                             },
+
+                            summaryData3 = function(){
+                             if ( typeof(.self$fittedObject) == "S4" ) {
+                             summaryData=.self$object$Summary
+                            } else{
+                              summaryData=.self$fittedObject$Ensemble.energies
+                            }
+                            return(summaryData[3,])
                              },
                            
                            # Return the percent error for the methods
                            error = function(){
-                             error = .self$object[3]
-                             return(error)
-                             }
+                            if ( typeof(.self$fittedObject) == "S4" ) {
+                              error = .self$object[3]
+                            } else {
+                              error = .self$fittedObject$Fractional.error.between.methods
+                            }
+                            return(error)
+                            }
                            )
                          )
