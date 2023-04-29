@@ -415,7 +415,7 @@ server <- function(input,output, session){
   # Save the Van't Hoff Plot as a pdf.
   output$downloadVantID <- downloadHandler(
     filename = function(){
-      paste(input$saveNameVantID, input$vantDownloadFormatID, sep = '')
+      paste(input$saveNameVantID, ".", input$vantDownloadFormatID, sep = '')
     },
     content = function(file){
       ggsave(filename = file, plot = vantGgPlot, width = 18, height = 10)
@@ -425,7 +425,7 @@ server <- function(input,output, session){
   # Save the results table as an excel file, with each component on a separate sheet.
   output$downloadTableID <- downloadHandler(
     filename = function() {
-      paste(input$saveNameTableID, '.xlsx', sep='')
+      paste(input$saveNameTableID, '.', input$tableFileFormatID, sep='')
       },
     content = function(file2) {
       selectedParts <- list()
@@ -438,7 +438,11 @@ server <- function(input,output, session){
       if ("Percent Error" %in% input$tableDownloadsPartsID) {
         selectedParts$PercentError <- errorDataTable
       }
-      write.xlsx(selectedParts, file = file2)
+      if (input$tableFileFormatID == "csv") {
+        write.csv(selectedParts, file = file2)
+      } else {
+        write.xlsx(selectedParts, file = file2)
+      }
       }
     )
   }
