@@ -138,9 +138,9 @@ ui <- navbarPage(title = "MeltShiny",
                                                       hr(style = "border-top: 1px solid #000000;"),
                                                       h5("To download a pdf version of the Van't Hoff plot, use the widget below."),
                                                       textInput(label = "Enter the file name.",
-                                                                inputId = "saveVantID"
+                                                                inputId = "saveNameVantID"
                                                                 ),
-                                                      downloadButton(outputId = 'downloadVantID', "Download")
+                                                      downloadButton(outputId = 'downloadVantID', label = "Download")
                                          ),
                                          mainPanel(
                                            plotOutput(outputId = "vantPlot",

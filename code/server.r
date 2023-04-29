@@ -314,7 +314,7 @@ server <- function(input,output, session){
     keep <- calculations[vals$keeprows, , drop = FALSE]
     exclude <- calculations[!vals$keeprows, , drop = FALSE]
     vantGgPlot <<- ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
-      geom_smooth(method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
+      geom_smooth(formula = y ~ x,method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
       geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
       labs(y = "ln(Concentration)", x = "Inverse Temperature (°C)", title = "Van't Hoff") +
       theme(plot.title = element_text(hjust = 0.5))
@@ -415,10 +415,10 @@ server <- function(input,output, session){
   # Save the Van't Hoff Plot as a pdf.
   output$downloadVantID <- downloadHandler(
     filename = function(){
-      paste(input$saveVantID, '.pdf', sep = '')
+      paste(input$saveNameVantID, '.pdf', sep = '')
     },
-    content = function(file1){
-      ggsave(file1, plot = vantGgPlot, width = 18, height = 10)
+    content = function(file){
+      ggsave(filename = file, plot = vantGgPlot, width = 18, height = 10)
     }
   )
   
