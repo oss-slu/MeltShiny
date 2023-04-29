@@ -400,17 +400,12 @@ server <- function(input,output, session){
                                    columnDefs = list(list(targets = c(7), visible = FALSE))),
                     escape = F)
   })
-  output$method1Table <- renderTable({
-    data <- myConnecter$summaryData1()
-    return(data)
-  })
-  output$method2Table <- renderTable({
-    data <- myConnecter$summaryData2()
-    return(data)
-  })
-  output$method3Table <- renderTable({
-    data <- myConnecter$summaryData3()
-    return(data)
+  output$methodSummaryTable <- renderTable({
+    summaryData <- NULL
+    summaryData <- rbind(summaryData, myConnecter$summaryData1())
+    summaryData <- rbind(summaryData, myConnecter$summaryData2())
+    summaryData <- rbind(summaryData, myConnecter$summaryData3())
+    return(summaryData)
   })
   output$errorTable <- renderTable({
     data <- myConnecter$errorData()
