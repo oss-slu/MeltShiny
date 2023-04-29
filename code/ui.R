@@ -124,22 +124,25 @@ ui <- navbarPage(title = "MeltShiny",
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(h4("Options:"),
-                                                      h5("To remove more than one point at once, 
-                                                         click and drag a selection box over the region
-                                                         and press the button below."),
+                                                      hr(style = "border-top: 1px solid #000000;"),
+                                                      h5("Brushed points:"),
                                                       actionButton(inputId = "removeBrushedID", 
-                                                                   label = "Remove brushed"
+                                                                   label = "Remove"
                                                                    ),
                                                       hr(style = "border-top: 1px solid #000000;"),
-                                                      h5("To reset the plot, press the button below."),
+                                                      h5("Reset plot:"),
                                                       actionButton(inputId = "resetVantID",
-                                                                   label = "Reset plot"
+                                                                   label = "Reset"
                                                                    ),
                                                       hr(style = "border-top: 1px solid #000000;"),
-                                                      h5("To download a pdf version of the Van't Hoff plot, use the widget below."),
+                                                      h5("Download Vant Hoff:"),
                                                       textInput(label = "Enter the file name.",
                                                                 inputId = "saveNameVantID"
                                                                 ),
+                                                      radioButtons(inputId = "vantDownloadFormatID", 
+                                                                   label = "Choose a file format:",
+                                                                   choices = c(".pdf", ".jpeg", ".png"), 
+                                                                   selected = ".pdf"),
                                                       downloadButton(outputId = 'downloadVantID', label = "Download")
                                          ),
                                          mainPanel(

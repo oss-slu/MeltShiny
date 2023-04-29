@@ -415,14 +415,14 @@ server <- function(input,output, session){
   # Save the Van't Hoff Plot as a pdf.
   output$downloadVantID <- downloadHandler(
     filename = function(){
-      paste(input$saveNameVantID, '.pdf', sep = '')
+      paste(input$saveNameVantID, input$vantDownloadFormatID, sep = '')
     },
     content = function(file){
       ggsave(filename = file, plot = vantGgPlot, width = 18, height = 10)
     }
   )
   
-  # Save the results table as an excel file, with each component on a seperate sheet.
+  # Save the results table as an excel file, with each component on a separate sheet.
   output$downloadTableID <- downloadHandler(
     filename = function() {
       paste(input$saveTableID, '.xlsx', sep='')
@@ -431,7 +431,7 @@ server <- function(input,output, session){
       write.xlsx(myConnecter$summaryData1(), file2, sheetName = "table1", append = FALSE)
       write.xlsx(myConnecter$summaryData2(), file2, sheetName = "table2", append = TRUE)
       write.xlsx(myConnecter$summaryData3(), file2, sheetName = "table3", append = TRUE)
-      write.xlsx(myConnecter$error(), file2, sheetName = "error", append = TRUE)
+      write.xlsx(myConnecter$errorData(), file2, sheetName = "error", append = TRUE)
       }
     )
   }
