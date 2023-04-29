@@ -12,6 +12,10 @@ valuesT <- NULL
 df3 <- NULL
 leftBarVal <- 0
 rightBarVal <- 0
+min <- 0
+max <- 0
+dataList = list()
+numFiles <- 0
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
@@ -47,6 +51,8 @@ connecter <- setRefClass(Class = "connecter",
                              # Need to position the starting baseline bars at the min and max of temperature
                              data = df[df$Sample == 1,]
                              leftBarVal <<- round(min(data$Temperature),digits = 4)
+                             min <<- round(min(data$temperature))
+                             max <<- round(max(data$temperature))
                              rightBarVal <<- round(max(data$Temperature),digits = 4)
                              },
 
@@ -57,14 +63,17 @@ connecter <- setRefClass(Class = "connecter",
                                add_trace(data = data, x = data$Temperature, y = data$Absorbance,
                                          marker = list(color = "blue")) %>%
                                layout(showlegend = FALSE) %>%
-                               layout(
-                                 shapes = list(
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = leftBarVal,x1 = leftBarVal,y0 = 0,y1 = 1, yref = "paper", editable = TRUE),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = rightBarVal,x1 = rightBarVal,y0 = 0,y1 = 1, yref = "paper", editable = TRUE)
-                                   )
-                                 ) %>% 
-                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
-                               layout(yaxis=list(fixedrange=TRUE, title = "Absorbance")) %>%
+                               #layout(
+                                 #shapes = list(
+                                   #list(type = "line", width = 4,line = list(color = "black"),x0 = leftBarVal,x1 = leftBarVal,y0 = 0,y1 = 1, yref = "paper", editable = TRUE),
+                                   #list(type = "line", width = 4,line = list(color = "black"),x0 = rightBarVal,x1 = rightBarVal,y0 = 0,y1 = 1, yref = "paper", editable = TRUE)
+                                   #)#,
+                                 #xaxis = list(
+                                  # rangeslider(data$Temperature[min], data$Temperature[max], autorange = FALSE))
+                                 #) %>% 
+                               rangeslider(data$Temperature[min], data$Temperature[max], showticklabels = TRUE) %>%
+                               layout(xaxis=list(fixedrange = TRUE, title = "Temperature")) %>% 
+                               layout(yaxis=list(fixedrange = TRUE, title = "Absorbance")) %>%
                                config(displayModeBar = FALSE)
                              },
                            
@@ -77,11 +86,12 @@ connecter <- setRefClass(Class = "connecter",
                                layout(
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$yPlot)], 
-                                        x1 = data$Temperature[which.max(data$yPlot)], line = list(width = 1, dash = "dot"), editable = FALSE),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = leftBarVal,x1 = leftBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = rightBarVal,x1 = rightBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
+                                        x1 = data$Temperature[which.max(data$yPlot)], line = list(width = 1, dash = "dot"), editable = FALSE)
+                                   #list(type = "line", width = 4,line = list(color = "black"),x0 = leftBarVal,x1 = leftBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
+                                   #list(type = "line", width = 4,line = list(color = "black"),x0 = rightBarVal,x1 = rightBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
                                  )
                                ) %>%
+                               rangeslider(data$Temperature[min], data$Temperature[max]) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance")) %>%
@@ -95,12 +105,13 @@ connecter <- setRefClass(Class = "connecter",
                              plot_ly(type = "scatter", mode = "markers") %>%
                                add_trace(data = data, x = data$Temperature, y = data$Absorbance, marker = list(color = "blue")) %>%
                                add_lines(data = data, x = data$Temperature,y = data$Model, color = "red") %>%
-                               layout(
-                                 shapes = list(
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = leftBarVal,x1 = leftBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = rightBarVal,x1 = rightBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
-                                 )
-                               ) %>%
+                               #layout(
+                              #   shapes = list(
+                               #    list(type = "line", width = 4,line = list(color = "black"),x0 = leftBarVal,x1 = leftBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
+                                #   list(type = "line", width = 4,line = list(color = "black"),x0 = rightBarVal,x1 = rightBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
+                                 #)
+                              # ) %>%
+                               rangeslider(data$Temperature[min], data$Temperature[max]) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%
@@ -121,11 +132,12 @@ connecter <- setRefClass(Class = "connecter",
                                layout(
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$dA.dT)], 
-                                        x1 = data$Temperature[which.max(data$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = leftBarVal,x1 = leftBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
-                                   list(type = "line", width = 4,line = list(color = "black"),x0 = rightBarVal,x1 = rightBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
+                                        x1 = data$Temperature[which.max(data$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE)
+                                   #list(type = "line", width = 4,line = list(color = "black"),x0 = leftBarVal,x1 = leftBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE),
+                                   #list(type = "line", width = 4,line = list(color = "black"),x0 = rightBarVal,x1 = rightBarVal,y0 = 0,y1 = 1,yref = "paper", editable = TRUE)
                                  )
                                ) %>%
+                               rangeslider(data$Temperature[min], data$Temperature[max]) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance"))%>%

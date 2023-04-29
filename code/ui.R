@@ -74,7 +74,7 @@ ui <- navbarPage(title = "MeltShiny",
                                                          inputId = "datasetsUploadedID"
                                                          ),
                                            ),
-                                         mainPanel(DT::dataTableOutput(outputId = "inputTable"))
+                                         mainPanel(tags$div(id = "placeholder"))
                                          )
                                        )
                                      )

@@ -11,8 +11,7 @@ requiredPackages <- c("dplyr",
                       "MeltR",
                       "shiny",
                       "shinyjs",
-                      "shinythemes",
-                      "shinyBS")
+                      "shinythemes")
 
 # Install packages if not found on the system.
 installPackages <- function(packages) {

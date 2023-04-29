@@ -139,6 +139,8 @@ server <- function(input,output, session){
                                p <- p + 1
                                counter <<- counter + 1
                              }
+                             dataList <<- append(dataList, list(tempFrame))
+                             numFiles <<- numFiles + 1
                              values$numReadings <- counter - 1
                              values$masterFrame <- rbind(values$masterFrame, tempFrame)
                              enable('blankSampleID')
@@ -187,12 +189,24 @@ server <- function(input,output, session){
                    }
                  })
   
-  # Output the post-processed data frame, which contains all the appended datasets.
-  output$inputTable = DT::renderDataTable({datatable(values$masterFrame, 
-                                                class = 'cell-border stripe', 
-                                                selection = 'none', 
-                                                options = list(searching = FALSE, ordering = FALSE),
-                                                caption = 'Table 1. Dataset 1.')})
+  observeEvent(eventExpr = input$inputFileID,
+               handlerExpr = {
+                 divID <- toString(numFiles)
+                 dtID <- paste0(divID,"DT")
+                 insertUI(
+                   selector = "#placeholder",
+                   ui = tags$div(id = divID,
+                                 DT::dataTableOutput(dtID),
+                                 hr(style = "border-top: 1px solid #000000;")
+                                 )
+                   )
+                 output[[dtID]] <- DT::renderDataTable({datatable(dataList[[numFiles]], 
+                                                                  class = 'cell-border stripe', 
+                                                                  selection = 'none', 
+                                                                  options = list(searching = FALSE, ordering = FALSE),
+                                                                  caption = paste0('Table',toString(numFiles),'.','Dataset',toString(numFiles),'.'))})
+               }
+  )
   
   # Disable "Analysis" and "Results tabs until all files have successfully been uploaded
   observeEvent(eventExpr = input$datasetsUploadedID,
