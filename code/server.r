@@ -402,14 +402,14 @@ server <- function(input,output, session){
                     escape = F)
   })
   output$methodSummaryTable <- renderTable({
-    summaryData <- NULL
-    summaryData <- rbind(summaryData, myConnecter$summaryData1())
-    summaryData <- rbind(summaryData, myConnecter$summaryData2())
-    summaryData <- rbind(summaryData, myConnecter$summaryData3())
-    return(summaryData)
+    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData1())
+    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData2())
+    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData3())
+    return(summaryDataTable)
   })
   output$errorTable <- renderTable({
-    return(myConnecter$errorData())
+    errorDataTable <<- myConnecter$errorData()
+    return(errorDataTable)
   })
   
   # Save the Van't Hoff Plot as a pdf.
@@ -428,10 +428,8 @@ server <- function(input,output, session){
       paste(input$saveTableID, '.xlsx', sep='')
       },
     content = function(file2) {
-      write.xlsx(myConnecter$summaryData1(), file2, sheetName = "table1", append = FALSE)
-      write.xlsx(myConnecter$summaryData2(), file2, sheetName = "table2", append = TRUE)
-      write.xlsx(myConnecter$summaryData3(), file2, sheetName = "table3", append = TRUE)
-      write.xlsx(myConnecter$errorData(), file2, sheetName = "error", append = TRUE)
+      write.xlsx(list(IndividualFits = valuesT$df3 %>% select(-c(Delete, ID)), MethodsSummaries = summaryDataTable, PercentError = errorDataTable),
+                 file = file2, append = FALSE)
       }
     )
   }

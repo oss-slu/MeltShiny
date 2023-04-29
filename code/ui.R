@@ -143,7 +143,8 @@ ui <- navbarPage(title = "MeltShiny",
                                                                    label = "Choose a file format:",
                                                                    choices = c(".pdf", ".jpeg", ".png"), 
                                                                    selected = ".pdf"),
-                                                      downloadButton(outputId = 'downloadVantID', label = "Download")
+                                                      downloadButton(outputId = 'downloadVantID', 
+                                                                     label = "Download")
                                          ),
                                          mainPanel(
                                            plotOutput(outputId = "vantPlot",
@@ -157,16 +158,18 @@ ui <- navbarPage(title = "MeltShiny",
                             tabPanel(title = "Table", 
                                      fluidPage(
                                        sidebarLayout(
-                                         sidebarPanel(h5("To reset table 1, press the button below."),
+                                         sidebarPanel(h4("Options:"),
+                                                      h5("Reset individual fits table:"),
                                                       actionButton(inputId = "resetTable1ID",
                                                                    label = "Reset"
                                                       ),
                                                       hr(style = "border-top: 1px solid #000000;"),
-                                                      h5("Download the table as an Excel file, with each of the three components on seperate sheets."),
+                                                      h5("Download table:"),
                                                       textInput(label = "Enter the file name.",
                                                                 inputId = "saveTableID"
                                                                 ),
-                                                      downloadButton(outputId = "downloadTableID", "Download")
+                                                      downloadButton(outputId = "downloadTableID", 
+                                                                     label = "Download")
                                          ),
                                          mainPanel(
                                            h5("Results for Individual Fits:"),

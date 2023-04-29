@@ -17,6 +17,8 @@ max <- 0
 dataList = list()
 numFiles <- 0
 vantGgPlot <- NULL
+summaryDataTable <- NULL
+errorDataTable <- NULL
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
