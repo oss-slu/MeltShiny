@@ -313,11 +313,12 @@ server <- function(input,output, session){
   output$vantPlot <- renderPlot({
     keep <- calculations[vals$keeprows, , drop = FALSE]
     exclude <- calculations[!vals$keeprows, , drop = FALSE]
-    ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
-      geom_smooth(method = lm, fullrange = TRUE, color = "black", se=F, size = .5, linetype = "dashed") +
+    vantGgPlot <<- ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
+      geom_smooth(method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
       geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
       labs(y = "ln(Concentration)", x = "Inverse Temperature (°C)", title = "Van't Hoff") +
       theme(plot.title = element_text(hjust = 0.5))
+    vantGgPlot
     })
   
   # Remove points from Van't Hoff that are clicked.
@@ -417,17 +418,8 @@ server <- function(input,output, session){
       paste(input$saveVantID, '.pdf', sep = '')
     },
     content = function(file1){
-      cairo_pdf(filename = file1, onefile = T,width = 18, 
-                height = 10, pointsize = 12, family = "sans", bg = "transparent",
-                antialias = "subpixel",fallback_resolution = 300
-                )
-      calculations <- myConnecter$gatherVantData()
-      InverseTemp <- calculations$invT
-      LnConcentraion <- calculations$lnCt
-      plot(LnConcentraion,InverseTemp)
-      dev.off()
-    },
-    contentType = "application/pdf"
+      ggsave(file1, plot = vantGgPlot, width = 18, height = 10)
+    }
   )
   
   # Save the results table as an excel file, with each component on a seperate sheet.
