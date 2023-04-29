@@ -159,6 +159,7 @@ ui <- navbarPage(title = "MeltShiny",
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(h4("Options:"),
+                                                      hr(style = "border-top: 1px solid #000000;"),
                                                       h5("Reset individual fits table:"),
                                                       actionButton(inputId = "resetTable1ID",
                                                                    label = "Reset"
