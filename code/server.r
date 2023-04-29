@@ -314,7 +314,7 @@ server <- function(input,output, session){
     keep <- calculations[vals$keeprows, , drop = FALSE]
     exclude <- calculations[!vals$keeprows, , drop = FALSE]
     ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
-      geom_smooth(method = lm, fullrange = TRUE, color = "black") +
+      geom_smooth(method = lm, fullrange = TRUE, color = "black", se=F, size = .5, linetype = "dashed") +
       geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
       labs(y = "ln(Concentration)", x = "Inverse Temperature (°C)", title = "Van't Hoff") +
       theme(plot.title = element_text(hjust = 0.5))
@@ -408,8 +408,7 @@ server <- function(input,output, session){
     return(summaryData)
   })
   output$errorTable <- renderTable({
-    data <- myConnecter$errorData()
-    return(data)
+    return(myConnecter$errorData())
   })
   
   # Save the Van't Hoff Plot as a pdf.
