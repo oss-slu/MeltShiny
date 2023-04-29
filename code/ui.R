@@ -166,8 +166,16 @@ ui <- navbarPage(title = "MeltShiny",
                                                       hr(style = "border-top: 1px solid #000000;"),
                                                       h5("Download table:"),
                                                       textInput(label = "Enter the file name.",
-                                                                inputId = "saveTableID"
+                                                                inputId = "saveNameTableID"
                                                                 ),
+                                                      checkboxGroupInput(label = "Select parts:",
+                                                                         inputId = "tableDownloadsPartsID", 
+                                                                         choices = list("Individual Fits", 
+                                                                                        "Method Summaries", 
+                                                                                        "Percent Error"),
+                                                                         selected = c("Individual Fits", 
+                                                                                      "Method Summaries", 
+                                                                                      "Percent Error")),
                                                       downloadButton(outputId = "downloadTableID", 
                                                                      label = "Download")
                                          ),

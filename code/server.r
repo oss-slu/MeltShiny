@@ -425,11 +425,20 @@ server <- function(input,output, session){
   # Save the results table as an excel file, with each component on a separate sheet.
   output$downloadTableID <- downloadHandler(
     filename = function() {
-      paste(input$saveTableID, '.xlsx', sep='')
+      paste(input$saveNameTableID, '.xlsx', sep='')
       },
     content = function(file2) {
-      write.xlsx(list(IndividualFits = valuesT$df3 %>% select(-c(Delete, ID)), MethodsSummaries = summaryDataTable, PercentError = errorDataTable),
-                 file = file2, append = FALSE)
+      selectedParts <- list()
+      if ("Individual Fits" %in% input$tableDownloadsPartsID) {
+        selectedParts$IndividualFits <- valuesT$df3 %>% select(-c(Delete, ID))
+      }
+      if ("Method Summaries" %in% input$tableDownloadsPartsID) {
+        selectedParts$MethodsSummaries <- summaryDataTable
+      }
+      if ("Percent Error" %in% input$tableDownloadsPartsID) {
+        selectedParts$PercentError <- errorDataTable
+      }
+      write.xlsx(selectedParts, file = file2)
       }
     )
   }
