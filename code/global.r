@@ -19,6 +19,7 @@ numFiles <- 0
 vantGgPlot <- NULL
 summaryDataTable <- NULL
 errorDataTable <- NULL
+chosenMethods <- c(TRUE, TRUE, TRUE)
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 

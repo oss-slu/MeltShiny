@@ -99,6 +99,16 @@ server <- function(input,output, session){
                                }
                              helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
                              molStateVal <<- input$molecularStateID
+                             
+                             
+                             # Store the preferred methods
+                             selectedMethods <- input$methodsID
+                             if (!("Method 2" %in% toString(selectedMethods))) {
+                               chosenMethods[2] <<- FALSE
+                             }
+                             if (!("Method 3" %in% toString(selectedMethods))) {
+                               chosenMethods[3] <<- FALSE 
+                             }
                            
                              # Format stored molecular state choice and re-store it in the same global variable.
                              if (molStateVal == "Heteroduplex") {
@@ -113,6 +123,8 @@ server <- function(input,output, session){
                              disable('helixID')
                              disable('molecularStateID')
                              disable('wavelengthID')
+                             disable('temperatureID')
+                             disable('methodsID')
                            
                              # Extract the file and remove any columns/rows with NA's.
                              fileName <- input$inputFileID$datapath
@@ -153,11 +165,13 @@ server <- function(input,output, session){
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
+            
                    # Send stored input values to the connecter abstraction class, create 
                    # a connecter object, and store the result of calling one of it's functions.
                    myConnecter <<- connecter(df = values$masterFrame,
                                              NucAcid = helix,
                                              Mmodel = molStateVal,
+                                             methods = chosenMethods,
                                              blank = blank
                                              )
                    myConnecter$constructObject()
@@ -189,6 +203,7 @@ server <- function(input,output, session){
                    }
                  })
   
+  # Show the uploaded datasets separately on the uploads page
   observeEvent(eventExpr = input$inputFileID,
                handlerExpr = {
                  divID <- toString(numFiles)
@@ -204,7 +219,7 @@ server <- function(input,output, session){
                                                                   class = 'cell-border stripe', 
                                                                   selection = 'none', 
                                                                   options = list(searching = FALSE, ordering = FALSE),
-                                                                  caption = paste0('Table',toString(numFiles),'.','Dataset',toString(numFiles),'.'))})
+                                                                  caption = paste0('Table', " ", toString(numFiles), '.', " ", 'Dataset', " ", toString(numFiles), '.'))})
                }
   )
   
