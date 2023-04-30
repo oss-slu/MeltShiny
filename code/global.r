@@ -20,14 +20,18 @@ vantGgPlot <- NULL
 summaryDataTable <- NULL
 errorDataTable <- NULL
 chosenMethods <- c(TRUE, TRUE, TRUE)
+concTVal <- 0
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
 connecter <- setRefClass(Class = "connecter",
                          fields = c("df",
                                     "NucAcid",
+                                    "wavelength",
                                     "blank",
                                     "Mmodel",
+                                    "methods",
+                                    "concT",
                                     "object",
                                     "fdData"
                                     ),
@@ -37,7 +41,10 @@ connecter <- setRefClass(Class = "connecter",
                              capture.output(.self$object <- meltR.A(data_frame = df,
                                                                     blank = blank,
                                                                     NucAcid = NucAcid,
+                                                                    wavelength = wavelength,
                                                                     Mmodel = Mmodel,
+                                                                    concT = concT,
+                                                                    #methods = methods,
                                                                     Save_results = "none",
                                                                     Silent = FALSE
                                                                     ), 

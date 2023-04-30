@@ -86,9 +86,13 @@ server <- function(input,output, session){
                              ))
                            }
                            else{
-                             # Store the dataset user inputs in global variables
+                             # Store the pathlength information
                              pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
-                             wavelengthVal <<- as.numeric(input$wavelength)
+                             
+                             # Store the wavelength information
+                             wavelengthVal <<- input$wavelengthID
+                             
+                             # Store the blank information
                              if(input$noBlanksID == TRUE){
                                blank <<- "none"
                                blankInt <<- 0
@@ -96,12 +100,12 @@ server <- function(input,output, session){
                              else{
                                blank <<- as.numeric(input$blankSampleID)
                                blankInt <<- blank
-                               }
+                             }
+                             
+                             # Store the extinction coefficient information
                              helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
-                             molStateVal <<- input$molecularStateID
-                             
-                             
-                             # Store the preferred methods
+                            
+                             # Store the methods
                              selectedMethods <- input$methodsID
                              if (!("Method 2" %in% toString(selectedMethods))) {
                                chosenMethods[2] <<- FALSE
@@ -110,7 +114,8 @@ server <- function(input,output, session){
                                chosenMethods[3] <<- FALSE 
                              }
                            
-                             # Format stored molecular state choice and re-store it in the same global variable.
+                             # Store and format molecular state information
+                             molStateVal <<- input$molecularStateID
                              if (molStateVal == "Heteroduplex") {
                                molStateVal <<- "Heteroduplex.2State"
                              } else if (molStateVal == "Homoduplex") {
@@ -118,34 +123,37 @@ server <- function(input,output, session){
                              }else{
                                molStateVal <<- "Monomolecular.2State"
                              }
+                             
+                             # Store the temperature used to calculate the concentration with Beers law
+                             concTVal <<- as.numeric(input$temperatureID)
                            
-                             # Disable widgets from inputs page whose values apply to all datasets.
+                             # Disable widgets from inputs page whose values apply to all datasets
                              disable('helixID')
                              disable('molecularStateID')
                              disable('wavelengthID')
                              disable('temperatureID')
                              disable('methodsID')
                            
-                             # Extract the file and remove any columns/rows with NA's.
+                             # Open the uploaded file and remove any columns/rows with NA's
                              fileName <- input$inputFileID$datapath
-                             cd <- read.csv(file = fileName,header = FALSE)
-                             df <- cd %>% select_if(~ !any(is.na(.)))
+                             preProcessedData <- read.csv(file = fileName,header = FALSE)
+                             noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
                            
                              # Create temporary data frame to store data from each uploaded file.
                              # Also process data to fit MeltR's format. 
                              columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
                              tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
                              colnames(tempFrame) <- columns
-                             readings <- ncol(df)
+                             readings <- ncol(noNAData)
                            
                              # Append each individual temporary data frame into a larger dataframe
                              p <- 1
                              for (x in 2:readings) {
-                               col <- df[x]
-                               sample <- rep(c(counter),times = nrow(df[x]))
-                               pathlength <- rep(c(as.numeric(pathlengthInputs[p])),times = nrow(df[x]))
-                               col <- df[x]
-                               t <- data.frame(sample,pathlength,df[1],df[x])
+                               col <- noNAData[x]
+                               sample <- rep(c(counter),times = nrow(noNAData[x]))
+                               pathlength <- rep(c(as.numeric(pathlengthInputs[p])),times = nrow(noNAData[x]))
+                               col <- noNAData[x]
+                               t <- data.frame(sample,pathlength,noNAData[1],noNAData[x])
                                names(t) <- names(tempFrame)
                                tempFrame <- rbind(tempFrame, t)
                                p <- p + 1
@@ -170,9 +178,11 @@ server <- function(input,output, session){
                    # a connecter object, and store the result of calling one of it's functions.
                    myConnecter <<- connecter(df = values$masterFrame,
                                              NucAcid = helix,
+                                             wavelength = wavelengthVal,
+                                             blank = blank,
                                              Mmodel = molStateVal,
                                              methods = chosenMethods,
-                                             blank = blank
+                                             concT = concTVal
                                              )
                    myConnecter$constructObject()
                    calculations <<- myConnecter$gatherVantData()
