@@ -104,6 +104,9 @@ server <- function(input,output, session){
                              
                              # Store the extinction coefficient information
                              helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
+                             
+                             # Store the tm method information
+                             tmMethodVal <<- toString(input$Tm_methodID)
                             
                              # Store the methods
                              selectedMethods <- input$methodsID
@@ -133,6 +136,7 @@ server <- function(input,output, session){
                              disable('wavelengthID')
                              disable('temperatureID')
                              disable('methodsID')
+                             disable('Tm_methodID')
                            
                              # Open the uploaded file and remove any columns/rows with NA's
                              fileName <- input$inputFileID$datapath
@@ -169,7 +173,7 @@ server <- function(input,output, session){
                              }
                            })
   
-  # Once all datasets have been uploaded, the MeltR object can be created
+  # Once all datasets have been uploaded, create the MeltR object
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
@@ -180,6 +184,7 @@ server <- function(input,output, session){
                                              NucAcid = helix,
                                              wavelength = wavelengthVal,
                                              blank = blank,
+                                             Tm_method = tmMethodVal,
                                              Mmodel = molStateVal,
                                              methods = chosenMethods,
                                              concT = concTVal
@@ -210,8 +215,19 @@ server <- function(input,output, session){
                    disable('includeBlanksID')
                    disable('blankPairsID')
                    disable('noBlanksID')
+                   disable('weightedTmID')
                    }
                  })
+  
+  # Only allow the user to choosed weighted tm for method 2 if the tm method is nls
+  observeEvent(eventExpr = input$Tm_methodID,
+               handlerExpr = {
+                 if( input$Tm_methodID != "nls"){
+                   disable('weightedTmID')
+                 }else{
+                   enable('weightedTmID')
+                 }
+               })
   
   # Show the uploaded datasets separately on the uploads page
   observeEvent(eventExpr = input$inputFileID,
@@ -229,9 +245,12 @@ server <- function(input,output, session){
                                                                   class = 'cell-border stripe', 
                                                                   selection = 'none', 
                                                                   options = list(searching = FALSE, ordering = FALSE),
-                                                                  caption = paste0('Table', " ", toString(numFiles), '.', " ", 'Dataset', " ", toString(numFiles), '.'))})
-               }
-  )
+                                                                  caption = paste0('Table', " ", toString(numFiles), '.', " ", 'Dataset', " ", toString(numFiles), '.'
+                                                                                   )
+                                                                  )
+                   })
+                 }
+               )
   
   # Disable "Analysis" and "Results tabs until all files have successfully been uploaded
   observeEvent(eventExpr = input$datasetsUploadedID,

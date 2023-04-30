@@ -21,6 +21,7 @@ summaryDataTable <- NULL
 errorDataTable <- NULL
 chosenMethods <- c(TRUE, TRUE, TRUE)
 concTVal <- 0
+tmMethodVal <- ""
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
@@ -29,6 +30,7 @@ connecter <- setRefClass(Class = "connecter",
                                     "NucAcid",
                                     "wavelength",
                                     "blank",
+                                    "Tm_method",
                                     "Mmodel",
                                     "methods",
                                     "concT",
@@ -42,6 +44,7 @@ connecter <- setRefClass(Class = "connecter",
                                                                     blank = blank,
                                                                     NucAcid = NucAcid,
                                                                     wavelength = wavelength,
+                                                                    Tm_method = Tm_method,
                                                                     Mmodel = Mmodel,
                                                                     concT = concT,
                                                                     #methods = methods,
