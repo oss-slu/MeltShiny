@@ -36,7 +36,6 @@ bestFitYData = NULL
 derivativeXData = NULL
 derivativeYData = NULL
 xRange <- NULL
-xRange2 <- NULL
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
@@ -91,7 +90,9 @@ connecter <- setRefClass(Class = "connecter",
                              bestFitYData[[sampleNum]] <<- data2$Model
                              derivativeXData[[sampleNum]] <<- data$Temperature
                              derivativeYData[[sampleNum]] <<- data$dA.dT/(data$Pathlength*data$Ct)/upper+min(data$Absorbance)
-                             
+                             xRange[[sampleNum]][1] <<- min(bestFitXData[[sampleNum]])
+                             xRange[[sampleNum]][2] <<- max(bestFitXData[[sampleNum]])
+
                              # Generate the base plot with just the absorbance data and a maximum derivative indicator line
                              plot_ly(type = "scatter", mode = "markers", source = paste0("plotBoth",sampleNum)) %>%
                                add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
@@ -102,7 +103,8 @@ connecter <- setRefClass(Class = "connecter",
                                    ),
                                  xaxis = list(dtick = 5)
                                  ) %>%
-                               rangeslider(type = data$Temperature, thickness = .1) %>%
+                               #rangeslider(type = data$Temperature, thickness = .1) %>%
+                               rangeslider(xRange[[sampleNum]][1],xRange[[sampleNum]][2], thickness = .1) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature (\u00B0C)")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance(nm)"))%>%

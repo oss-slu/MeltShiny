@@ -352,9 +352,9 @@ server <- function(input, output, session){
                            analysisPlot
                            })
                          observeEvent(event_data( source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event")), {
-                           xRange2 <<- event_data(source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event"))$xaxis.range[1:2]
+                           xRange[[myI]] <<- event_data(source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event"))$xaxis.range[1:2]
                            output[[paste0("xrange",myI)]] <- renderText({
-                             paste0(" x-range: [", xRange2[1], ", ", xRange2[2], "]")
+                             paste0(" x-range: [", xRange[[myI]][1], ", ", xRange[[myI]][2], "]")
                            })
                          })
                          
