@@ -19,9 +19,7 @@ numSamples = NULL
 # Global variables for the MeltR object
 myConnector = NULL 
 
-valuesT <- NULL
-
-# Global variables for the Vant Hoff plot
+# Global variables for the Van't Hoff plot
 vantData <- NULL
 
 # Global variables for the results table
@@ -29,6 +27,7 @@ individualFitData <- NULL
 summaryDataTable <- NULL
 errorDataTable <- NULL
 vantGgPlot <- NULL
+valuesT <- NULL
 
 # Global variables for analysis plots
 start <- 1
@@ -36,7 +35,6 @@ bestFitXData = NULL
 bestFitYData = NULL
 derivativeXData = NULL
 derivativeYData = NULL
-
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
@@ -77,7 +75,6 @@ connecter <- setRefClass(Class = "connecter",
                                                      .self$fdData$dA.dT/(.self$fdData$Pathlength*.self$fdData$Ct)/upper
                                                      )
                                                    )
-                             names(.self$fdData)[ncol(.self$fdData)] <- "yPlot"
                              },
                            
                            # Construct the analysis plot
@@ -93,7 +90,7 @@ connecter <- setRefClass(Class = "connecter",
                              derivativeXData[[sampleNum]] <<- data$Temperature
                              derivativeYData[[sampleNum]] <<- data$dA.dT/(data$Pathlength*data$Ct)/upper+min(data$Absorbance)
                              
-                             # Generate the base plot with just the absorbance data
+                             # Generate the base plot with just the absorbance data and a maximum derivative indicator line
                              plot_ly(type = "scatter", mode = "markers") %>%
                                add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
                                layout(
@@ -101,21 +98,13 @@ connecter <- setRefClass(Class = "connecter",
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$dA.dT)], 
                                         x1 = data$Temperature[which.max(data$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE)
                                    ),
-                                 xaxis = list(dtick = 3)
+                                 xaxis = list(dtick = 5)
                                  ) %>%
-                               rangeslider(type = data$Temperature,thickness = .1) %>%
+                               rangeslider(type = data$Temperature, thickness = .1) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature (\u00B0C)")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance(nm)"))%>%
                                config(displayModeBar = FALSE)
-                             },
-                        
-                           # Return the x value associated with the maximum y-value for the first derivative
-                           getFirstDerivativeMax = function(sampleNum) {
-                             data = .self$fdData[.self$fdData == sampleNum,]
-                             maxRowIndex = which.max(data[["yPlot"]])
-                             xVal = data[maxRowIndex,3]
-                             return(xVal)
                              },
                            
                            # Return the data needed to create the Van't Hoff plot
@@ -144,10 +133,9 @@ connecter <- setRefClass(Class = "connecter",
                              return(summaryData[3,])
                              },
                            
-                           # Return the percent error for the methods
+                           # Return the percent error for the three methods
                            errorData = function(){
                              errorData = .self$object$Range
-                             #print()
                              return(errorData)
                              }
                            )

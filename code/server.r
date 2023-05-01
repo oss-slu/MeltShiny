@@ -400,7 +400,7 @@ server <- function(input, output, session){
                  }
                  })
   
-  # Function for dynamically creating the delete button on the individual fits table
+  # Function for dynamically creating the delete button for each row on the individual fits table
   shinyInput <- function(FUN, len, id, ...) {
     inputs <- character(len)
     for (i in seq_len(len)) {
@@ -409,7 +409,7 @@ server <- function(input, output, session){
     inputs
   }
   
-  # Calls function above to create delete buttons and add IDs for each row in the individual fits table
+  # Calls function to create delete buttons and add IDs for each row in the individual fits table
   getListUnder <- reactive({
     if(input$datasetsUploadedID == TRUE){
       individualFitData$Delete <- shinyInput(actionButton, nrow(individualFitData),'delete_',label = "Remove",
