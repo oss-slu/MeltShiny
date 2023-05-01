@@ -339,6 +339,8 @@ server <- function(input, output, session){
                    # Create plots
                    for (i in 1:numSamples) {
                      if (i != blankInt) {
+                       xRange[[i]][1] <<- min(bestFitXData[[i]])
+                       xRange[[i]][2] <<- max(bestFitXData[[i]])
                        local({
                          myI <- i 
                          output[[paste0("plotBoth",myI)]] <- renderPlotly({

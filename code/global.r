@@ -90,8 +90,6 @@ connecter <- setRefClass(Class = "connecter",
                              bestFitYData[[sampleNum]] <<- data2$Model
                              derivativeXData[[sampleNum]] <<- data$Temperature
                              derivativeYData[[sampleNum]] <<- data$dA.dT/(data$Pathlength*data$Ct)/upper+min(data$Absorbance)
-                             xRange[[sampleNum]][1] <<- min(bestFitXData[[sampleNum]])
-                             xRange[[sampleNum]][2] <<- max(bestFitXData[[sampleNum]])
 
                              # Generate the base plot with just the absorbance data and a maximum derivative indicator line
                              plot_ly(type = "scatter", mode = "markers", source = paste0("plotBoth",sampleNum)) %>%
