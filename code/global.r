@@ -63,6 +63,7 @@ connecter <- setRefClass(Class = "connecter",
                                                                     Weight_Tm_M2 = Weight_Tm_M2,
                                                                     Mmodel = Mmodel,
                                                                     concT = concT,
+                                                                    #fitTs = xRanges
                                                                     methods = methods,
                                                                     Save_results = "none",
                                                                     Silent = FALSE
@@ -101,7 +102,6 @@ connecter <- setRefClass(Class = "connecter",
                                    ),
                                  xaxis = list(dtick = 5)
                                  ) %>%
-                               #rangeslider(type = data$Temperature, thickness = .1) %>%
                                rangeslider(xRange[[sampleNum]][1],xRange[[sampleNum]][2], thickness = .1) %>%
                                layout(showlegend = FALSE) %>%
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature (\u00B0C)")) %>% 
