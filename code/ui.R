@@ -127,7 +127,7 @@ ui <- navbarPage(title = "MeltShiny",
                                      )
                             ),
                  navbarMenu(title = "Results",
-                            tabPanel(title = "Van't Hoff Plot", 
+                            tabPanel(title = "Vant Hoff Plot", 
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(h4("Options:"),

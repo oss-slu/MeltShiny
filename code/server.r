@@ -194,9 +194,11 @@ server <- function(input,output, session){
                    
                    # Reactive variable that handles the points on the Van't Hoff plot.
                    # Necessary for removal of outliers from said plot.
-                   vals <<- reactiveValues(
-                     keeprows = rep(TRUE, nrow(calculations))
+                   if(chosenMethods[2] == TRUE){
+                     vals <<- reactiveValues(
+                       keeprows = rep(TRUE, nrow(calculations))
                      )
+                   }
                    }
                  }
                )
@@ -251,15 +253,25 @@ server <- function(input,output, session){
                  }
                )
   
+  # Disable "Vant Hoff" tab when method 2 is unselected on the "Upload" page
+  observeEvent(eventExpr = input$datasetsUploadedID,
+               handlerExpr = {
+                 if(chosenMethods[2] == FALSE){
+                   disable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
+                   }
+                 }
+               )
+  
   # Disable "Analysis" and "Results tabs until all files have successfully been uploaded
   observeEvent(eventExpr = input$datasetsUploadedID,
                handlerExpr = {
                  if(input$datasetsUploadedID == FALSE){
                    disable(selector = '.navbar-nav a[data-value="Analysis"')
                    disable(selector = '.navbar-nav a[data-value="Results"')
-                   }
                  }
-               )
+               }
+  )
+  
   
   # Dynamically create n tabs (n = number of samples in master data frame) for 
   # the "Graphs" page under the "Analysis" navbarmenu.
@@ -278,6 +290,7 @@ server <- function(input,output, session){
                                                              h4("Options:"),
                                                              checkboxInput(inputId = paste0("bestFit",i),label = "Show best fit line"),
                                                              checkboxInput(inputId = paste0("firstDerivative",i),label = "Show derivative"),
+                                                             #htmlOutput(outputId = paste0("xVals",i))
                                                              ),
                                                            mainPanel(
                                                              plotlyOutput(paste0("plotBoth",i))
@@ -296,14 +309,16 @@ server <- function(input,output, session){
                  }
                )
   
-  # Dynamically create the three plots for each of the n sample tabs.
+  # Dynamically create the analysis plot for each of the n sample tabs
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
+                   
                    bestFitXData <<- vector("list",numReadings)
                    bestFitYData <<- vector("list",numReadings)
                    derivativeXData <<- vector("list",numReadings)
                    derivativeYData <<- vector("list",numReadings)
+                   
                    for (i in 1:numReadings) {
                      if (i != blankInt) {
                        local({
@@ -327,34 +342,42 @@ server <- function(input,output, session){
   
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
-    keep <- calculations[vals$keeprows, , drop = FALSE]
-    exclude <- calculations[!vals$keeprows, , drop = FALSE]
-    vantGgPlot <<- ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
-      geom_smooth(formula = y ~ x,method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
-      geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
-      labs(y = "ln(Concentration)", x = "Inverse Temperature (°C)", title = "Van't Hoff") +
-      theme(plot.title = element_text(hjust = 0.5))
-    vantGgPlot
+    if(chosenMethods[2] == TRUE){
+      keep <- calculations[vals$keeprows, , drop = FALSE]
+      exclude <- calculations[!vals$keeprows, , drop = FALSE]
+      vantGgPlot <<- ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
+        geom_smooth(formula = y ~ x,method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
+        geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
+        labs(y = "ln(Concentration)", x = "Inverse Temperature (°C)", title = "Van't Hoff") +
+        theme(plot.title = element_text(hjust = 0.5))
+      vantGgPlot
+    }
     })
   
   # Remove points from Van't Hoff that are clicked.
   observeEvent(eventExpr = input$vantClick, 
                handlerExpr = {
-                 res <- nearPoints(calculations, input$vantClick, allRows = TRUE)
-                 vals$keeprows <- xor(vals$keeprows, res$selected_)
+                 if(chosenMethods[2] == TRUE){
+                   res <- nearPoints(calculations, input$vantClick, allRows = TRUE)
+                   vals$keeprows <- xor(vals$keeprows, res$selected_)
+                 }
                  })
   
   # Remove brushed points from Van't Hoff when the "Brushed" button is clicked.
   observeEvent(eventExpr = input$removeBrushedID, 
                handlerExpr = {
-                 res <- brushedPoints(calculations, input$vantBrush, allRows = TRUE)
-                 vals$keeprows <- xor(vals$keeprows, res$selected_)
+                 if(chosenMethods[2] == TRUE){
+                   res <- brushedPoints(calculations, input$vantBrush, allRows = TRUE)
+                   vals$keeprows <- xor(vals$keeprows, res$selected_)
+                 }
                  })
   
   # Reset the Van't Hoff plot when the "Reset" button is clicked.
   observeEvent(eventExpr = input$resetVantID, 
                handlerExpr = {
-                 vals$keeprows <- rep(TRUE, nrow(calculations))
+                 if(chosenMethods[2] == TRUE){
+                   vals$keeprows <- rep(TRUE, nrow(calculations))
+                 }
                  })
   
   # Function for dynamically creating the delete button on the individual fits table

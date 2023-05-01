@@ -25,6 +25,7 @@ tmMethodVal <- ""
 weightedTmVal <- FALSE
 numReadings = NULL
 masterFrame = NULL
+xRange <- NULL
 
 # Global variables for analysis plots
 bestFitXData = NULL
@@ -59,7 +60,7 @@ connecter <- setRefClass(Class = "connecter",
                                                                     Weight_Tm_M2 = Weight_Tm_M2,
                                                                     Mmodel = Mmodel,
                                                                     concT = concT,
-                                                                    #methods = methods,
+                                                                    methods = methods,
                                                                     Save_results = "none",
                                                                     Silent = FALSE
                                                                     ), 
@@ -102,11 +103,12 @@ connecter <- setRefClass(Class = "connecter",
                                  shapes = list(
                                    list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$dA.dT)], 
                                         x1 = data$Temperature[which.max(data$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE)
-                                   )
+                                   ),
+                                 xaxis = list(dtick = 3)
                                  ) %>%
-                               rangeslider(data$Temperature[min], data$Temperature[max]) %>%
+                               rangeslider(type = data$Temperature,thickness = .1) %>%
                                layout(showlegend = FALSE) %>%
-                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature")) %>% 
+                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature (\u00B0C)")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance(nm)"))%>%
                                config(displayModeBar = FALSE)
                              },
