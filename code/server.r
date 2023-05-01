@@ -2,11 +2,6 @@ server <- function(input,output, session){
   # Prevent Rplots.pdf from generating
   if(!interactive()) pdf(NULL)
   
-  # Create a reactive value which can hold the growing dataset.
-  values <<- reactiveValues(masterFrame = NULL,
-                           numReadings = NULL
-                           )
-  
   # Check if the value is an int.
   can_convert_to_int <- function(x) {
     all(grepl('^(?=.)([+-]?([0-9]*)?)$', x, perl = TRUE))  
@@ -101,12 +96,18 @@ server <- function(input,output, session){
                                blank <<- as.numeric(input$blankSampleID)
                                blankInt <<- blank
                              }
+                             enable('blankSampleID')
+                             updateTextInput(session,"blankSampleID", value = 1)
+                             updateCheckboxInput(session,"noBlanksID", value = FALSE)
                              
                              # Store the extinction coefficient information
                              helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
                              
                              # Store the tm method information
                              tmMethodVal <<- toString(input$Tm_methodID)
+                             
+                             # Store the weighted tm information for method 2
+                             weightedTmVal <<- input$weightedTmID
                             
                              # Store the methods
                              selectedMethods <- input$methodsID
@@ -137,20 +138,20 @@ server <- function(input,output, session){
                              disable('temperatureID')
                              disable('methodsID')
                              disable('Tm_methodID')
+                             disable('weightedTmID')
                            
                              # Open the uploaded file and remove any columns/rows with NA's
                              fileName <- input$inputFileID$datapath
                              preProcessedData <- read.csv(file = fileName,header = FALSE)
                              noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
                            
-                             # Create temporary data frame to store data from each uploaded file.
-                             # Also process data to fit MeltR's format. 
+                             # Create temporary data frame in meltR's format to store data from an uploaded dataset
                              columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
                              tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
                              colnames(tempFrame) <- columns
                              readings <- ncol(noNAData)
                            
-                             # Append each individual temporary data frame into a larger dataframe
+                             # Append each individual temporary data frame into a larger dataframe that holds all the datasets
                              p <- 1
                              for (x in 2:readings) {
                                col <- noNAData[x]
@@ -165,11 +166,8 @@ server <- function(input,output, session){
                              }
                              dataList <<- append(dataList, list(tempFrame))
                              numFiles <<- numFiles + 1
-                             values$numReadings <- counter - 1
-                             values$masterFrame <- rbind(values$masterFrame, tempFrame)
-                             enable('blankSampleID')
-                             updateTextInput(session,"blankSampleID", value = 1)
-                             updateCheckboxInput(session,"noBlanksID", value = FALSE)
+                             numReadings <<- counter - 1
+                             masterFrame <<- rbind(masterFrame, tempFrame)
                              }
                            })
   
@@ -180,11 +178,12 @@ server <- function(input,output, session){
             
                    # Send stored input values to the connecter abstraction class, create 
                    # a connecter object, and store the result of calling one of it's functions.
-                   myConnecter <<- connecter(df = values$masterFrame,
+                   myConnecter <<- connecter(df = masterFrame,
                                              NucAcid = helix,
                                              wavelength = wavelengthVal,
                                              blank = blank,
                                              Tm_method = tmMethodVal,
+                                             Weight_Tm_M2 = weightedTmVal,
                                              Mmodel = molStateVal,
                                              methods = chosenMethods,
                                              concT = concTVal
@@ -267,16 +266,9 @@ server <- function(input,output, session){
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
-                   lapply(start:values$numReadings,
+                   lapply(start:numReadings,
                           function(i){
                             if (i != blankInt) {
-                              data = values$masterFrame[values$masterFrame$Sample == i,]
-                              plotBoth = paste0("plotBoth",i)
-                              plotBestFit = paste0("plotBestFit",i)
-                              plotName = paste0("plot",i)
-                              plotDerivative = paste0("plotDerivative",i)
-                              firstDerivative = paste0("firstDerivative",i)
-                              bestFit = paste0("bestFit",i)
                               tabName = paste("Sample",i,sep = " ")
                               appendTab(inputId = "tabs",
                                         tab = tabPanel(tabName,
@@ -284,22 +276,11 @@ server <- function(input,output, session){
                                                          sidebarLayout(
                                                            sidebarPanel(
                                                              h4("Options:"),
-                                                             checkboxInput(inputId = bestFit,label = "Best Fit"),
-                                                             checkboxInput(inputId = firstDerivative,label = "First Derivative"),
+                                                             checkboxInput(inputId = paste0("bestFit",i),label = "Show best fit line"),
+                                                             checkboxInput(inputId = paste0("firstDerivative",i),label = "Show derivative"),
                                                              ),
                                                            mainPanel(
-                                                             conditionalPanel(condition = glue("!input.{firstDerivative} && !input.{bestFit}"),
-                                                                              plotlyOutput(plotName)
-                                                                              ),
-                                                             conditionalPanel(condition = glue("input.{firstDerivative} && !input.{bestFit}"),
-                                                                              plotlyOutput(plotDerivative)
-                                                                              ),
-                                                             conditionalPanel(condition = glue("input.{bestFit} && !input.{firstDerivative}"),
-                                                                              plotlyOutput(plotBestFit)
-                                                                              ),
-                                                             conditionalPanel(condition = glue("input.{firstDerivative} && input.{bestFit}"),
-                                                                              plotlyOutput(plotBoth)
-                                                                              ),
+                                                             plotlyOutput(paste0("plotBoth",i))
                                                              )
                                                            )
                                                          )
@@ -308,7 +289,7 @@ server <- function(input,output, session){
                               }
                             }
                          )
-                   start <<- values$numReadings + 1
+                   start <<- numReadings + 1
                    enable(selector = '.navbar-nav a[data-value="Analysis"')
                    enable(selector = '.navbar-nav a[data-value="Results"')
                    }
@@ -319,33 +300,24 @@ server <- function(input,output, session){
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
-                   for (i in 1:values$numReadings) {
+                   bestFitXData <<- vector("list",numReadings)
+                   bestFitYData <<- vector("list",numReadings)
+                   derivativeXData <<- vector("list",numReadings)
+                   derivativeYData <<- vector("list",numReadings)
+                   for (i in 1:numReadings) {
                      if (i != blankInt) {
                        local({
                          myI <- i 
-                         plotDerivative = paste0("plotDerivative",myI)
-                         plotBestFit = paste0("plotBestFit",myI)
-                         plotBoth = paste0("plotBoth",myI)
-                         plotName = paste0("plot",myI)
-                        
-                         # Plot containing raw data
-                         output[[plotName]] <- renderPlotly({
-                           myConnecter$constructRawPlot(myI)
-                           })
-                        
-                         # Plot containing first derivative with raw data
-                         output[[plotDerivative]] <- renderPlotly({
-                           myConnecter$constructFirstDerivative(myI)
-                           })
-                        
-                         # Plot containing best fit with raw data
-                         output[[plotBestFit]] <- renderPlotly({
-                           myConnecter$constructBestFit(myI)
-                         })
-                        
                          # Plot containing best, first derivative, and raw data
-                         output[[plotBoth]] <- renderPlotly({
-                           myConnecter$constructAllPlots(myI)
+                         output[[paste0("plotBoth",myI)]] <- renderPlotly({
+                           analysisPlot <- myConnecter$constructAllPlots(myI)
+                           if(input[[paste0("bestFit",myI)]] == TRUE){
+                             analysisPlot <- analysisPlot %>% add_lines(x = bestFitXData[[myI]], y = bestFitYData[[myI]], color = "red")
+                           }
+                           if(input[[paste0("firstDerivative",myI)]] == TRUE){
+                             analysisPlot <- analysisPlot %>% add_trace(x = derivativeXData[[myI]], y = derivativeYData[[myI]], marker = list(color = "green"))
+                           }
+                           analysisPlot
                            })
                          })
                        }
