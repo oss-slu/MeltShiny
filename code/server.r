@@ -227,7 +227,6 @@ server <- function(input, output, session){
                    disable('inputFileID')
                    disable('datasetsUploadedID')
                    disable('includeBlanksID')
-                   disable('blankPairsID')
                    disable('noBlanksID')
                    disable('weightedTmID')
                    }
@@ -310,7 +309,8 @@ server <- function(input, output, session){
                                                              checkboxInput(inputId = paste0("firstDerivative",i),label = "Show derivative"),
                                                              ),
                                                            mainPanel(
-                                                             plotlyOutput(paste0("plotBoth",i))
+                                                             plotlyOutput(paste0("plotBoth",i)),
+                                                             textOutput(paste0("xrange",i))
                                                              )
                                                            )
                                                          )
@@ -334,7 +334,8 @@ server <- function(input, output, session){
                    bestFitYData <<- vector("list",numSamples)
                    derivativeXData <<- vector("list",numSamples)
                    derivativeYData <<- vector("list",numSamples)
-                   
+                   xRange <<- vector("list",numSamples)
+
                    # Create plots
                    for (i in 1:numSamples) {
                      if (i != blankInt) {
@@ -350,6 +351,13 @@ server <- function(input, output, session){
                            }
                            analysisPlot
                            })
+                         observeEvent(event_data( source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event")), {
+                           xRange2 <<- event_data(source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event"))$xaxis.range[1:2]
+                           output[[paste0("xrange",myI)]] <- renderText({
+                             paste0(" x-range: [", xRange2[1], ", ", xRange2[2], "]")
+                           })
+                         })
+                         
                          })
                        }
                      }
@@ -365,10 +373,10 @@ server <- function(input, output, session){
       exclude <- vantData[!vals$keeprows, , drop = FALSE]
       
       # Create vant plot
-      vantGgPlot <<- ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
+      vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT )) + geom_point() +
         geom_smooth(formula = y ~ x,method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
         geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
-        labs(y = "ln(Concentration)", x = "Inverse Temperature (°C)", title = "Van't Hoff") +
+        labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "Van't Hoff") +
         theme(plot.title = element_text(hjust = 0.5))
       vantGgPlot
     }

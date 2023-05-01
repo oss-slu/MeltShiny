@@ -19,10 +19,6 @@ ui <- navbarPage(title = "MeltShiny",
                                                      value = 1,
                                                      inputId = "blankSampleID"
                                                      ),
-                                           checkboxInput(label = "Blank Pairs",
-                                                         value = FALSE,
-                                                         inputId = "blankPairsID"
-                                           ),
                                            checkboxInput(label = "No Blanks",
                                                          value = FALSE,
                                                          inputId = "noBlanksID"

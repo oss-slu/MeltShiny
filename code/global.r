@@ -35,6 +35,8 @@ bestFitXData = NULL
 bestFitYData = NULL
 derivativeXData = NULL
 derivativeYData = NULL
+xRange <- NULL
+xRange2 <- NULL
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
@@ -91,7 +93,7 @@ connecter <- setRefClass(Class = "connecter",
                              derivativeYData[[sampleNum]] <<- data$dA.dT/(data$Pathlength*data$Ct)/upper+min(data$Absorbance)
                              
                              # Generate the base plot with just the absorbance data and a maximum derivative indicator line
-                             plot_ly(type = "scatter", mode = "markers") %>%
+                             plot_ly(type = "scatter", mode = "markers", source = paste0("plotBoth",sampleNum)) %>%
                                add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
                                layout(
                                  shapes = list(
@@ -105,6 +107,7 @@ connecter <- setRefClass(Class = "connecter",
                                layout(xaxis=list(fixedrange=TRUE, title = "Temperature (\u00B0C)")) %>% 
                                layout(yaxis=list(fixedrange=TRUE, title = "Absorbance(nm)"))%>%
                                config(displayModeBar = FALSE)
+                             
                              },
                            
                            # Return the data needed to create the Van't Hoff plot
