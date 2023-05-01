@@ -81,6 +81,12 @@ connecter <- setRefClass(Class = "connecter",
                                                    )
                              },
                            
+                           # Automatically fit MeltR.A object through BLTrimmer
+                           #executeBLTrimmer = function(object, iterations) {
+                          #   .self$fittedObject <- BLTrimmer(object,
+                           #                                  n.combinations = iterations)
+                           #},
+                           
                            # Construct the analysis plot
                            constructAllPlots = function(sampleNum){
                              data = .self$object$Derivatives.data[.self$object$Derivatives.data == sampleNum,]
