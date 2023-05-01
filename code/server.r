@@ -1,54 +1,59 @@
-server <- function(input,output, session){
+server <- function(input, output, session){
   # Prevent Rplots.pdf from generating
   if(!interactive()) pdf(NULL)
   
-  # Check if the value is an int.
+  # Check if the value is an int
   can_convert_to_int <- function(x) {
     all(grepl('^(?=.)([+-]?([0-9]*)?)$', x, perl = TRUE))  
   }
   
-  # Check the nucleotide sequence to check if it belongs to DNA.
+  # Check the nucleotide sequence to check if it belongs to DNA
   dna_letters_only <- function(x){
-    all(!grepl("[^A,^G,^C,^T]",x))
+    all(!grepl("[^A, ^G, ^C, ^T]", x))
   }
   
-  # Check the nucleotide sequence to check if it belongs to RNA.
+  # Check the nucleotide sequence to check if it belongs to RNA
   rna_letters_only <- function(x){
-    all(!grepl("[^A,^G,^C,^U]",x))
+    all(!grepl("[^A, ^G, ^C, ^U]", x))
   }
   
-  # Handle the situation in which the user clicks the "No Blanks" checkbox.
+  # Handle the situation in which the user toggles the "No Blanks" checkbox
   observeEvent(eventExpr = input$noBlanksID,
                handlerExpr = {
                  if (input$noBlanksID == TRUE){
                    updateTextInput(session,"blankSampleID", value = "none")
                    disable('blankSampleID')
+                 }else{
+                   updateTextInput(session,"blankSampleID", value = 1)
+                   enable('blankSampleID')
                  }
                })
   
-  # Handle the dataset inputs and append additional datasets.
-  upload <- observeEvent(eventExpr = input$inputFileID,
+  # Handle the inputs and uploaded datasets
+  observeEvent(eventExpr = input$inputFileID,
                          handlerExpr = {
+                           
+                           # Error checking
                            if(input$noBlanksID == FALSE){
                              if(can_convert_to_int(input$blankSampleID) == FALSE){
                                showModal(modalDialog(
                                  title = "Not a number",
-                                 "Please input an integer in the blanks box.",
+                                 "Please input an integer in the input box for blanks.",
                                  footer = modalButton("Understood"),
                                  easyClose = FALSE,
                                  fade = TRUE
                                ))
+                               }
                              }
-                           }
-                           if(input$pathlengthID == "" || input$helixID == "" || input$blankSampleID == ""){
+                           if(input$pathlengthID == "" || input$helixID == "" || input$blankSampleID == "" || input$temperatureID == ""){
                              showModal(modalDialog(
                                title = "Missing Inputs",
-                               "Please ensure that all inputs have been filled out.",
+                               "Please ensure that all text inputs have been filled out.",
                                footer = modalButton("Understood"),
                                easyClose = FALSE,
                                fade = TRUE
-                             ))
-                           }
+                               ))
+                             }
                            else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !input$wavelengthID == "260"){
                              showModal(modalDialog(
                                title = "Nucleotide to Absorbance Mis-Pair",
@@ -57,7 +62,7 @@ server <- function(input,output, session){
                                easyClose = FALSE,
                                fade = TRUE
                                ))
-                           }
+                             }
                            else if(strsplit(input$helixID,",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular")&& 
                                    ((rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
                                     (rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][3]))) == FALSE))){
@@ -67,8 +72,8 @@ server <- function(input,output, session){
                                footer = modalButton("Understood"),
                                easyClose = FALSE,
                                fade = TRUE
-                             ))
-                           }
+                               ))
+                             }
                            else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular")&& 
                                    ((dna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
                                     (dna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][3]))) == FALSE))){
@@ -78,16 +83,19 @@ server <- function(input,output, session){
                                footer = modalButton("Understood"),
                                easyClose = FALSE,
                                fade = TRUE
-                             ))
-                           }
+                               ))
+                             }
+
+                           # If there are no errors in the inputs, proceed with file upload and processing
                            else{
+                             
                              # Store the pathlength information
                              pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
                              
                              # Store the wavelength information
                              wavelengthVal <<- input$wavelengthID
                              
-                             # Store the blank information
+                             # Store the blank information and reset blank related inputs after each file upload
                              if(input$noBlanksID == TRUE){
                                blank <<- "none"
                                blankInt <<- 0
@@ -101,7 +109,7 @@ server <- function(input,output, session){
                              updateCheckboxInput(session,"noBlanksID", value = FALSE)
                              
                              # Store the extinction coefficient information
-                             helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
+                             helix <<- trimws(strsplit(input$helixID, ",")[[1]], which="both")
                              
                              # Store the tm method information
                              tmMethodVal <<- toString(input$Tm_methodID)
@@ -109,13 +117,18 @@ server <- function(input,output, session){
                              # Store the weighted tm information for method 2
                              weightedTmVal <<- input$weightedTmID
                             
-                             # Store the methods
+                             # Store the selected methods
                              selectedMethods <- input$methodsID
-                             if (!("Method 2" %in% toString(selectedMethods))) {
+                             if (("Method 2" %in% selectedMethods) == FALSE) {
                                chosenMethods[2] <<- FALSE
                              }
-                             if (!("Method 3" %in% toString(selectedMethods))) {
+                             else{
+                               chosenMethods[2] <<- TRUE
+                             }
+                             if (("Method 3" %in% selectedMethods) == FALSE) {
                                chosenMethods[3] <<- FALSE 
+                             }else{
+                               chosenMethods[3] <<- TRUE
                              }
                            
                              # Store and format molecular state information
@@ -131,7 +144,7 @@ server <- function(input,output, session){
                              # Store the temperature used to calculate the concentration with Beers law
                              concTVal <<- as.numeric(input$temperatureID)
                            
-                             # Disable widgets from inputs page whose values apply to all datasets
+                             # Disable widgets whose values apply to all datasets
                              disable('helixID')
                              disable('molecularStateID')
                              disable('wavelengthID')
@@ -145,17 +158,17 @@ server <- function(input,output, session){
                              preProcessedData <- read.csv(file = fileName,header = FALSE)
                              noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
                            
-                             # Create temporary data frame in meltR's format to store data from an uploaded dataset
+                             # Create temporary data frame in a format acceptable to meltR and store data from an uploaded dataset
                              columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
                              tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
                              colnames(tempFrame) <- columns
                              readings <- ncol(noNAData)
                            
-                             # Append each individual temporary data frame into a larger dataframe that holds all the datasets
+                             # Append each each individual processed dataset into one that holds all the datasets
                              p <- 1
                              for (x in 2:readings) {
                                col <- noNAData[x]
-                               sample <- rep(c(counter),times = nrow(noNAData[x]))
+                               sample <- rep(c(counter), times = nrow(noNAData[x]))
                                pathlength <- rep(c(as.numeric(pathlengthInputs[p])),times = nrow(noNAData[x]))
                                col <- noNAData[x]
                                t <- data.frame(sample,pathlength,noNAData[1],noNAData[x])
@@ -165,19 +178,18 @@ server <- function(input,output, session){
                                counter <<- counter + 1
                              }
                              dataList <<- append(dataList, list(tempFrame))
-                             numFiles <<- numFiles + 1
-                             numReadings <<- counter - 1
+                             numUploads <<- numUploads + 1
+                             numSamples <<- counter - 1
                              masterFrame <<- rbind(masterFrame, tempFrame)
                              }
                            })
   
-  # Once all datasets have been uploaded, create the MeltR object
+  # Once all datasets have been uploaded, create the MeltR object and derive necessary information
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
             
-                   # Send stored input values to the connecter abstraction class, create 
-                   # a connecter object, and store the result of calling one of it's functions.
+                   # Send stored input values to the connecter class to create a MeltR object
                    myConnecter <<- connecter(df = masterFrame,
                                              NucAcid = helix,
                                              wavelength = wavelengthVal,
@@ -189,21 +201,22 @@ server <- function(input,output, session){
                                              concT = concTVal
                                              )
                    myConnecter$constructObject()
-                   calculations <<- myConnecter$gatherVantData()
-                   df2 <<- myConnecter$fitData()
                    
-                   # Reactive variable that handles the points on the Van't Hoff plot.
-                   # Necessary for removal of outliers from said plot.
+                   # Store data necessary for generating the Vant Hoff plot and the results table
+                   vantData <<- myConnecter$gatherVantData()
+                   individualFitData <<- myConnecter$indFitTableData()
+                   
+                   # Variable that handles the points on the Van't Hoff plot for removal
                    if(chosenMethods[2] == TRUE){
                      vals <<- reactiveValues(
-                       keeprows = rep(TRUE, nrow(calculations))
-                     )
-                   }
+                       keeprows = rep(TRUE, nrow(vantData))
+                       )
+                     }
                    }
                  }
                )
   
-  # Disable remaining widgets on "Upload" page when all datasets have been uploaded.
+  # Disable remaining widgets on "Upload" page when all datasets have been uploaded
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
@@ -220,10 +233,10 @@ server <- function(input,output, session){
                    }
                  })
   
-  # Only allow the user to choosed weighted tm for method 2 if the tm method is nls
+  # Only allow the user to choose weighted tm for method 2 if nls is the selected tm method and method 2 is selected
   observeEvent(eventExpr = input$Tm_methodID,
                handlerExpr = {
-                 if( input$Tm_methodID != "nls"){
+                 if(input$Tm_methodID != "nls" && chosenMethods[2] != TRUE){
                    disable('weightedTmID')
                  }else{
                    enable('weightedTmID')
@@ -233,7 +246,7 @@ server <- function(input,output, session){
   # Show the uploaded datasets separately on the uploads page
   observeEvent(eventExpr = input$inputFileID,
                handlerExpr = {
-                 divID <- toString(numFiles)
+                 divID <- toString(numUploads)
                  dtID <- paste0(divID,"DT")
                  insertUI(
                    selector = "#placeholder",
@@ -242,22 +255,24 @@ server <- function(input,output, session){
                                  hr(style = "border-top: 1px solid #000000;")
                                  )
                    )
-                 output[[dtID]] <- DT::renderDataTable({datatable(dataList[[numFiles]], 
+                 output[[dtID]] <- DT::renderDataTable({datatable(dataList[[numUploads]], 
                                                                   class = 'cell-border stripe', 
                                                                   selection = 'none', 
                                                                   options = list(searching = FALSE, ordering = FALSE),
-                                                                  caption = paste0('Table', " ", toString(numFiles), '.', " ", 'Dataset', " ", toString(numFiles), '.'
+                                                                  caption = paste0('Table', " ", toString(numUploads), '.', " ", 'Dataset', " ", toString(numUploads), '.'
                                                                                    )
                                                                   )
                    })
                  }
                )
   
-  # Disable "Vant Hoff" tab when method 2 is unselected on the "Upload" page
+  # Disable "Vant Hoff" tab when method 2 is unselected
   observeEvent(eventExpr = input$datasetsUploadedID,
                handlerExpr = {
                  if(chosenMethods[2] == FALSE){
                    disable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
+                 }else{
+                   enable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
                    }
                  }
                )
@@ -269,16 +284,19 @@ server <- function(input,output, session){
                    disable(selector = '.navbar-nav a[data-value="Analysis"')
                    disable(selector = '.navbar-nav a[data-value="Results"')
                  }
-               }
-  )
-  
+                 else{
+                   enable(selector = '.navbar-nav a[data-value="Analysis"')
+                   enable(selector = '.navbar-nav a[data-value="Results"')
+                   }
+                 }
+               )
   
   # Dynamically create n tabs (n = number of samples in master data frame) for 
   # the "Graphs" page under the "Analysis" navbarmenu.
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
-                   lapply(start:numReadings,
+                   lapply(start:numSamples,
                           function(i){
                             if (i != blankInt) {
                               tabName = paste("Sample",i,sep = " ")
@@ -290,7 +308,6 @@ server <- function(input,output, session){
                                                              h4("Options:"),
                                                              checkboxInput(inputId = paste0("bestFit",i),label = "Show best fit line"),
                                                              checkboxInput(inputId = paste0("firstDerivative",i),label = "Show derivative"),
-                                                             #htmlOutput(outputId = paste0("xVals",i))
                                                              ),
                                                            mainPanel(
                                                              plotlyOutput(paste0("plotBoth",i))
@@ -302,9 +319,7 @@ server <- function(input,output, session){
                               }
                             }
                          )
-                   start <<- numReadings + 1
-                   enable(selector = '.navbar-nav a[data-value="Analysis"')
-                   enable(selector = '.navbar-nav a[data-value="Results"')
+                   start <<- numSamples + 1
                    }
                  }
                )
@@ -314,16 +329,17 @@ server <- function(input,output, session){
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
                    
-                   bestFitXData <<- vector("list",numReadings)
-                   bestFitYData <<- vector("list",numReadings)
-                   derivativeXData <<- vector("list",numReadings)
-                   derivativeYData <<- vector("list",numReadings)
+                   # Initialize variables for accessing best fit and derivative information
+                   bestFitXData <<- vector("list",numSamples)
+                   bestFitYData <<- vector("list",numSamples)
+                   derivativeXData <<- vector("list",numSamples)
+                   derivativeYData <<- vector("list",numSamples)
                    
-                   for (i in 1:numReadings) {
+                   # Create plots
+                   for (i in 1:numSamples) {
                      if (i != blankInt) {
                        local({
                          myI <- i 
-                         # Plot containing best, first derivative, and raw data
                          output[[paste0("plotBoth",myI)]] <- renderPlotly({
                            analysisPlot <- myConnecter$constructAllPlots(myI)
                            if(input[[paste0("bestFit",myI)]] == TRUE){
@@ -343,8 +359,12 @@ server <- function(input,output, session){
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
     if(chosenMethods[2] == TRUE){
-      keep <- calculations[vals$keeprows, , drop = FALSE]
-      exclude <- calculations[!vals$keeprows, , drop = FALSE]
+      
+      # Store the points that are kept vs excluded
+      keep <- vantData[vals$keeprows, , drop = FALSE]
+      exclude <- vantData[!vals$keeprows, , drop = FALSE]
+      
+      # Create vant plot
       vantGgPlot <<- ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
         geom_smooth(formula = y ~ x,method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
         geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
@@ -354,11 +374,11 @@ server <- function(input,output, session){
     }
     })
   
-  # Remove points from Van't Hoff that are clicked.
+  # Remove points from Van't Hoff plot that are clicked
   observeEvent(eventExpr = input$vantClick, 
                handlerExpr = {
                  if(chosenMethods[2] == TRUE){
-                   res <- nearPoints(calculations, input$vantClick, allRows = TRUE)
+                   res <- nearPoints(vantData, input$vantClick, allRows = TRUE)
                    vals$keeprows <- xor(vals$keeprows, res$selected_)
                  }
                  })
@@ -367,7 +387,7 @@ server <- function(input,output, session){
   observeEvent(eventExpr = input$removeBrushedID, 
                handlerExpr = {
                  if(chosenMethods[2] == TRUE){
-                   res <- brushedPoints(calculations, input$vantBrush, allRows = TRUE)
+                   res <- brushedPoints(vantData, input$vantBrush, allRows = TRUE)
                    vals$keeprows <- xor(vals$keeprows, res$selected_)
                  }
                  })
@@ -376,7 +396,7 @@ server <- function(input,output, session){
   observeEvent(eventExpr = input$resetVantID, 
                handlerExpr = {
                  if(chosenMethods[2] == TRUE){
-                   vals$keeprows <- rep(TRUE, nrow(calculations))
+                   vals$keeprows <- rep(TRUE, nrow(vantData))
                  }
                  })
   
@@ -392,14 +412,12 @@ server <- function(input,output, session){
   # Calls function above to create delete buttons and add IDs for each row in the individual fits table
   getListUnder <- reactive({
     if(input$datasetsUploadedID == TRUE){
-    
-      df3 <<- df2
-      df3$Delete <- shinyInput(actionButton, nrow(df3),'delete_',label = "Remove",
+      individualFitData$Delete <- shinyInput(actionButton, nrow(individualFitData),'delete_',label = "Remove",
                                style = "color: red;background-color: white",
                                onclick = paste0('Shiny.onInputChange( \"delete_button\" , this.id, {priority: \"event\"})'))
     
-      df3$ID <- seq.int(nrow(df3))
-      return(df3)
+      individualFitData$ID <- seq.int(nrow(individualFitData))
+      return(individualFitData)
       }
   })
   
@@ -407,26 +425,26 @@ server <- function(input,output, session){
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
-                   valuesT <<- reactiveValues(df3 = NULL)
-                   valuesT$df3 <- isolate({getListUnder()})
+                   valuesT <<- reactiveValues(individualFitData = NULL)
+                   valuesT$individualFitData <- isolate({getListUnder()})
                    }
                  })
   
   # Remove row from individual fits table when its respective "Remove" button is pressed.
   observeEvent( eventExpr = input$delete_button, handlerExpr = {
     selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
-    valuesT$df3 <<- subset(valuesT$df3, ID!=selectedRow)
+    valuesT$individualFitData <<- subset(valuesT$individualFitData, ID!=selectedRow)
   })
   
   # Reset the individual fits table to original when "Reset" button is pressed.
   observeEvent(eventExpr = input$resetTable1ID == TRUE, 
                handlerExpr = {
-                 valuesT$df3 <- isolate({getListUnder()})
+                 valuesT$individualFitData <- isolate({getListUnder()})
                })
   
   # Render all parts of the results table.
   output$individualFitsTable = DT::renderDataTable({
-    table <- valuesT$df3 %>%
+    table <- valuesT$individualFitData %>%
       DT::datatable(filter = "none", 
                     rownames = F,
                     extensions = 'FixedColumns',
@@ -451,7 +469,7 @@ server <- function(input,output, session){
     return(errorDataTable)
   })
   
-  # Save the Van't Hoff Plot as a pdf.
+  # Save the Van't Hoff Plot in the chosen format
   output$downloadVantID <- downloadHandler(
     filename = function(){
       paste(input$saveNameVantID, ".", input$vantDownloadFormatID, sep = '')
@@ -461,7 +479,7 @@ server <- function(input,output, session){
     }
   )
   
-  # Save the results table as an excel file, with each component on a separate sheet.
+  # Save the results table in the chosen file format
   output$downloadTableID <- downloadHandler(
     filename = function() {
       paste(input$saveNameTableID, '.', input$tableFileFormatID, sep='')
@@ -469,7 +487,7 @@ server <- function(input,output, session){
     content = function(file2) {
       selectedParts <- list()
       if ("Individual Fits" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$df3 %>% select(-c(Delete, ID))
+        selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
       }
       if ("Method Summaries" %in% input$tableDownloadsPartsID) {
         selectedParts$MethodsSummaries <- summaryDataTable

@@ -1,33 +1,37 @@
-# List of global variables
+# Global variables for file inputs
 blank <- NULL
 blankInt <- NULL
-counter <- 1 
 helix <- c() 
 molStateVal <- "" 
 wavelengthVal <- ""
-myConnector = NULL 
-start <- 1 
-df2 <- NULL
-valuesT <- NULL
-df3 <- NULL
-leftBarVal <- 0
-rightBarVal <- 0
-min <- 0
-max <- 0
-dataList = list()
-numFiles <- 0
-vantGgPlot <- NULL
-summaryDataTable <- NULL
-errorDataTable <- NULL
 chosenMethods <- c(TRUE, TRUE, TRUE)
 concTVal <- 0
 tmMethodVal <- ""
 weightedTmVal <- FALSE
-numReadings = NULL
+
+# Global variables for uploaded datasets
+dataList = list()
+numUploads <- 0
 masterFrame = NULL
-xRange <- NULL
+counter <- 1 
+numSamples = NULL
+
+# Global variables for the MeltR object
+myConnector = NULL 
+
+valuesT <- NULL
+
+# Global variables for the Vant Hoff plot
+vantData <- NULL
+
+# Global variables for the results table
+individualFitData <- NULL
+summaryDataTable <- NULL
+errorDataTable <- NULL
+vantGgPlot <- NULL
 
 # Global variables for analysis plots
+start <- 1
 bestFitXData = NULL
 bestFitYData = NULL
 derivativeXData = NULL
@@ -74,13 +78,6 @@ connecter <- setRefClass(Class = "connecter",
                                                      )
                                                    )
                              names(.self$fdData)[ncol(.self$fdData)] <- "yPlot"
-                             
-                             # Need to position the starting baseline bars at the min and max of temperature
-                             data = df[df$Sample == 1,]
-                             leftBarVal <<- round(min(data$Temperature),digits = 4)
-                             min <<- round(min(data$temperature))
-                             max <<- round(max(data$temperature))
-                             rightBarVal <<- round(max(data$Temperature),digits = 4)
                              },
                            
                            # Construct the analysis plot
@@ -128,7 +125,7 @@ connecter <- setRefClass(Class = "connecter",
                              },
                            
                            # Return the individual fit data
-                           fitData = function(){
+                           indFitTableData = function(){
                              indvCurves = .self$object$Method.1.indvfits 
                              return(indvCurves)
                              },
