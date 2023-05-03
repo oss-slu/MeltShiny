@@ -78,7 +78,7 @@ server <- function(input, output, session){
                            else{
                              
                              # Store the pathlength information
-                             pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
+                             pathlengthInputs <- c(unlist(strsplit(gsub(" ", "", input$pathlengthID),",")))
                              
                              # Store the wavelength information
                              wavelengthVal <<- input$wavelengthID
@@ -89,7 +89,7 @@ server <- function(input, output, session){
                                blankInt <<- 0
                                }
                              else{
-                               blank <<- as.numeric(input$blankSampleID)
+                               blank <<- as.numeric(gsub(" ", "", input$blankSampleID))
                                blankInt <<- blank
                              }
                              enable('blankSampleID')
@@ -97,13 +97,13 @@ server <- function(input, output, session){
                              updateCheckboxInput(session,"noBlanksID", value = FALSE)
                              
                              # Store the extinction coefficient information
-                             helix <<- trimws(strsplit(input$helixID, ",")[[1]], which="both")
+                             helix <<- trimws(strsplit(gsub(" ", "",input$helixID), ",")[[1]], which="both")
                              
                              # Store the tm method information
                              tmMethodVal <<- toString(input$Tm_methodID)
                              
                              # Store the weighted tm information for method 2
-                             weightedTmVal <<- input$weightedTmID
+                             weightedTmVal <<- gsub(" ", "", input$weightedTmID)
                             
                              # Store the selected methods
                              selectedMethods <- input$methodsID
@@ -130,7 +130,7 @@ server <- function(input, output, session){
                              }
                              
                              # Store the temperature used to calculate the concentration with Beers law
-                             concTVal <<- as.numeric(input$temperatureID)
+                             concTVal <<- as.numeric(gsub(" ", "", input$temperatureID))
                            
                              # Disable widgets whose values apply to all datasets
                              disable('helixID')
