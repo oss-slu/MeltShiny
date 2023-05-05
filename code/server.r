@@ -17,18 +17,6 @@ server <- function(input, output, session){
     all(!grepl("[^A, ^G, ^C, ^U]", x))
   }
   
-  # Handle the situation in which the user toggles the "No Blanks" checkbox
-  observeEvent(eventExpr = input$noBlanksID,
-               handlerExpr = {
-                 if (input$noBlanksID == TRUE){
-                   updateTextInput(session,"blankSampleID", value = "none")
-                   disable('blankSampleID')
-                 }else{
-                   updateTextInput(session,"blankSampleID", value = 1)
-                   enable('blankSampleID')
-                 }
-               })
-  
   # Handle the inputs and uploaded datasets
   observeEvent(eventExpr = input$inputFileID,
                          handlerExpr = {
@@ -90,7 +78,7 @@ server <- function(input, output, session){
                            else{
                              
                              # Store the pathlength information
-                             pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
+                             pathlengthInputs <- c(unlist(strsplit(gsub(" ", "", input$pathlengthID),",")))
                              
                              # Store the wavelength information
                              wavelengthVal <<- input$wavelengthID
@@ -101,7 +89,7 @@ server <- function(input, output, session){
                                blankInt <<- 0
                                }
                              else{
-                               blank <<- as.numeric(input$blankSampleID)
+                               blank <<- as.numeric(gsub(" ", "", input$blankSampleID))
                                blankInt <<- blank
                              }
                              enable('blankSampleID')
@@ -109,13 +97,13 @@ server <- function(input, output, session){
                              updateCheckboxInput(session,"noBlanksID", value = FALSE)
                              
                              # Store the extinction coefficient information
-                             helix <<- trimws(strsplit(input$helixID, ",")[[1]], which="both")
+                             helix <<- trimws(strsplit(gsub(" ", "",input$helixID), ",")[[1]], which="both")
                              
                              # Store the tm method information
                              tmMethodVal <<- toString(input$Tm_methodID)
                              
                              # Store the weighted tm information for method 2
-                             weightedTmVal <<- input$weightedTmID
+                             weightedTmVal <<- gsub(" ", "", input$weightedTmID)
                             
                              # Store the selected methods
                              selectedMethods <- input$methodsID
@@ -142,7 +130,7 @@ server <- function(input, output, session){
                              }
                              
                              # Store the temperature used to calculate the concentration with Beers law
-                             concTVal <<- as.numeric(input$temperatureID)
+                             concTVal <<- as.numeric(gsub(" ", "", input$temperatureID))
                            
                              # Disable widgets whose values apply to all datasets
                              disable('helixID')
@@ -152,6 +140,7 @@ server <- function(input, output, session){
                              disable('methodsID')
                              disable('Tm_methodID')
                              disable('weightedTmID')
+                             disable('extinctConDecisionID')
                            
                              # Open the uploaded file and remove any columns/rows with NA's
                              fileName <- input$inputFileID$datapath
@@ -195,6 +184,7 @@ server <- function(input, output, session){
                                              wavelength = wavelengthVal,
                                              blank = blank,
                                              Tm_method = tmMethodVal,
+                                             outliers = NA,
                                              Weight_Tm_M2 = weightedTmVal,
                                              Mmodel = molStateVal,
                                              methods = chosenMethods,
@@ -220,27 +210,44 @@ server <- function(input, output, session){
   observeEvent(eventExpr = input$datasetsUploadedID, 
                handlerExpr = {
                  if(input$datasetsUploadedID == TRUE){
-                   disable('temperatureID')
-                   disable('methodsID')
                    disable('blankSampleID')
                    disable('pathlengthID')
                    disable('inputFileID')
                    disable('datasetsUploadedID')
-                   disable('includeBlanksID')
                    disable('noBlanksID')
-                   disable('weightedTmID')
                    }
                  })
   
-  # Only allow the user to choose weighted tm for method 2 if nls is the selected tm method and method 2 is selected
-  observeEvent(eventExpr = input$Tm_methodID,
-               handlerExpr = {
-                 if(input$Tm_methodID != "nls" && chosenMethods[2] != TRUE){
-                   disable('weightedTmID')
-                 }else{
-                   enable('weightedTmID')
-                 }
-               })
+  # Handle the situation in which the user toggles the "No Blanks" checkbox
+  observe(
+    if (input$noBlanksID == TRUE){
+      updateTextInput(session,"blankSampleID", value = "none")
+      disable('blankSampleID')
+    }
+    else if (input$noBlanksID == FALSE){
+      updateTextInput(session,"blankSampleID", value = 1)
+      enable('blankSampleID')
+    }
+  )
+  
+  # Update the example information in the nucleic acid/ extinction coefficient text box depending on user choice
+  observe(
+    if(input$extinctConDecisionID == "Nucleic acid sequence(s)"){
+      updateTextInput(session,"helixID", placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG")
+    }
+    else if(input$extinctConDecisionID == "Custom molar extinction coefficients"){
+      updateTextInput(session,"helixID", placeholder = "E.g: Custom, 10000, 20000")
+    }
+  )
+  
+  # Only activate the checkbox for weighted tm if method 2 and nls are selected
+  observe(
+    if(input$Tm_methodID == "nls" && ("Method 2" %in% input$methodsID) == TRUE){
+      enable('weightedTmID')
+    }else{
+      disable('weightedTmID')
+    }
+  )
   
   # Show the uploaded datasets separately on the uploads page
   observeEvent(eventExpr = input$inputFileID,
@@ -265,12 +272,13 @@ server <- function(input, output, session){
                  }
                )
   
-  # Disable "Vant Hoff" tab when method 2 is unselected
+  # Disable "Van't Hoff" tab when method 2 is unselected
   observeEvent(eventExpr = input$datasetsUploadedID,
                handlerExpr = {
                  if(chosenMethods[2] == FALSE){
                    disable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
-                 }else{
+                 }
+                 else if (chosenMethods[2] == FALSE){
                    enable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
                    }
                  }
@@ -356,7 +364,7 @@ server <- function(input, output, session){
                          observeEvent(event_data( source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event")), {
                            xRange[[myI]] <<- event_data(source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event"))$xaxis.range[1:2]
                            output[[paste0("xrange",myI)]] <- renderText({
-                             paste0(" x-range: [", xRange[[myI]][1], ", ", xRange[[myI]][2], "]")
+                             paste0(" x-range: [", round(xRange[[myI]][1],2), ", ", round(xRange[[myI]][2],2), "]")
                            })
                          })
                          
