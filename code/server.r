@@ -184,6 +184,7 @@ server <- function(input, output, session){
                                              wavelength = wavelengthVal,
                                              blank = blank,
                                              Tm_method = tmMethodVal,
+                                             outliers = NA,
                                              Weight_Tm_M2 = weightedTmVal,
                                              Mmodel = molStateVal,
                                              methods = chosenMethods,
