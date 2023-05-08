@@ -1,31 +1,79 @@
-# List of global variables
-blank <- NULL 
-counter <- 1 
+options(warn = -1)
+
+# Global variables for file inputs
+blank <- NULL
+blankInt <- NULL
 helix <- c() 
 molStateVal <- "" 
 wavelengthVal <- ""
+chosenMethods <- c(TRUE, TRUE, TRUE)
+concTVal <- 0
+tmMethodVal <- ""
+weightedTmVal <- FALSE
+
+# Global variables for uploaded datasets
+dataList = list()
+numUploads <- 0
+masterFrame = NULL
+counter <- 1 
+numSamples = NULL
+
+# Global variables for the MeltR object
 myConnector = NULL 
-start <- 1 
+
+# Global variables for the Van't Hoff plot
+vantData <- NULL
+
+# Global variables for the results table
+individualFitData <- NULL
+summaryDataTable <- NULL
+errorDataTable <- NULL
+vantGgPlot <- NULL
+valuesT <- NULL
+
+# Global variables for analysis plots
+start <- 1
+bestFitXData = NULL
+bestFitYData = NULL
+derivativeXData = NULL
+derivativeYData = NULL
+xRange <- NULL
 
 # Connector class that interacts with MeltR.
 # constructObject() has to be called for each new method implemented. 
 connecter <- setRefClass(Class = "connecter",
                          fields = c("df",
                                     "NucAcid",
+                                    "wavelength",
                                     "blank",
+                                    "Tm_method",
+                                    "Weight_Tm_M2",
                                     "Mmodel",
+                                    "outliers",
+                                    "methods",
+                                    "concT",
                                     "object",
-                                    "fdData",
-                                    "fittedObject"
+                                    "fdData"
                                     ),
                          methods = list(
                            # Create MeltR object & first derivative data
                            constructObject = function(){
-                             .self$object <- meltR.A(data_frame = df,
-                                                     blank = blank,
-                                                     NucAcid = NucAcid,
-                                                     Mmodel = Mmodel
-                                                     )
+                             capture.output(.self$object <- meltR.A(data_frame = df,
+                                                                    blank = blank,
+                                                                    NucAcid = NucAcid,
+                                                                    wavelength = wavelength,
+                                                                    Tm_method = Tm_method,
+                                                                    Weight_Tm_M2 = Weight_Tm_M2,
+                                                                    Mmodel = Mmodel,
+                                                                    concT = concT,
+                                                                    outliers = outliers,
+                                                                    #fitTs = xRanges
+                                                                    methods = methods,
+                                                                    Save_results = "none",
+                                                                    Silent = FALSE
+                                                                    ), 
+                                            file = nullfile()
+                                            )
                              upper = 4000 #Static number to shrink data to scale
                              .self$fdData <- .self$object$Derivatives.data
                              .self$fdData <- cbind(.self$fdData,
@@ -33,126 +81,75 @@ connecter <- setRefClass(Class = "connecter",
                                                      .self$fdData$dA.dT/(.self$fdData$Pathlength*.self$fdData$Ct)/upper
                                                      )
                                                    )
-                             names(.self$fdData)[ncol(.self$fdData)] <- "yPlot"
                              },
                            
-                           # Construct a plot containing the raw data
-                           constructRawPlot = function(sampleNum){
-                             data = df[df$Sample == sampleNum,]
-                             ggplot(data, aes(x = Temperature, y = Absorbance)) +
-                               geom_point() +
-                               theme_classic()
-                             },
+                           # Automatically fit MeltR.A object through BLTrimmer
+                           #executeBLTrimmer = function(object, iterations) {
+                          #   .self$fittedObject <- BLTrimmer(object,
+                           #                                  n.combinations = iterations)
+                           #},
                            
-                           # Construct a plot of the first derivative and the raw data
-                           constructFirstDerivative = function(sampleNum){
-                             data = .self$fdData[.self$fdData == sampleNum,]
-                             ggplot(data,aes(x = Temperature)) +
-                               geom_point(aes(y = Absorbance)) +
-                               geom_point(aes(y = yPlot+min(Absorbance)),color="blue") +
-                               geom_point(aes(x = Temperature[which.max(yPlot)],y = max(yPlot)+min(Absorbance)),color="red") +
-                               theme_classic()
-                             },
-                           
-                           # Construct a plot of the best fit and the raw data
-                           constructBestFit = function(sampleNum){
-                             data = .self$object$Method.1.data
-                             data = data[data$Sample == sampleNum,]
-                             ggplot(data,aes(x = Temperature)) +
-                               geom_point(aes(y = Absorbance), color = "black") +
-                               geom_line(aes(y = Model), color = "red") +
-                               theme_classic()
-                             },
-                           
-                           # Construct a plot of the best fit, first derivative, and the raw data
-                           constructBoth = function(sampleNum){
-                             data1 = .self$object$Derivatives.data[.self$object$Derivatives.data == 4,]
-                             data2 = .self$object$Method.1.data[.self$object$Method.1.data$Sample == 4,]
+                           # Construct the analysis plot
+                           constructAllPlots = function(sampleNum){
+                             data = .self$object$Derivatives.data[.self$object$Derivatives.data == sampleNum,]
+                             data2 = .self$object$Method.1.data[.self$object$Method.1.data$Sample == sampleNum,]
                              coeff = 4000 #Static number to shrink data to scale
-                             upper = max(data1$dA.dT)/max(data1$Ct) + coeff
-                             ggplot() + 
-                               geom_point(data2,mapping = aes(x = Temperature, y = Absorbance), color = "black") + #raw
-                               geom_line(data2,mapping = aes(x = Temperature, y = Model), color = "red") + #best fit 
-                               geom_point(data1, mapping = aes(x = Temperature, y = (dA.dT/(Pathlength*Ct))/upper+min(Absorbance)), color = "blue") + #first derivative
-                               theme_classic()
-                             },
+                             upper = max(data$dA.dT)/max(data$Ct) + coeff
 
-                            # Automatically Fit MeltR.A Object Through BLTrimmer
-                            executeBLTrimmer = function(object,iterations) {
-                              .self$fittedObject <- BLTrimmer(object,
-                                n.combinations = iterations)
-                            },
+                             # Store the necessary information for use in the server for adding the best fit and first derivative
+                             bestFitXData[[sampleNum]] <<- data2$Temperature
+                             bestFitYData[[sampleNum]] <<- data2$Model
+                             derivativeXData[[sampleNum]] <<- data$Temperature
+                             derivativeYData[[sampleNum]] <<- data$dA.dT/(data$Pathlength*data$Ct)/upper+min(data$Absorbance)
 
-                           # Return the x value associated with the maximum y-value for the first derivative
-                           getFirstDerivativeMax = function(sampleNum) {
-                             data = .self$fdData[.self$fdData == sampleNum,]
-                             maxRowIndex = which.max(data[["yPlot"]])
-                             xVal = data[maxRowIndex,3]
-                             return(xVal)
-                             },
-                           
-                           # Return the start & end ranges for each respective slider
-                           getSliderBounds = function(sampleNum,maximum) {
-                             data = .self$fdData[.self$fdData == sampleNum,]
-                             minTemp = round(min(data$Temperature),4)
-                             maxTemp = round(max(data$Temperature),4)
-                             if (minTemp < maximum-20){
-                               minTemp = maximum - 20
-                               }
-                             if (maxTemp > maximum+20){
-                               maxTemp = maximum + 20
-                               }
-                             return(list(minTemp,maxTemp))
+                             # Generate the base plot with just the absorbance data and a maximum derivative indicator line
+                             plot_ly(type = "scatter", mode = "markers", source = paste0("plotBoth",sampleNum)) %>%
+                               add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
+                               layout(
+                                 shapes = list(
+                                   list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$dA.dT)], 
+                                        x1 = data$Temperature[which.max(data$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE)
+                                   ),
+                                 xaxis = list(dtick = 5)
+                                 ) %>%
+                               rangeslider(xRange[[sampleNum]][1],xRange[[sampleNum]][2], thickness = .1) %>%
+                               layout(showlegend = FALSE) %>%
+                               layout(xaxis=list(fixedrange=TRUE, title = "Temperature (\u00B0C)")) %>% 
+                               layout(yaxis=list(fixedrange=TRUE, title = "Absorbance(nm)"))%>%
+                               config(displayModeBar = FALSE)
+                             
                              },
                            
                            # Return the data needed to create the Van't Hoff plot
                            gatherVantData = function(){
-                             data = .self$object$Method.2.data
-                             return(data)
+                             vantData = .self$object$Method.2.data
+                             return(vantData)
                              },
                            
-                           # Return the individual fit table data
-                           fitData = function(){
+                           # Return the individual fit data
+                           indFitTableData = function(){
                              indvCurves = .self$object$Method.1.indvfits 
                              return(indvCurves)
                              },
                            
                            # Return the results for the three methods
                            summaryData1 = function(){
-                            if ( typeof(.self$fittedObject) == "S4" ) {
-                             summaryData=.self$object$Summary
-                            } else{
-                              summaryData=.self$fittedObject$Ensemble.energies
-                              
-                            }
-                            return(summaryData[1,])
+                             summaryData = .self$object$Summary
+                             return(summaryData[1,])
                              },
                            summaryData2 = function(){
-                             if ( typeof(.self$fittedObject) == "S4" ) {
-                             summaryData=.self$object$Summary
-                            } else{
-                              summaryData=.self$fittedObject$Ensemble.energies
-                            }
-                            return(summaryData[2,])
+                             summaryData = .self$object$Summary
+                             return(summaryData[2,])
                              },
-
-                            summaryData3 = function(){
-                             if ( typeof(.self$fittedObject) == "S4" ) {
-                             summaryData=.self$object$Summary
-                            } else{
-                              summaryData=.self$fittedObject$Ensemble.energies
-                            }
-                            return(summaryData[3,])
+                           summaryData3 = function(){
+                             summaryData = .self$object$Summary
+                             return(summaryData[3,])
                              },
                            
-                           # Return the percent error for the methods
-                           error = function(){
-                            if ( typeof(.self$fittedObject) == "S4" ) {
-                              error = .self$object[3]
-                            } else {
-                              error = .self$fittedObject$Fractional.error.between.methods
-                            }
-                            return(error)
-                            }
+                           # Return the percent error for the three methods
+                           errorData = function(){
+                             errorData = .self$object$Range
+                             return(errorData)
+                             }
                            )
                          )

@@ -10,7 +10,8 @@ requiredPackages <- c("dplyr",
                       "ggrepel",
                       "MeltR",
                       "shiny",
-                      "shinyjs")
+                      "shinyjs",
+                      "shinythemes")
 
 # Install packages if not found on the system.
 installPackages <- function(packages) {

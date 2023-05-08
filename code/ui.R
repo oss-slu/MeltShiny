@@ -1,50 +1,87 @@
-source("style.R")
+css <- "
+.nav li a.disabled {
+background-color: #D4D4D4 !important;
+color: #333 !important;
+cursor: not-allowed !important;
+}"
 
 ui <- navbarPage(title = "MeltShiny",
+                 theme = shinytheme('flatly'),
                  id = "navbarPageID",
                  navbarMenu(title = "File",
-                            tabPanel(title = "Add Data", 
+                            tabPanel(title = "Add Dataset", 
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(
-                                           shinyjs::useShinyjs(),
-                                           shinyjs::inlineCSS(css),
-                                           textInput(label = "Enter the blank sample.",
-                                                     placeholder = "E.g: 1",
+                                           useShinyjs(),
+                                           inlineCSS(css),
+                                           textInput(label = "Enter the blank",
                                                      value = 1,
                                                      inputId = "blankSampleID"
                                                      ),
-                                           checkboxInput(label = "Show blank during analysis step",
+                                           checkboxInput(label = "No Blanks",
                                                          value = FALSE,
-                                                         inputId = "includeBlanksID"
+                                                         inputId = "noBlanksID"
                                                          ),
-                                           textInput(label = "Enter the pathlength for each sample. (Note, these values should be separated by commas
-                                                     and have no spaces in between them.) If there are no blanks, enter the word none.",
+                                           hr(style = "border-top: 1px solid #000000;"),
+                                           textInput(label = "Enter the pathlengths",
                                                      placeholder = "E.g: 2,5,3,2",
                                                      inputId = "pathlengthID"
                                                      ),
-                                           textInput(label = "Enter the sequence information in the following order: a nucleic acid, a sequence, and, if applicable, its complement).
-                                                              (Note, these values should be seperated by commas and have no spaces in between them.)",
+                                           hr(style = "border-top: 1px solid #000000;"),
+                                           selectInput(label = "Select the wavelengthID", 
+                                                       choices = c("300","295","290","285","280","275","270","265","260","255","250","245","240","235","230"), 
+                                                       selected = "260",
+                                                       inputId = "wavelengthID"
+                                           ),
+                                           hr(style = "border-top: 1px solid #000000;"),
+                                           textInput(label = "Enter the temperature used to calculate the concentration with Beers law",
+                                                     value = 90,
+                                                     inputId = "temperatureID"
+                                           ),
+                                           hr(style = "border-top: 1px solid #000000;"),
+                                           textInput(label = "Specify nucelic acid type and sequences",
                                                      placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
                                                      inputId = "helixID"
-                                                     ),
-                                           selectInput(label = "Select the molecular state.", 
+                                           ),
+                                           radioButtons(inputId = "extinctConDecisionID", 
+                                                        label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually",
+                                                        choices = c("Nucleic acid sequence(s)", "Custom molar extinction coefficients"), 
+                                                        selected = "Nucleic acid sequence(s)"),
+                                           hr(style = "border-top: 1px solid #000000;"),
+                                           checkboxGroupInput(label = "Optional methods",
+                                                              inputId = "methodsID", 
+                                                              choices = list("Method 2", 
+                                                                             "Method 3"),
+                                                              selected = c("Method 2", 
+                                                                           "Method 3")),
+                                           hr(style = "border-top: 1px solid #000000;"),
+                                           radioButtons(inputId = "Tm_methodID", 
+                                                        label = "Choose a Tm method",
+                                                        choices = c("nls", "lm", "polynomial"), 
+                                                        selected = "nls"),
+                                           checkboxInput(label = "Weighted tm for method 2",
+                                                         value = FALSE,
+                                                         inputId = "weightedTmID"
+                                           ),
+                                           hr(style = "border-top: 1px solid #000000;"),
+                                           selectInput(label = "Select the molecular state", 
                                                        choices = c("Heteroduplex","Homoduplex","Monomolecular"), 
                                                        selected = "Heteroduplex",
                                                        inputId = "molecularStateID"
                                                        ),
-                                           selectInput(label = "Select the wavelengthID. (Note, thermodynamic parameters can only be collected for DNA at 260 nm.)", 
-                                                       choices = c("300","295","290","285","280","275","270","265","260","255","250","245","240","235","230"), 
-                                                       selected = "260",
-                                                       inputId = "wavelengthID", 
-                                                       ),
-                                           fileInput(label = "Select the file containing the dataset.",
+                                           hr(style = "border-top: 1px solid #000000;"),
+                                           fileInput(label = "Select the dataset file",
                                                      multiple = FALSE,
                                                      accept = ".csv",
-                                                     inputId = "inputFileID",
-                                                     )
+                                                     inputId = "inputFileID"
+                                                     ),
+                                           checkboxInput(label = "All Datasets Uploaded?",
+                                                         value = FALSE,
+                                                         inputId = "datasetsUploadedID"
+                                                         ),
                                            ),
-                                         mainPanel(tableOutput(outputId = "table"))
+                                         mainPanel(tags$div(id = "placeholder"))
                                          )
                                        )
                                      )
@@ -55,41 +92,66 @@ ui <- navbarPage(title = "MeltShiny",
                                      ),
                             tabPanel(title = "Fit",
                                      tabsetPanel(type = "tabs",
-                                      tabPanel("Manual"),
-                                      tabPanel("Automatic",
-                                        fluidPage(
-                                            textInput(label = "Please enter a number larger than 10",
-                                            value = 1000,
-                                            inputId = "automaticIterations"
-                                            ),
-                                            actionButton(inputId = "automaticFit",
-                                              label = "Fit Data"
-                                            )
-                                        )
-                                      )
-                                    )
+                                                 tabPanel(title = "Manual",
+                                                          fluidPage(
+                                                            sidebarLayout(
+                                                              sidebarPanel(
+                                                                h5("Click to fit all graphs based on the chosen baselines."),
+                                                                actionButton(inputId = "manualFitID",
+                                                                             label = "Fit Data"
+                                                                             )
+                                                                ),
+                                                              mainPanel()
+                                                              )
+                                                            )
+                                                          ),
+                                                 tabPanel(title = "Automatic",
+                                                          fluidPage(
+                                                            sidebarLayout(
+                                                              sidebarPanel(
+                                                                textInput(label = "Enter the number of iterations.",
+                                                                          placeholder = "E.g: 1000",
+                                                                          value = 1000,
+                                                                          inputId = "autoFitIterationsID"
+                                                                ),
+                                                                h5("Click to automatically fit all graphs based on chosen iterations."),
+                                                                actionButton(inputId = "automaticFitID",
+                                                                             label = "Fit Data"
+                                                                             )
+                                                                ),
+                                                              mainPanel()
+                                                              )
+                                                            )
+                                                          )
+                                                 )
                                      )
                             ),
                  navbarMenu(title = "Results",
-                            tabPanel(title = "Van't Hoff Plot", 
+                            tabPanel(title = "Vant Hoff Plot", 
                                      fluidPage(
                                        sidebarLayout(
                                          sidebarPanel(h4("Options:"),
-                                                      h5("To remove more than one point at once, 
-                                                         click and drag a selection box over the region
-                                                         and press the button below."),
+                                                      hr(style = "border-top: 1px solid #000000;"),
+                                                      h5("Brushed points:"),
                                                       actionButton(inputId = "removeBrushedID", 
-                                                                   label = "Remove brushed"
+                                                                   label = "Remove"
                                                                    ),
-                                                      h5("To reset the plot, press the button below."),
+                                                      hr(style = "border-top: 1px solid #000000;"),
+                                                      h5("Reset plot:"),
                                                       actionButton(inputId = "resetVantID",
-                                                                   label = "Reset plot"
+                                                                   label = "Reset"
                                                                    ),
-                                                      h5("To download a pdf version of the Van't Hoff plot, use the widget below."),
+                                                      hr(style = "border-top: 1px solid #000000;"),
+                                                      h5("Download Vant Hoff:"),
                                                       textInput(label = "Enter the file name.",
-                                                                inputId = "saveVantID"
+                                                                inputId = "saveNameVantID"
                                                                 ),
-                                                      downloadButton(outputId = 'downloadVantID')
+                                                      radioButtons(inputId = "vantDownloadFormatID", 
+                                                                   label = "Choose a file format:",
+                                                                   choices = c("PDF" = "pdf", "JPEG" = "jpeg", "PNG" = "png"), 
+                                                                   selected = "pdf"),
+                                                      downloadButton(outputId = 'downloadVantID', 
+                                                                     label = "Download")
                                          ),
                                          mainPanel(
                                            plotOutput(outputId = "vantPlot",
@@ -103,21 +165,40 @@ ui <- navbarPage(title = "MeltShiny",
                             tabPanel(title = "Table", 
                                      fluidPage(
                                        sidebarLayout(
-                                         sidebarPanel(h5("Download the table as an Excel file, with each of the three components on seperate sheets."),
+                                         sidebarPanel(h4("Options:"),
+                                                      hr(style = "border-top: 1px solid #000000;"),
+                                                      h5("Reset individual fits table:"),
+                                                      actionButton(inputId = "resetTable1ID",
+                                                                   label = "Reset"
+                                                      ),
+                                                      hr(style = "border-top: 1px solid #000000;"),
+                                                      h5("Download table:"),
                                                       textInput(label = "Enter the file name.",
-                                                                inputId = "saveTableID"
+                                                                inputId = "saveNameTableID"
                                                                 ),
-                                                      downloadButton(outputId = "downloadTableID")
+                                                      checkboxGroupInput(label = "Select parts:",
+                                                                         inputId = "tableDownloadsPartsID", 
+                                                                         choices = list("Individual Fits", 
+                                                                                        "Method Summaries", 
+                                                                                        "Percent Error"),
+                                                                         selected = c("Individual Fits", 
+                                                                                      "Method Summaries", 
+                                                                                      "Percent Error")),
+                                                      radioButtons(inputId = "tableFileFormatID", 
+                                                                   label = "Choose a file format:", 
+                                                                   choices = list("CSV" = "csv", "XLSX" = "xlsx"), selected = "xlsx"),
+                                                      downloadButton(outputId = "downloadTableID", 
+                                                                     label = "Download")
                                          ),
                                          mainPanel(
                                            h5("Results for Individual Fits:"),
-                                           tableOutput(outputId = "resulttable"),
+                                           DT::dataTableOutput(outputId = "individualFitsTable"),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            h5("Summary of the Three Methods:"),
-                                           tableOutput(outputId = "summarytable"),
-                                           tableOutput(outputId = "summarytable2"),
-                                           tableOutput(outputId = "summarytable3"),
+                                           tableOutput(outputId = "methodSummaryTable"),
+                                           hr(style = "border-top: 1px solid #000000;"),
                                            h5("Percent Error Between Methods:"),
-                                           tableOutput(outputId = "error")
+                                           tableOutput(outputId = "errorTable")
                                            )
                                          )
                                        )
@@ -126,42 +207,72 @@ ui <- navbarPage(title = "MeltShiny",
                  tabPanel(title = "Help",
                           fluidPage(
                             mainPanel(
-                              h1("How to Upload Data:"),
-                              HTML("<li>Fill in the inputs necessary to perform calculations on the data set.</li>"), 
-                              HTML("<li>Put the number of the sample you want to be the blank in the box, only enter one number</li>"), 
-                              HTML("<li>You may check the box if you want to see the blank in your analysis.</li>"), 
-                              HTML("<li>Enter the pathlengths for each data set as a comma separated list with no spaces.</li>"), 
-                              HTML("<li>Enter the sequence information as a nucleic acid, a sequence and then complement(if applicable.</li>"), 
-                              HTML("<li>Also write these as comma separated values with no spaces between them.</li>"), 
-                              HTML("<li>Then use the drop down menus to select the wavelength and molecular state.</li>"), 
-                              HTML("<li>Finally hit the browse button and select the data file(should be of type csv) from your computer.</li"), 
-                              HTML("<li>The file should be in a format of column for temperature, blank column, then the columns for absorbance each followed by a blank column.</li>"), 
-                              HTML("<li>No headers are necessary on the input file.</li>"),
-                              HTML("<li>After the data is loaded in the Analysis and Results tabs will appear</li>"),
-                              h1("Analysis Graphs"),
-                              HTML("<li>To view the graph of a specific sample click on the tab labeled with the sample number you would like to work with.<li>"),
-                              HTML("<li>The best fit and first derivative lines can be shown on the graph by clicking on the boxes.</li>"), 
-                              HTML("<li>The slider on the bottom is used to indicate the minimum and maximum values you would like considered when making a fit for the line.</li>"), 
-                              HTML("<li>The point where these minimum and maximum values occur are shown by the vertical black lines on the graph.</li>"),
-                              #h1("Fits")
-                              h1("Van't Hoff Plots"),
+                              h3("General information:"),
+                              HTML("<li>The program will open to the Upload page. This page is divided in two, a panel on the left for inputs and 
+                                   a panel on the right for the processed datasets.</li>"),
+                              HTML("<li>Each processed dataset will appear as a seperate table with unique captions and entry numbers. There will be five columns- row number, Sample, Pathlength, Temperature, and Absorbance.
+                                   The tables can be thought of as layers, with chunks for each sample layered on top of oneanother.
+                                   For each table, you may choose how many entries to show and navigate through pages. </li>"),
+                              HTML("<li>At the very top of the screen, there is a navigation bar, where there are four options- File, Analysis, Results, and Help.
+                                   The Analysis and Results tabs will remain inactive until you have indicated you are done configuring inputs and uploading datasets.</li>"),
+                              HTML("<li>The help page will always be available should you need to reference it at any point.</li>"),
+                              HTML("<li>The upload tab under the File menu will also be available after you have indicated you are done uploading. The inputs on the left will be disabled, but you can still 
+                                   view and interact with the datasets for reference.</li>"),
+                              h3("How to Upload Data:"),
+                              h4("Applicable to each dataset:"),
+                              HTML("<li>For each dataset you upload, enter the number of the sample, in integer form, that will serve as the blank. 
+                                   By default, the blank value will be 1. If there are no blanks for a dataset, toggle the No Blank checkbox.</li>"), 
+                              HTML("<li>For each dataset you upload, enter the pathlengths for each sample as a comma separated list with no spaces.</li>"), 
+                              h4("Applicable to all datasets:"),
+                              HTML("<li>Use the drop down menu to select the wavelength in nm. By default, the value will be 260. Note, that for DNA, only a wavelength of 260 is allowed.</li>"),
+                              HTML("<li>Use the drop down menu to select the temperature used to calculate the concentration with Beers law.
+                                   By default, the value will be 90.</li>"),
+                              HTML("<li>Enter the extinction coefficient information in the following format- nucleic acid, an appropriate sequence for that nucleotide, and, if applicable, its complement.</li>"), 
+                              HTML("<li>Decide if you want to use methods 2 and 3. If method 2 is unselected, the Vant Hoff plot will not be generated. By default, both optional methods are selected.</li>"),
+                              HTML("<li>Decide which Tm method to use. Either nls to use the Tms from the fits in Method 1, lm to use a numeric method based on linear regression of fraction 
+                                   unfolded calculated with method 1, or polynomial to calculate Tms using the first derivative of a polynomial that approximates each curve.
+                                   By default, nls is chosen.</li>"),
+                              HTML("<li>If you chose the nls method for Tm method and method 2 was selected, you have the option to turn on weighted non-line regression for method 2.
+                                   If TRUE, method 2 will use the port algorithm to weight the regression in method 2 to standard errors in the Tm determined with method 1. 
+                                   By default, this checkbox is left unselected.</li>"),
+                              HTML("<li>Use the drop down menu to select the molecular model you want to fit. By default Heteroduplex is chosen.</li>"),
+                              HTML("<li>Hit the browse button and use the file manager select the data file from your computer. The file should be of csv format. 
+                                   The file should follow the following format temperature column, empty column, and a series of absorbance columns, with each seperated by an empty column.
+                                   There should also not be any column headers.</li>"),
+                              h4("Done uploading datasets:"),
+                              HTML("<li>Select the checkbox at the very bottom of the sidepanel to indicated you are done uploading datasets.</li>"),
+                              HTML("<li>The Analysis and Results tabs will be enabled after all the datasets have been uploaded.</li>"),
+                              hr(style = "border-top: 1px solid #000000;"),
+                              h3("Analysis Graphs:"),
+                              HTML("<li>To access the analysis graphs, click the Analysis navbar menu, followed by the Graphs menu option. This will take you to a page with a series of 
+                                   tab panels, indicating the sample. Note, the blanks will not have a tab.</li>"),
+                              HTML("<li>To view the graph of a specific sample, click on the tab labeled with the sample number.</li>"),
+                              HTML("<li>The best fit and first derivative lines can be shown on the graph by toggling the checkboxes. A marker for the maximum of the first derivative is always shown.</li>"), 
+                              HTML("<li>The range slider on the bottom of each graph is used to indicate the minimum and maximum values you would like considered when indicating a region for fitting.
+                                   Note, the graph region will show only the selected range on the slider.</li>"),
+                              hr(style = "border-top: 1px solid #000000;"),
+                              h3("Fitting the analysis graphs:"),
+                              hr(style = "border-top: 1px solid #000000;"),
+                              h3("Van't Hoff Plots:"),
                               HTML("<li>The van't hoff page under results shows the van't hoff plot</li>"), 
                               HTML("<li>You may click individual points to remove them from the plot.</li>"), 
-                              HTML("<li>To remove multiple points in one go you can click and drag on the graph to make a box.</li>"), 
-                              HTML("<li>This box can be moved to fit over the points you want to remove.</li>"), 
-                              HTML("<li>Once over the correct points hit the remove brushed button.</li>"), 
-                              HTML("<li>If you want to add back the points you removed you may hit the reset plot button to restore the plot back to the original version.</li>"), 
-                              HTML("<li>To save the version of the plot shown on the app enter a pdf of the van’t hoff plot, enter a name in the box and hit the download button.</li>"), 
-                              HTML("<li>This will open the plot in a web browser.</li>"), 
-                              HTML("<li>From there you may hit the print button on the webpage and instead of printing change the printer to save as pdf.</li>"),
-                              h1("Result Tables"),
-                              HTML("<li>To save all of the result tables into one excel file enter what you want the file to be called.</li>"), 
-                              HTML("<li>Then hit the download button.</li>"), 
-                              HTML("<li>This will open a file explorer where you can then select where on your device you want the file to be saved.</li>"), 
-                              HTML("<li>The excel file stores the tables in 3 different worksheets, one for each table.</li>"), 
-                              HTML("<li>Method one and method two appear on different worksheets.</li>")
-                              
+                              HTML("<li>To remove multiple points in one go you can click and drag on the graph to make a box.
+                                   This box can be moved to fit over the points you want to remove. Once over the correct points hit the remove button on the side panel.</li>"), 
+                              HTML("<li>If you want to restore the plot back to the original version, press the restore button on the side panel.</li>"), 
+                              HTML("<li>To save the version of the plot, enter enter a name in the box, choose the file format, and hit the download button.
+                                   This will download the file directly to your download folder. If you prefer to choose where the file should be downloaded,
+                                   change your web browser permission to ask where to download each file.</li>"), 
+                              hr(style = "border-top: 1px solid #000000;"),
+                              h3("Results Table:"),
+                              HTML("<li>You can remove outliers on the individual fits portion of the results table by pressing the remove button. This will remove the row
+                                   from the table. If you wish to restore the table, press the restore button on the side panel.</li>"), 
+                              HTML("<li>To save the version of the table, enter enter a name in the box, choose which parts of the table to save, choose the file format, 
+                                   and hit the download button. This will download the file directly to your download folder. If you prefer to choose where the file 
+                                   should be downloaded, change your web browser permission to ask where to download each file.</li>"),
+                              hr(style = "border-top: 1px solid #000000;"),
+                              h3("Exit:"),
+                              HTML("<li>To close the program, close the browser tab. Then close the terminal application.</li>")
+                              )
                             )
-                          )
                           )
                  )

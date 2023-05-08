@@ -1,60 +1,126 @@
-server <- function(input,output, session){
+server <- function(input, output, session){
+  # Prevent Rplots.pdf from generating
+  if(!interactive()) pdf(NULL)
   
-  # Create a reactive value which can hold the growing dataset.
-  values <- reactiveValues(masterFrame = NULL,
-                           numReadings = NULL
-  )
-  #input validation
-  continue <- FALSE #used to stop the rest of the program from running if the inputs aren't valid
-  #function to check if an input can be converted to an int
+  # Check if the value is an int
   can_convert_to_int <- function(x) {
     all(grepl('^(?=.)([+-]?([0-9]*)?)$', x, perl = TRUE))  
   }
-  can_convert_to_numeric <- function(x) {
-    all(grepl('^(?=.)([+-]?([0-9]*)(\\.([0-9]+))?)$', x, perl = TRUE))  
+  
+  # Check the nucleotide sequence to check if it belongs to DNA
+  dna_letters_only <- function(x){
+    all(!grepl("[^A, ^G, ^C, ^T]", x))
   }
   
+  # Check the nucleotide sequence to check if it belongs to RNA
+  rna_letters_only <- function(x){
+    all(!grepl("[^A, ^G, ^C, ^U]", x))
+  }
   
-  
-  # Function that handles the dataset inputs, as wells as the dataset upload
-  upload <- observeEvent(eventExpr = input$inputFileID,
+  # Handle the inputs and uploaded datasets
+  observeEvent(eventExpr = input$inputFileID,
                          handlerExpr = {
-                           # Only proceed with the rest of function if a file has been uploaded
-                           req(input$inputFileID)
-                           if(input$pathlengthID == "" ||input$blankSampleID == "" || input$helixID == ""){
+                           
+                           # Error checking
+                           if(input$noBlanksID == FALSE){
+                             if(can_convert_to_int(input$blankSampleID) == FALSE){
+                               showModal(modalDialog(
+                                 title = "Not a number",
+                                 "Please input an integer in the input box for blanks.",
+                                 footer = modalButton("Understood"),
+                                 easyClose = FALSE,
+                                 fade = TRUE
+                               ))
+                               }
+                             }
+                           if(input$pathlengthID == "" || input$helixID == "" || input$blankSampleID == "" || input$temperatureID == ""){
                              showModal(modalDialog(
                                title = "Missing Inputs",
-                               "One or more of the input boxes are blank please fill them all in!"
-                             ))
-                           }
-                           else if(can_convert_to_int(input$blankSampleID) == FALSE){
-                             showModal(modalDialog(
-                               title = "Not a number",
-                               "Please input one integer in the blanks box"
-                             ))
-                             
-                           }
-                           
+                               "Please ensure that all text inputs have been filled out.",
+                               footer = modalButton("Understood"),
+                               easyClose = FALSE,
+                               fade = TRUE
+                               ))
+                             }
                            else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !input$wavelengthID == "260"){
                              showModal(modalDialog(
-                               title = "Not a number",
-                               "Please only use wavelength 260 with DNA inputs"
-                             ))
+                               title = "Nucleotide to Absorbance Mis-Pair",
+                               "Please use a wavelength value of 260 with DNA sequences.",
+                               footer = modalButton("Understood"),
+                               easyClose = FALSE,
+                               fade = TRUE
+                               ))
+                             }
+                           else if(strsplit(input$helixID,",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular")&& 
+                                   ((rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
+                                    (rna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][3]))) == FALSE))){
+                             showModal(modalDialog(
+                               title = "Not a RNA Nucleotide",
+                               "Please use nucleotide U with RNA inputs",
+                               footer = modalButton("Understood"),
+                               easyClose = FALSE,
+                               fade = TRUE
+                               ))
+                             }
+                           else if(strsplit(input$helixID,",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular")&& 
+                                   ((dna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][2]))) == FALSE) || 
+                                    (dna_letters_only(gsub(" ", "",(strsplit(input$helixID,",")[[1]][3]))) == FALSE))){
+                             showModal(modalDialog(
+                               title = "Not a DNA Nucleotide",
+                               "Please use the nucleotide T with DNA inputs.",
+                               footer = modalButton("Understood"),
+                               easyClose = FALSE,
+                               fade = TRUE
+                               ))
+                             }
 
-                           }
+                           # If there are no errors in the inputs, proceed with file upload and processing
                            else{
-                             continue <- TRUE
-                             # Store the dataset user inputs in global variables
-                             pathlengthInputs <- c(unlist(strsplit(input$pathlengthID,",")))
-                             pathlengthInputs <- gsub(" ","",pathlengthInputs) #removes any spaces
-                             wavelengthVal <<- as.numeric(input$wavelength)
-                             blank <<- as.numeric(input$blankSampleID)
-                             helix <<- trimws(strsplit(input$helixID,",")[[1]],which="both")
-                             helix <- gsub(" ","",helix)
-                             molStateVal <<- input$molecularStateID
                              
-                             # Format stored molecular state choice
-                             # and re-store it in the same global variable
+                             # Store the pathlength information
+                             pathlengthInputs <- c(unlist(strsplit(gsub(" ", "", input$pathlengthID),",")))
+                             
+                             # Store the wavelength information
+                             wavelengthVal <<- input$wavelengthID
+                             
+                             # Store the blank information and reset blank related inputs after each file upload
+                             if(input$noBlanksID == TRUE){
+                               blank <<- "none"
+                               blankInt <<- 0
+                               }
+                             else{
+                               blank <<- as.numeric(gsub(" ", "", input$blankSampleID))
+                               blankInt <<- blank
+                             }
+                             enable('blankSampleID')
+                             updateTextInput(session,"blankSampleID", value = 1)
+                             updateCheckboxInput(session,"noBlanksID", value = FALSE)
+                             
+                             # Store the extinction coefficient information
+                             helix <<- trimws(strsplit(gsub(" ", "",input$helixID), ",")[[1]], which="both")
+                             
+                             # Store the tm method information
+                             tmMethodVal <<- toString(input$Tm_methodID)
+                             
+                             # Store the weighted tm information for method 2
+                             weightedTmVal <<- gsub(" ", "", input$weightedTmID)
+                            
+                             # Store the selected methods
+                             selectedMethods <- input$methodsID
+                             if (("Method 2" %in% selectedMethods) == FALSE) {
+                               chosenMethods[2] <<- FALSE
+                             }
+                             else{
+                               chosenMethods[2] <<- TRUE
+                             }
+                             if (("Method 3" %in% selectedMethods) == FALSE) {
+                               chosenMethods[3] <<- FALSE 
+                             }else{
+                               chosenMethods[3] <<- TRUE
+                             }
+                           
+                             # Store and format molecular state information
+                             molStateVal <<- input$molecularStateID
                              if (molStateVal == "Heteroduplex") {
                                molStateVal <<- "Heteroduplex.2State"
                              } else if (molStateVal == "Homoduplex") {
@@ -63,293 +129,395 @@ server <- function(input,output, session){
                                molStateVal <<- "Monomolecular.2State"
                              }
                              
-                             # Disable widgets from inputs page whose values apply to all datasets.
+                             # Store the temperature used to calculate the concentration with Beers law
+                             concTVal <<- as.numeric(gsub(" ", "", input$temperatureID))
+                           
+                             # Disable widgets whose values apply to all datasets
                              disable('helixID')
                              disable('molecularStateID')
                              disable('wavelengthID')
-                             
-                             # Extract the file and remove any columns/rows with NA's.
+                             disable('temperatureID')
+                             disable('methodsID')
+                             disable('Tm_methodID')
+                             disable('weightedTmID')
+                             disable('extinctConDecisionID')
+                           
+                             # Open the uploaded file and remove any columns/rows with NA's
                              fileName <- input$inputFileID$datapath
-                             cd <- read.csv(file = fileName,header = FALSE)
-                             df <- cd %>% select_if(~ !any(is.na(.)))
-                             
-                             # Create temporary data frame to store data from each uploaded file.
-                             # Also process data to fit MeltR's format. 
+                             preProcessedData <- read.csv(file = fileName,header = FALSE)
+                             noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
+                           
+                             # Create temporary data frame in a format acceptable to meltR and store data from an uploaded dataset
                              columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
                              tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
                              colnames(tempFrame) <- columns
-                             readings <- ncol(df)
-                             
-                             # Append each individual temporary data frame into a larger dataframe
+                             readings <- ncol(noNAData)
+                           
+                             # Append each each individual processed dataset into one that holds all the datasets
                              p <- 1
                              for (x in 2:readings) {
-                               col <- df[x]
-                               sample <- rep(c(counter),times = nrow(df[x]))
-                               pathlength <- rep(c(as.numeric(pathlengthInputs[p])),times = nrow(df[x]))
-                               col <- df[x]
-                               t <- data.frame(sample,pathlength,df[1],df[x])
+                               col <- noNAData[x]
+                               sample <- rep(c(counter), times = nrow(noNAData[x]))
+                               pathlength <- rep(c(as.numeric(pathlengthInputs[p])),times = nrow(noNAData[x]))
+                               col <- noNAData[x]
+                               t <- data.frame(sample,pathlength,noNAData[1],noNAData[x])
                                names(t) <- names(tempFrame)
                                tempFrame <- rbind(tempFrame, t)
                                p <- p + 1
                                counter <<- counter + 1
                              }
-                             values$numReadings <- counter - 1
-                             values$masterFrame <- rbind(values$masterFrame, tempFrame)
-                             
-                             # Send stored input values to the connecter abstraction class, create 
-                             # a connecter object, and store the result of calling one of it's functions.
-                             myConnecter <<- connecter(df = values$masterFrame,
-                                                       NucAcid = helix,
-                                                       Mmodel = molStateVal,
-                                                       blank = blank
-                             )
-                             myConnecter$constructObject()
-                             calculations <<- myConnecter$gatherVantData()
-                             
-                             # Reactive variable that handles the points on the Van't Hoff plot.
-                             # Necessary for removal of outliers from said plot.
-                             vals <<- reactiveValues(
-                               keeprows = rep(TRUE, nrow(calculations)))
-
-                            # Reeactive variable that handles the data outputted for the Results Table
-                            results <<- reactiveValues(methodOne=NULL,methodTwo=NULL,methodThree=NULL)
-                           }
-                         }
-  )
-
-    # Output the post-processed data frame, which contains all the appended datasets.
-    output$table <- renderTable({
-      req(input$inputFileID)
-      values$masterFrame$Absorbance <- sprintf("%.11s", values$masterFrame$Absorbance)
-      return(values$masterFrame)})
-    
-    # Hide "Analysis" and "Results tabs until a file is successfully uploaded
-    observeEvent(eventExpr = is.null(values$numReadings),
-                 handlerExpr = {
-                   hideTab(inputId = "navbarPageID",target = "Analysis")
-                   hideTab(inputId = "navbarPageID",target = "Results")
+                             dataList <<- append(dataList, list(tempFrame))
+                             numUploads <<- numUploads + 1
+                             numSamples <<- counter - 1
+                             masterFrame <<- rbind(masterFrame, tempFrame)
+                             }
+                           })
+  
+  # Once all datasets have been uploaded, create the MeltR object and derive necessary information
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID == TRUE){
+            
+                   # Send stored input values to the connecter class to create a MeltR object
+                   myConnecter <<- connecter(df = masterFrame,
+                                             NucAcid = helix,
+                                             wavelength = wavelengthVal,
+                                             blank = blank,
+                                             Tm_method = tmMethodVal,
+                                             outliers = NA,
+                                             Weight_Tm_M2 = weightedTmVal,
+                                             Mmodel = molStateVal,
+                                             methods = chosenMethods,
+                                             concT = concTVal
+                                             )
+                   myConnecter$constructObject()
+                   
+                   # Store data necessary for generating the Vant Hoff plot and the results table
+                   vantData <<- myConnecter$gatherVantData()
+                   individualFitData <<- myConnecter$indFitTableData()
+                   
+                   # Variable that handles the points on the Van't Hoff plot for removal
+                   if(chosenMethods[2] == TRUE){
+                     vals <<- reactiveValues(
+                       keeprows = rep(TRUE, nrow(vantData))
+                       )
+                     }
+                   }
                  }
-    )
-    
-    # Dynamically create n tabs (n = number of samples in master data frame) for 
-    # the "Graphs" page under the "Analysis" navbarmenu.
-    observe({
-      req(values$numReadings) && continue == TRUE
-      lapply(start:values$numReadings,
-             function(i){
-               if (i != blank) {
-                 data = values$masterFrame[values$masterFrame$Sample == i,]
-                 n = myConnecter$getFirstDerivativeMax(i)
-                 bounds = myConnecter$getSliderBounds(i,n)
-                 xmin = round(min(data$Temperature),4)
-                 xmax = round(max(data$Temperature),4)
-                 plotBoth = paste0("plotBoth",i)
-                 plotBestFit = paste0("plotBestFit",i)
-                 plotFit = paste0("plotFit",i)
-                 plotName = paste0("plot",i)
-                 plotSlider <- paste0("plotSlider",i)
-                 plotDerivative = paste0("plotDerivative",i)
-                 #Check box and tab Panel variables
-                 firstDerivative = paste0("firstDerivative",i)
-                 bestFit = paste0("bestFit",i)
-                 tabName = paste("Sample",i,sep = " ")
-                 appendTab(inputId = "tabs",
-                           tab = tabPanel(tabName,
-                                          fluidPage(
-                                            sidebarLayout(
-                                              sidebarPanel(
-                                                h4("Options:"),
-                                                checkboxInput(inputId = bestFit,label = "Best Fit"),
-                                                checkboxInput(inputId = firstDerivative,label = "First Derivative"),
-                                                conditionalPanel(condition = glue("{xmin} == {bounds[[1]][1]}"),
-                                                                 p("Warning: Lower bound exceeds minimum x-value of data. Positioning lower-end bar as the minimum value of the data")
-                                                ),
-                                                conditionalPanel(condition = glue("{xmax} == {bounds[[2]][1]}"),
-                                                                 p("Warning: Upper bound exceeds maximum x-value of data. 
-                                                                 Positioning uupper-end bar as the maximum value of the data",color="Red"))
-                                              ),
-                                              mainPanel(
-                                                conditionalPanel(condition = glue("!input.{firstDerivative} && !input.{bestFit}"),
-                                                                 plotOutput(plotName)
-                                                ),
-                                                conditionalPanel(condition = glue("input.{firstDerivative} && !input.{bestFit}"),
-                                                                 plotOutput(plotDerivative)
-                                                ),
-                                                conditionalPanel(condition = glue("input.{bestFit} && !input.{firstDerivative}"),
-                                                                 plotOutput(plotBestFit)
-                                                ),
-                                                conditionalPanel(condition = glue("input.{firstDerivative} && input.{bestFit}"),
-                                                                 plotOutput(plotBoth)
-                                                ),
-                                                sliderInput(plotSlider,
-                                                            glue("Plot{i}: Range of values"),
-                                                            min = xmin,
-                                                            max = xmax,
-                                                            value = c(bounds[[1]][1],bounds[[2]][1]),
-                                                            round = TRUE,
-                                                            step = .10,
-                                                            width = "85%")
-                                              )
-                                            )
-                                          )
-                           )
-                 )}
-             }
-      )
-      start <<- values$numReadings + 1
-      showTab(inputId = "navbarPageID",target = "Analysis")
-      showTab(inputId = "navbarPageID",target = "Results")
-    })
-    
-    
-    # Dynamically create a plot for of each of the n tabs.
-    observe({
-      req(values$numReadings)
-      for (i in 1:values$numReadings) {
-        if (i != blank) {
-          local({
-            myI <- i 
-            plotDerivative = paste0("plotDerivative",myI)
-            plotBestFit = paste0("plotBestFit",myI)
-            plotBoth = paste0("plotBoth",myI)
-            plotName = paste0("plot",myI)
-            plotSlider = paste0("plotSlider",myI)
-            # Plot containing raw data
-            output[[plotName]] <- renderPlot({
-              myConnecter$constructRawPlot(myI) +
-                geom_vline(xintercept = input[[plotSlider]][1]) +
-                geom_vline(xintercept = input[[plotSlider]][2])
-            })
-            # Plot containing first derivative with raw data
-            output[[plotDerivative]] <- renderPlot({
-              myConnecter$constructFirstDerivative(myI) +
-                geom_vline(xintercept = input[[plotSlider]][1]) +
-                geom_vline(xintercept = input[[plotSlider]][2])
-            })
-            # Plot containing best fit with raw data
-            output[[plotBestFit]] <- renderPlot({
-              myConnecter$constructBestFit(myI) + 
-                geom_vline(xintercept = input[[plotSlider]][1]) +
-                geom_vline(xintercept = input[[plotSlider]][2])
-            })
-            # Plot containing best, first derivative, and raw data
-            output[[plotBoth]] <- renderPlot({
-              myConnecter$constructBoth(myI) + 
-                geom_vline(xintercept = input[[plotSlider]][1]) +
-                geom_vline(xintercept = input[[plotSlider]][2])
-            })
-          })
-        }
-      }
-    })
+               )
+  
+  # Disable remaining widgets on "Upload" page when all datasets have been uploaded
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID == TRUE){
+                   disable('blankSampleID')
+                   disable('pathlengthID')
+                   disable('inputFileID')
+                   disable('datasetsUploadedID')
+                   disable('noBlanksID')
+                   }
+                 })
+  
+  # Handle the situation in which the user toggles the "No Blanks" checkbox
+  observe(
+    if (input$noBlanksID == TRUE){
+      updateTextInput(session,"blankSampleID", value = "none")
+      disable('blankSampleID')
+    }
+    else if (input$noBlanksID == FALSE){
+      updateTextInput(session,"blankSampleID", value = 1)
+      enable('blankSampleID')
+    }
+  )
+  
+  # Update the example information in the nucleic acid/ extinction coefficient text box depending on user choice
+  observe(
+    if(input$extinctConDecisionID == "Nucleic acid sequence(s)"){
+      updateTextInput(session,"helixID", placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG")
+    }
+    else if(input$extinctConDecisionID == "Custom molar extinction coefficients"){
+      updateTextInput(session,"helixID", placeholder = "E.g: Custom, 10000, 20000")
+    }
+  )
+  
+  # Only activate the checkbox for weighted tm if method 2 and nls are selected
+  observe(
+    if(input$Tm_methodID == "nls" && ("Method 2" %in% input$methodsID) == TRUE){
+      enable('weightedTmID')
+    }else{
+      disable('weightedTmID')
+    }
+  )
+  
+  # Show the uploaded datasets separately on the uploads page
+  observeEvent(eventExpr = input$inputFileID,
+               handlerExpr = {
+                 divID <- toString(numUploads)
+                 dtID <- paste0(divID,"DT")
+                 insertUI(
+                   selector = "#placeholder",
+                   ui = tags$div(id = divID,
+                                 DT::dataTableOutput(dtID),
+                                 hr(style = "border-top: 1px solid #000000;")
+                                 )
+                   )
+                 output[[dtID]] <- DT::renderDataTable({datatable(dataList[[numUploads]], 
+                                                                  class = 'cell-border stripe', 
+                                                                  selection = 'none', 
+                                                                  options = list(searching = FALSE, ordering = FALSE),
+                                                                  caption = paste0('Table', " ", toString(numUploads), '.', " ", 'Dataset', " ", toString(numUploads), '.'
+                                                                                   )
+                                                                  )
+                   })
+                 }
+               )
+  
+  # Disable "Van't Hoff" tab when method 2 is unselected
+  observeEvent(eventExpr = input$datasetsUploadedID,
+               handlerExpr = {
+                 if(chosenMethods[2] == FALSE){
+                   disable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
+                 }
+                 else if (chosenMethods[2] == FALSE){
+                   enable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
+                   }
+                 }
+               )
+  
+  # Disable "Analysis" and "Results tabs until all files have successfully been uploaded
+  observeEvent(eventExpr = input$datasetsUploadedID,
+               handlerExpr = {
+                 if(input$datasetsUploadedID == FALSE){
+                   disable(selector = '.navbar-nav a[data-value="Analysis"')
+                   disable(selector = '.navbar-nav a[data-value="Results"')
+                 }
+                 else{
+                   enable(selector = '.navbar-nav a[data-value="Analysis"')
+                   enable(selector = '.navbar-nav a[data-value="Results"')
+                   }
+                 }
+               )
+  
+  # Dynamically create n tabs (n = number of samples in master data frame) for 
+  # the "Graphs" page under the "Analysis" navbarmenu.
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID == TRUE){
+                   lapply(start:numSamples,
+                          function(i){
+                            if (i != blankInt) {
+                              tabName = paste("Sample",i,sep = " ")
+                              appendTab(inputId = "tabs",
+                                        tab = tabPanel(tabName,
+                                                       fluidPage(
+                                                         sidebarLayout(
+                                                           sidebarPanel(
+                                                             h4("Options:"),
+                                                             checkboxInput(inputId = paste0("bestFit",i),label = "Show best fit line"),
+                                                             checkboxInput(inputId = paste0("firstDerivative",i),label = "Show derivative"),
+                                                             ),
+                                                           mainPanel(
+                                                             plotlyOutput(paste0("plotBoth",i)),
+                                                             textOutput(paste0("xrange",i))
+                                                             )
+                                                           )
+                                                         )
+                                                       )
+                                        )
+                              }
+                            }
+                         )
+                   start <<- numSamples + 1
+                   }
+                 }
+               )
+  
+  # Dynamically create the analysis plot for each of the n sample tabs
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID == TRUE){
+                   
+                   # Initialize variables for accessing best fit and derivative information
+                   bestFitXData <<- vector("list",numSamples)
+                   bestFitYData <<- vector("list",numSamples)
+                   derivativeXData <<- vector("list",numSamples)
+                   derivativeYData <<- vector("list",numSamples)
+                   xRange <<- vector("list",numSamples)
 
-    # Automatically Fit Data
-    observeEvent(input$automaticFit,
-    handlerExpr = {
-      req(input$inputFileID)
-      value = input$automaticIterations
-      if(!can_convert_to_numeric(value)) {
-        showModal(modalDialog("Please enter a number."))
-      } else {
-        value = as.integer(value)
-        if (value<=10) {
-        showModal(modalDialog("Please enter a number larger than 10."))
-        } else {
-          showModal(modalDialog("Please wait while we fit your data...", footer=NULL))
-          object = myConnecter$object
-          n = input$automaticIterations
-          myConnecter$executeBLTrimmer(object,n)
-          results$methodOne <- myConnecter$summaryData1()
-          results$methodTwo <- myConnecter$summaryData2()
-          results$methodThree <- myConnecter$summaryData3()
-          results$error <- myConnecter$error()
-          showModal(modalDialog("Your data has been fit successfully! View ", HTML("<b>Results</b>"), " tab for updated results."))
-          shinyjs::disable(selector = '.navbar-nav a[data-value="Analysis"')
-        }
-      }
-    })
-    
-    
-    # Create Van't Hoff plot for the "Van't Hoff Plot" Tab under the "Results" navbar menu.
-    output$vantPlot <- renderPlot({
-      keep <- calculations[vals$keeprows, , drop = FALSE]
-      exclude <- calculations[!vals$keeprows, , drop = FALSE]
-      ggplot(keep, aes(x = invT, y = lnCt )) + geom_point() +
-        geom_smooth(method = lm, fullrange = TRUE, color = "black") +
-        geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25)
-    }, res = 100)
-    
-    # Remove points from Van't Hoff that are clicked.
-    observeEvent(eventExpr = input$vantClick, 
-                 handlerExpr = {
-                   res <- nearPoints(calculations, input$vantClick, allRows = TRUE)
-                   vals$keeprows <- xor(vals$keeprows, res$selected_)
+                   # Create plots
+                   for (i in 1:numSamples) {
+                     if (i != blankInt) {
+                       xRange[[i]][1] <<- suppressWarnings(round(min(bestFitXData[[i]])))
+                       xRange[[i]][2] <<- suppressWarnings(round(max(bestFitXData[[i]])))
+                       local({
+                         myI <- i 
+                         output[[paste0("plotBoth",myI)]] <- renderPlotly({
+                           analysisPlot <- myConnecter$constructAllPlots(myI)
+                           if(input[[paste0("bestFit",myI)]] == TRUE){
+                             analysisPlot <- analysisPlot %>% add_lines(x = bestFitXData[[myI]], y = bestFitYData[[myI]], color = "red")
+                           }
+                           if(input[[paste0("firstDerivative",myI)]] == TRUE){
+                             analysisPlot <- analysisPlot %>% add_trace(x = derivativeXData[[myI]], y = derivativeYData[[myI]], marker = list(color = "green"))
+                           }
+                           analysisPlot
+                           })
+                         observeEvent(event_data( source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event")), {
+                           xRange[[myI]] <<- event_data(source = paste0("plotBoth",myI), event = "plotly_relayout", priority = c("event"))$xaxis.range[1:2]
+                           output[[paste0("xrange",myI)]] <- renderText({
+                             paste0(" x-range: [", round(xRange[[myI]][1],2), ", ", round(xRange[[myI]][2],2), "]")
+                           })
+                         })
+                         
+                         })
+                       }
+                     }
+                   }
                  })
-    
-    # Remove points that are brushed when the appropriate button is clicked.
-    observeEvent(eventExpr = input$removeBrushedID, 
-                 handlerExpr = {
-                   res <- brushedPoints(calculations, input$vantBrush, allRows = TRUE)
-                   vals$keeprows <- xor(vals$keeprows, res$selected_)
-                 })
-    
-    # Reset all the Van't Hoff plot when the reset button is clicked.
-    observeEvent(eventExpr = input$resetVantID, 
-                 handlerExpr = {
-                   vals$keeprows <- rep(TRUE, nrow(calculations))
-                 })
-    
-    # Create the results table for the "Table" tab under the "Results" navbar menu.
-    output$resulttable <- renderTable({
-      data <-myConnecter$fitData()
-      return(data)
-    })
-    output$summarytable <- renderTable({
+  
+  # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
+  output$vantPlot <- renderPlot({
+    if(chosenMethods[2] == TRUE){
       
-      results$methodOne <- myConnecter$summaryData1()
-      return(results$methodOne)
+      # Store the points that are kept vs excluded
+      keep <- vantData[vals$keeprows, , drop = FALSE]
+      exclude <- vantData[!vals$keeprows, , drop = FALSE]
+      
+      # Create vant plot
+      vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT )) + geom_point() +
+        geom_smooth(formula = y ~ x,method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
+        geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
+        labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "Van't Hoff") +
+        theme(plot.title = element_text(hjust = 0.5))
+      vantGgPlot
+    }
     })
-    output$summarytable2 <- renderTable({
-      results$methodTwo <-myConnecter$summaryData2()
-      return(results$methodTwo)
-    })
-    output$summarytable3 <- renderTable({
-      results$methodThree <- myConnecter$summaryData3()
-      return(results$methodThree)
-    })
-    output$error <- renderTable({
-      results$error <-myConnecter$error()
-      return(results$error)
-    })
+  
+  # Remove points from Van't Hoff plot that are clicked
+  observeEvent(eventExpr = input$vantClick, 
+               handlerExpr = {
+                 if(chosenMethods[2] == TRUE){
+                   res <- nearPoints(vantData, input$vantClick, allRows = TRUE)
+                   vals$keeprows <- xor(vals$keeprows, res$selected_)
+                 }
+                 })
+  
+  # Remove brushed points from Van't Hoff when the "Brushed" button is clicked.
+  observeEvent(eventExpr = input$removeBrushedID, 
+               handlerExpr = {
+                 if(chosenMethods[2] == TRUE){
+                   res <- brushedPoints(vantData, input$vantBrush, allRows = TRUE)
+                   vals$keeprows <- xor(vals$keeprows, res$selected_)
+                 }
+                 })
+  
+  # Reset the Van't Hoff plot when the "Reset" button is clicked.
+  observeEvent(eventExpr = input$resetVantID, 
+               handlerExpr = {
+                 if(chosenMethods[2] == TRUE){
+                   vals$keeprows <- rep(TRUE, nrow(vantData))
+                 }
+                 })
+  
+  # Function for dynamically creating the delete button for each row on the individual fits table
+  shinyInput <- function(FUN, len, id, ...) {
+    inputs <- character(len)
+    for (i in seq_len(len)) {
+      inputs[i] <- as.character(FUN(paste0(id, i), ...))
+    }
+    inputs
+  }
+  
+  # Calls function to create delete buttons and add IDs for each row in the individual fits table
+  getListUnder <- reactive({
+    if(input$datasetsUploadedID == TRUE){
+      individualFitData$Delete <- shinyInput(actionButton, nrow(individualFitData),'delete_',label = "Remove",
+                               style = "color: red;background-color: white",
+                               onclick = paste0('Shiny.onInputChange( \"delete_button\" , this.id, {priority: \"event\"})'))
     
-    # Save the Van't Hoff Plot as a pdf.
-    output$downloadVantID <- downloadHandler(
-      filename = function(){
-        paste(input$saveVantID, '.pdf', sep = '')
+      individualFitData$ID <- seq.int(nrow(individualFitData))
+      return(individualFitData)
+      }
+  })
+  
+  # Assign the reactive data frame for the individual fits table to a reactive value
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID == TRUE){
+                   valuesT <<- reactiveValues(individualFitData = NULL)
+                   valuesT$individualFitData <- isolate({getListUnder()})
+                   }
+                 })
+  
+  # Remove row from individual fits table when its respective "Remove" button is pressed.
+  observeEvent( eventExpr = input$delete_button, handlerExpr = {
+    selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
+    valuesT$individualFitData <<- subset(valuesT$individualFitData, ID!=selectedRow)
+  })
+  
+  # Reset the individual fits table to original when "Reset" button is pressed.
+  observeEvent(eventExpr = input$resetTable1ID == TRUE, 
+               handlerExpr = {
+                 valuesT$individualFitData <- isolate({getListUnder()})
+               })
+  
+  # Render all parts of the results table.
+  output$individualFitsTable = DT::renderDataTable({
+    table <- valuesT$individualFitData %>%
+      DT::datatable(filter = "none", 
+                    rownames = F,
+                    extensions = 'FixedColumns',
+                    class = 'cell-border stripe', 
+                    selection = 'none', 
+                    options = list(dom = 't',
+                                   searching = FALSE, 
+                                   ordering = FALSE,
+                                   fixedColumns = list(leftColumns = 2),
+                                   pageLength = 100,
+                                   columnDefs = list(list(targets = c(7), visible = FALSE))),
+                    escape = F)
+  })
+  output$methodSummaryTable <- renderTable({
+    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData1())
+    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData2())
+    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData3())
+    return(summaryDataTable)
+  })
+  output$errorTable <- renderTable({
+    errorDataTable <<- myConnecter$errorData()
+    return(errorDataTable)
+  })
+  
+  # Save the Van't Hoff Plot in the chosen format
+  output$downloadVantID <- downloadHandler(
+    filename = function(){
+      paste(input$saveNameVantID, ".", input$vantDownloadFormatID, sep = '')
+    },
+    content = function(file){
+      ggsave(filename = file, plot = vantGgPlot, width = 18, height = 10)
+    }
+  )
+  
+  # Save the results table in the chosen file format
+  output$downloadTableID <- downloadHandler(
+    filename = function() {
+      paste(input$saveNameTableID, '.', input$tableFileFormatID, sep='')
       },
-      content = function(file1){
-        cairo_pdf(filename = file1, onefile = T,width = 18, 
-                  height = 10, pointsize = 12, family = "sans", bg = "transparent",
-                  antialias = "subpixel",fallback_resolution = 300
-        )
-        caluclations <- myConnecter$gatherVantData()
-        InverseTemp <- caluclations$invT
-        LnConcentraion <- caluclations$lnCt
-        plot(LnConcentraion,InverseTemp)
-        dev.off()
-      },
-      contentType = "application/pdf"
-    )
-    
-    # Save the results table as an excel file, with each component on a seperate sheet.
-    output$downloadTableID <- downloadHandler(
-      filename = function() {
-        paste(input$saveTableID, '.xlsx', sep='')
-      },
-      content = function(file2) {
-        write.xlsx(myConnecter$summaryData1(), file2, sheetName = "table1", append = FALSE)
-        write.xlsx(myConnecter$summaryData2(), file2, sheetName = "table2", append = TRUE)
-        write.xlsx(myConnecter$error(), file2, sheetName = "error", append = TRUE)
+    content = function(file2) {
+      selectedParts <- list()
+      if ("Individual Fits" %in% input$tableDownloadsPartsID) {
+        selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
+      }
+      if ("Method Summaries" %in% input$tableDownloadsPartsID) {
+        selectedParts$MethodsSummaries <- summaryDataTable
+      }
+      if ("Percent Error" %in% input$tableDownloadsPartsID) {
+        selectedParts$PercentError <- errorDataTable
+      }
+      if (input$tableFileFormatID == "csv") {
+        write.csv(selectedParts, file = file2)
+      } else {
+        write.xlsx(selectedParts, file = file2)
+      }
       }
     )
-}
+  }
