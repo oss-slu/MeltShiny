@@ -4,7 +4,7 @@ background-color: #D4D4D4 !important;
 color: #333 !important;
 cursor: not-allowed !important;
 }"
-#comment for pull request
+
 ui <- navbarPage(title = "MeltShiny",
                  theme = shinytheme('flatly'),
                  id = "navbarPageID",
