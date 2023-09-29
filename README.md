@@ -26,12 +26,6 @@ To run MeltShiny you need to download R. Go to the RStudio website, https://posi
 
 Go to the following website https://github.com/oss-slu/MeltWin2.0. This link will take you to the MeltShiny GitHub repository where you can download the MeltShiny application. To download from the repository, click the green button that says "clone" and click download ZIP. Once downloaded, extract the folder. Move the extracted folder to whereever you so choose. Upon opening this folder, you will find three folders: code, Windows_Scripts, and MacOS_Scripts. The code folder should not be touched. Depending on your system, you will be using either the Windows or MacOS script folders.
 
-### Updating the MeltShiny Program
-
-To obtain the latest version of the MeltShiny program, update scripts have been included, with names MeltShinyUpdate.command and MeltShinyUpdate.bat for MacOS and Windows, respectively. These files are found within the MacOS_Scripts and Windows_Scripts folders within the MeltShiny application bundle. Per the nature of deleting and replacing directories, ensure that you have not changed the file structure of the MeltShiny package; the code and Mac/Windows script subdirectories should remain within the MeltWin2.0-man directory the package is wrapped in. Although checks have been put in place for any deviations to this, we recommend leaving the file structure as is to ensure there are no unforeseen consequences.
-
-Double clicking MeltShinyUpdate.command or MeltShinyUpdate.bat for Mac and Windows, respectively, will open up a terminal. This terminal will display the progress of downloading the main zip file from the GitHub page as well as progress of downloading/extracting its contents. In the end, the contents of the code subdirectory will be replaced with updated versions and the terminal will state your program is up to date. Otherwise, the respective error message will appear as to what went wrong.
-
 ### Installing Dendencies
 
 MeltShiny has some dependencies which will need to be installed for the program to run. R Package installer files have been included, with the names MeltShinyDependenciesInstaller.command and MeltShinyDependenciesInstaller.bat for MacOS and Windows, respectively. These files are found within the MacOS_Scripts and Windows_Scripts folders found within the MeltShiny application bundle.Note, that in order for the Windows version to work, you must add the R bin folder to your PATH variable. For MacOS, the script can be used without any additional work.
@@ -57,3 +51,9 @@ The following steps will guide you through this process, which only needs to be 
 ## Running MeltShiny
 
 Double clicking the MeltShiny.command and MeltShiny.bat for Mac and Windows, respectively, will open a terminal. The terminal will show some numbers before starting the MeltShiny application in your default web browser. This program uses a local host, so the contents you provide in the program are localized to your computer. Should the application not open automatically, copy the numbers at the bottom of the terminal into a browser tab. Note, the terminal must remain open for the MeltShiny application to run. Once you are done with your MeltShiny session, close out of the application tab and close the terminal.
+
+### Updating the MeltShiny Program
+
+To obtain the latest version of the MeltShiny program, update scripts have been included, with names MeltShinyUpdate.command and MeltShinyUpdate.bat for MacOS and Windows, respectively. These files are found within the MacOS_Scripts and Windows_Scripts folders within the MeltShiny application bundle. Per the nature of deleting and replacing directories, ensure that you have not changed the file structure of the MeltShiny package; the code and Mac/Windows script subdirectories should remain within the MeltWin2.0-man directory the package is wrapped in. Although checks have been put in place for any deviations to this, we recommend leaving the file structure as is to ensure there are no unforeseen consequences.
+
+Double clicking MeltShinyUpdate.command or MeltShinyUpdate.bat for Mac and Windows, respectively, will open up a terminal. This terminal will display the progress of downloading the main zip file from the GitHub page as well as progress of downloading/extracting its contents. In the end, the contents of the code subdirectory will be replaced with updated versions and the terminal will state your program is up to date. Otherwise, the respective error message will appear as to what went wrong.
