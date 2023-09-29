@@ -1,9 +1,19 @@
 #!/bin/bash
 
-ZIP_URL="https://github.com/oss-slu/MeltWin2.0/archive/refs/heads/main.zip"
-
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 PROGRAM_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Get the name of the program directory
+PROGRAM_NAME="$(basename "$PROGRAM_DIR")"
+
+# Check if the program directory is named 'MeltWin2.0-main'
+if [ "$PROGRAM_NAME" != "MeltWin2.0-main" ]; then
+    echo "Error: The parent directory is not 'MeltWin2.0-main'! Exiting..."
+    exit 1
+fi
+
+ZIP_URL="https://github.com/oss-slu/MeltWin2.0/archive/refs/heads/main.zip"
+CODE_DIR="$PROGRAM_DIR/code" # specify the Code subdirectory
 
 # Create a temporary directory
 mkdir -p "/tmp/UpdateTemp"
@@ -12,14 +22,13 @@ curl -L -o "/tmp/UpdateTemp/latest.zip" "$ZIP_URL"
 # Unzip the archive to the temporary location
 unzip -o "/tmp/UpdateTemp/latest.zip" -d "/tmp/UpdateTemp"
 
-# Delete all existing files and directories inside MeltWin2.0, excluding MacOS_Scripts and Windows_Scripts
-find "$PROGRAM_DIR" -mindepth 1 -maxdepth 1 ! -name 'MacOS_Scripts' ! -name 'Windows_Scripts' -exec rm -rf {} \;
-# Copy the contents of the unzipped folder to the program directory
-cp -R "/tmp/UpdateTemp/MeltWin2.0-main/"* "$PROGRAM_DIR"
+# Delete only the 'code' subdirectory inside PROGRAM_DIR
+rm -rf "$CODE_DIR"
+# Copy the 'code' subdirectory from the unzipped folder to PROGRAM_DIR
+cp -R "/tmp/UpdateTemp/MeltWin2.0-main/code" "$PROGRAM_DIR"
 
 # Clean up the temporary directory
 rm -r "/tmp/UpdateTemp"
 
-echo "Update complete! Your program is now up to date."
+echo "Update complete! Your program's 'code' subdirectory is now up to date."
 exit 0
-
