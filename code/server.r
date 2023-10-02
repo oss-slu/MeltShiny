@@ -18,7 +18,7 @@ server <- function(input, output, session){
   }
   
   # Handle the inputs and uploaded datasets
-  observeEvent(eventExpr = input$inputFileID,
+  observeEvent(eventExpr = input$uploadData,
                          handlerExpr = {
                            
                            # Error checking
@@ -250,7 +250,7 @@ server <- function(input, output, session){
   )
   
   # Show the uploaded datasets separately on the uploads page
-  observeEvent(eventExpr = input$inputFileID,
+  observeEvent(eventExpr = input$uploadData,
                handlerExpr = {
                  divID <- toString(numUploads)
                  dtID <- paste0(divID,"DT")
