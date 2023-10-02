@@ -383,7 +383,7 @@ server <- function(input, output, session){
       exclude <- vantData[!vals$keeprows, , drop = FALSE]
       
       # Calculate the R value
-      rValue <- format(sqrt(summary(lm(lnCt~invT,keep))$r.squared),digits=3)
+      rValue <- format(sqrt(summary(lm(invT~lnCt,keep))$r.squared),digits=3)
 
       # Create vant plot, including R value
       vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT )) + geom_point() +
