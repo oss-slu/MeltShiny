@@ -98,6 +98,11 @@ ui <- navbarPage(
               accept = ".csv",
               inputId = "inputFileID"
             ),
+            hr(style = "border-top: 1px solid #000000;"),
+            actionButton(label = "Upload Data",
+              inputId = "uploadData"
+            ),
+            hr(style = "border-top: 1px solid #000000;"),
             checkboxInput(
               label = "All Datasets Uploaded?",
               value = FALSE,

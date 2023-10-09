@@ -19,7 +19,7 @@ server <- function(input, output, session) {
 
   # Handle the inputs and uploaded datasets
   observeEvent(
-    eventExpr = input$inputFileID,
+    eventExpr = input$uploadData,
     handlerExpr = {
       # Error checking
       if (input$noBlanksID == FALSE) {
@@ -203,18 +203,18 @@ server <- function(input, output, session) {
   )
 
   # Disable remaining widgets on "Upload" page when all datasets have been uploaded
-  observeEvent(
-    eventExpr = input$datasetsUploadedID,
-    handlerExpr = {
-      if (input$datasetsUploadedID == TRUE) {
-        disable("blankSampleID")
-        disable("pathlengthID")
-        disable("inputFileID")
-        disable("datasetsUploadedID")
-        disable("noBlanksID")
-      }
-    }
-  )
+  observeEvent(eventExpr = input$datasetsUploadedID, 
+               handlerExpr = {
+                 if(input$datasetsUploadedID == TRUE){
+                   disable('blankSampleID')
+                   disable('pathlengthID')
+                   disable('inputFileID')
+                   disable('datasetsUploadedID')
+                   disable('noBlanksID')
+                   disable('uploadData')
+                   }
+                 })
+  
 
   # Handle the situation in which the user toggles the "No Blanks" checkbox
   observe(
@@ -247,7 +247,7 @@ server <- function(input, output, session) {
 
   # Show the uploaded datasets separately on the uploads page
   observeEvent(
-    eventExpr = input$inputFileID,
+    eventExpr = input$uploadData,
     handlerExpr = {
       divID <- toString(numUploads)
       dtID <- paste0(divID, "DT")
@@ -385,7 +385,7 @@ server <- function(input, output, session) {
       exclude <- vantData[!vals$keeprows, , drop = FALSE]
       
       # Calculate the R value
-      rValue <- format(sqrt(summary(lm(lnCt~invT,keep))$r.squared),digits=3)
+      rValue <- format(sqrt(summary(lm(invT~lnCt,keep))$r.squared),digits=3)
 
       # Create vant plot, including R value
       vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT )) + geom_point() +
