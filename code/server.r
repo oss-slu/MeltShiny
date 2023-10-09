@@ -215,6 +215,7 @@ server <- function(input, output, session){
                    disable('inputFileID')
                    disable('datasetsUploadedID')
                    disable('noBlanksID')
+                   disable('uploadData')
                    }
                  })
   
