@@ -1,4 +1,8 @@
 server <- function(input, output, session) {
+
+  #Declare initial value for data upload button check
+  is_valid_input <- FALSE
+
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
 
@@ -62,6 +66,7 @@ server <- function(input, output, session) {
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
         ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
           (dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
+        is_valid_input <- FALSE
         showModal(modalDialog(
           title = "Not a DNA Nucleotide",
           "Please use the nucleotide T with DNA inputs.",
@@ -73,6 +78,10 @@ server <- function(input, output, session) {
 
       # If there are no errors in the inputs, proceed with file upload and processing
       else {
+
+        # Verify that inputs are valid to display graph
+        is_valid_input <<- TRUE
+
         # Store the pathlength information
         pathlengthInputs <- c(unlist(strsplit(gsub(" ", "", input$pathlengthID), ",")))
 
@@ -249,6 +258,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = input$uploadData,
     handlerExpr = {
+      if(is_valid_input) {
       divID <- toString(numUploads)
       dtID <- paste0(divID, "DT")
       insertUI(
@@ -267,6 +277,8 @@ server <- function(input, output, session) {
           caption = paste0("Table", " ", toString(numUploads), ".", " ", "Dataset", " ", toString(numUploads), ".")
         )
       })
+    }
+    is_valid_input <<- FALSE
     }
   )
 
