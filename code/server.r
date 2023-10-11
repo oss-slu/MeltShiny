@@ -66,7 +66,6 @@ server <- function(input, output, session) {
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
         ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
           (dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
-        is_valid_input <- FALSE
         showModal(modalDialog(
           title = "Not a DNA Nucleotide",
           "Please use the nucleotide T with DNA inputs.",
