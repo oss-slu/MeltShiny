@@ -117,6 +117,16 @@ connecter <- setRefClass(
               x1 = data$Temperature[which.max(data$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE
             )
           ),
+          annotations = list(
+            list(
+              x = data$Temperature[which.max(data$dA.dT)],
+              y = 1.02, # slightly above the dotted line
+              yref = "paper",
+              text = sprintf("Max Derivative @ %.3f", data$Temperature[which.max(data$dA.dT)]),
+              showarrow = FALSE,
+              xanchor = "left"
+            )
+          ),
           xaxis = list(dtick = 5)
         ) %>%
         rangeslider(xRange[[sampleNum]][1], xRange[[sampleNum]][2], thickness = .1) %>%
