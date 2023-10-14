@@ -101,32 +101,40 @@ connecter <- setRefClass(
       coeff <- 4000 # Static number to shrink data to scale
       upper <- max(data$dA.dT) / max(data$Ct) + coeff
 
+      # Filter data within the temperature range 25 to 65 (transition range)
+      filteredData <- data[data$Temperature >= 25 & data$Temperature <= 65, ]
+      
+      # Find the temperature of the max derivative within the filtered data
+      maxDerivativeTemp <- filteredData$Temperature[which.max(filteredData$dA.dT)]
+
       # Store the necessary information for use in the server for adding the best fit and first derivative
       bestFitXData[[sampleNum]] <<- data2$Temperature
       bestFitYData[[sampleNum]] <<- data2$Model
       derivativeXData[[sampleNum]] <<- data$Temperature
       derivativeYData[[sampleNum]] <<- data$dA.dT / (data$Pathlength * data$Ct) / upper + min(data$Absorbance)
 
-      # Generate the base plot with just the absorbance data and a maximum derivative indicator line
+      # Start with the base plot with just the absorbance data
       plot_ly(type = "scatter", mode = "markers", source = paste0("plotBoth", sampleNum)) %>%
         add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
         layout(
           shapes = list(
             list(
-              type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = data$Temperature[which.max(data$dA.dT)],
-              x1 = data$Temperature[which.max(data$dA.dT)], line = list(width = 1, dash = "dot"), editable = FALSE
+              type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = maxDerivativeTemp,
+              x1 = maxDerivativeTemp, line = list(width = 1, dash = "dot"), editable = FALSE
             )
           ),
           annotations = list(
             list(
-              x = data$Temperature[which.max(data$dA.dT)],
+              x = maxDerivativeTemp,
               y = 1.02, # slightly above the dotted line
               yref = "paper",
-              text = sprintf("Max Derivative @ %.3f", data$Temperature[which.max(data$dA.dT)]),
+              text = sprintf("Transition @ %.2f°C", maxDerivativeTemp),
               showarrow = FALSE,
               xanchor = "left"
             )
-          ),
+          )
+        ) %>%
+        layout(
           xaxis = list(dtick = 5)
         ) %>%
         rangeslider(xRange[[sampleNum]][1], xRange[[sampleNum]][2], thickness = .1) %>%
