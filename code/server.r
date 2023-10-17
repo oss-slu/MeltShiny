@@ -78,6 +78,14 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+      } else if (is.null(input$inputFileID)){
+        showModal(modalDialog(
+          title = "No File",
+          "Please include a file upload",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
       }
 
       # If there are no errors in the inputs, proceed with file upload and processing
