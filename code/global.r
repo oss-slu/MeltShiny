@@ -101,8 +101,8 @@ connecter <- setRefClass(
       coeff <- 4000 # Static number to shrink data to scale
       upper <- max(data$dA.dT) / max(data$Ct) + coeff
 
-      # Filter data within the temperature range 25 to 65 (transition range)
-      filteredData <- data[data$Temperature >= 25 & data$Temperature <= 65, ]
+      # Filter data within the temperature range 20 to 70 (transition range)
+      filteredData <- data[data$Temperature >= 20 & data$Temperature <= 70, ]
       
       # Find the temperature of the max derivative within the filtered data
       maxDerivativeTemp <- filteredData$Temperature[which.max(filteredData$dA.dT)]
