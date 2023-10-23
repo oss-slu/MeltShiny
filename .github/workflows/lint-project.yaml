@@ -15,7 +15,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           repository: r-lib/actions
           path: r-lib/actions
@@ -27,7 +27,7 @@ jobs:
         run: install.packages("lintr")
         shell: Rscript {0}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Setup VS Code
         uses: r-lib/actions/setup-vscode@v3
