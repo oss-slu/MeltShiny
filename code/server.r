@@ -1,4 +1,8 @@
 server <- function(input, output, session) {
+
+  #Declare initial value for data upload button check
+  is_valid_input <- FALSE
+
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
 
@@ -24,6 +28,7 @@ server <- function(input, output, session) {
       # Error checking
       if (input$noBlanksID == FALSE) {
         if (can_convert_to_int(input$blankSampleID) == FALSE) {
+          is_valid_input <<- FALSE
           showModal(modalDialog(
             title = "Not a number",
             "Please input an integer in the input box for blanks.",
@@ -34,6 +39,7 @@ server <- function(input, output, session) {
         }
       }
       if (input$pathlengthID == "" || input$helixID == "" || input$blankSampleID == "" || input$temperatureID == "") {
+        is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Missing Inputs",
           "Please ensure that all text inputs have been filled out.",
@@ -42,6 +48,7 @@ server <- function(input, output, session) {
           fade = TRUE
         ))
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
+        is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Nucleotide to Absorbance Mis-Pair",
           "Please use a wavelength value of 260 with DNA sequences.",
@@ -52,6 +59,7 @@ server <- function(input, output, session) {
       } else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
         ((rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
           (rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
+        is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Not a RNA Nucleotide",
           "Please use nucleotide U with RNA inputs",
@@ -62,9 +70,18 @@ server <- function(input, output, session) {
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
         ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
           (dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
+        is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Not a DNA Nucleotide",
           "Please use the nucleotide T with DNA inputs.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+      } else if (is.null(input$inputFileID)){
+        showModal(modalDialog(
+          title = "No File",
+          "Please include a file upload",
           footer = modalButton("Understood"),
           easyClose = FALSE,
           fade = TRUE
@@ -73,6 +90,10 @@ server <- function(input, output, session) {
 
       # If there are no errors in the inputs, proceed with file upload and processing
       else {
+
+        # Verify that inputs are valid to display graph
+        is_valid_input <<- TRUE
+
         # Store the pathlength information
         pathlengthInputs <- c(unlist(strsplit(gsub(" ", "", input$pathlengthID), ",")))
 
@@ -249,6 +270,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = input$uploadData,
     handlerExpr = {
+      if(is_valid_input) {
       divID <- toString(numUploads)
       dtID <- paste0(divID, "DT")
       insertUI(
@@ -267,6 +289,8 @@ server <- function(input, output, session) {
           caption = paste0("Table", " ", toString(numUploads), ".", " ", "Dataset", " ", toString(numUploads), ".")
         )
       })
+    }
+    is_valid_input <<- FALSE
     }
   )
 
