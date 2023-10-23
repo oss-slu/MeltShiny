@@ -20,6 +20,11 @@ jobs:
         with:
           use-public-rspm: true
 
+      - uses: actions/checkout@v3
+        with:
+          repository: r-lib/actions 
+          path: r-lib/actions
+
       - name: Install lintr
         run: install.packages("lintr")
         shell: Rscript {0}
