@@ -25,6 +25,13 @@ jobs:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
 
+      - name: Install Dependencies
+        run: npm install -g prettier
+
+      - name: Run prettier for R
+        run: prettier --write "**/*.R"
+        
+
       - name: Lint Code Base
         uses: github/super-linter@v4
         env:
