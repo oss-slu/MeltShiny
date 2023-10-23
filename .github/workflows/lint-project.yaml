@@ -24,6 +24,24 @@ jobs:
         run: install.packages("lintr")
         shell: Rscript {0}
 
+      - name: Setup VS Code
+        uses: r-lib/actions/setup-vscode@v2
+        with:
+          r-version: 4.2.0
+
+      - name: Lint in VS Code
+        run: |
+          Rscript -e "lintr::lint('$GITHUB_WORKSPACE')"
+          shell: bash
+      
+      - name: Install Styler
+        run: install.packages("styler")
+        shell: Rscript {0}
+
+      - name: Format with Styler
+        run: |
+          Rscript -e 'styler::style_dir()'
+
       - name: Lint root directory
         run: lintr::lint_dir()
         shell: Rscript {0}
