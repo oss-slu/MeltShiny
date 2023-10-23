@@ -13,6 +13,10 @@ on:
     branches: [ "main" ]
 jobs:
   run-lint:
+    env:
+      VALIDATE_ALL_CODEBASE: false
+      VALIDATE_R: true
+      VALIDATE_PYTHON: true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
