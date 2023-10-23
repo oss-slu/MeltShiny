@@ -14,20 +14,21 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
+
       - uses: actions/checkout@v3
+        with:
+          repository: r-lib/actions
+          path: r-lib/actions
 
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
-
-      - uses: actions/checkout@v3
-        with:
-          repository: r-lib/actions 
-          path: r-lib/actions
-
+          
       - name: Install lintr
         run: install.packages("lintr")
         shell: Rscript {0}
+
+      - uses: actions/checkout@v3
 
       - name: Setup VS Code
         uses: r-lib/actions/setup-vscode@v2
