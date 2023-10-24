@@ -215,27 +215,27 @@ server <- function(input, output, session) {
 
         # Variable that handles the points on the Van't Hoff plot for removal
         if (chosenMethods[2] == TRUE) {
-          vals <<- reactiveValues(
-            keeprows = rep(TRUE, nrow(vantData))
-          )
+          vals <<- reactiveValues(keeprows = rep(TRUE, nrow(vantData)))
         }
       }
     }
   )
 
   # Disable remaining widgets on "Upload" page when all datasets have been uploaded
-  observeEvent(eventExpr = input$datasetsUploadedID, 
-               handlerExpr = {
-                 if(input$datasetsUploadedID == TRUE){
-                   disable('blankSampleID')
-                   disable('pathlengthID')
-                   disable('inputFileID')
-                   disable('datasetsUploadedID')
-                   disable('noBlanksID')
-                   disable('uploadData')
-                   }
-                 })
-  
+  observeEvent(
+    eventExpr = input$datasetsUploadedID,
+    handlerExpr = {
+      if (input$datasetsUploadedID == TRUE) {
+        disable("blankSampleID")
+        disable("pathlengthID")
+        disable("inputFileID")
+        disable("datasetsUploadedID")
+        disable("noBlanksID")
+        disable("uploadData")
+      }
+    }
+  )
+
 
   # Handle the situation in which the user toggles the "No Blanks" checkbox
   observe(
@@ -402,25 +402,25 @@ server <- function(input, output, session) {
 
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
-    if(chosenMethods[2] == TRUE){
-      
+    if (chosenMethods[2] == TRUE) {
       # Store the points that are kept vs excluded
       keep <- vantData[vals$keeprows, , drop = FALSE]
       exclude <- vantData[!vals$keeprows, , drop = FALSE]
-      
+
       # Calculate the R value
-      rValue <- format(sqrt(summary(lm(invT~lnCt,keep))$r.squared),digits=3)
+      rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
 
       # Create vant plot, including R value
-      vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT )) + geom_point() +
-        geom_smooth(formula = y ~ x,method = lm, fullrange = TRUE, color = "black", se=F, linewidth = .5, linetype = "dashed") +
+      vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT)) +
+        geom_point() +
+        geom_smooth(formula = y ~ x, method = lm, fullrange = TRUE, color = "black", se = F, linewidth = .5, linetype = "dashed") +
         geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
         labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "Van't Hoff") +
-        annotate("text",x=Inf,y=Inf,color="#333333",label=paste("r = ",toString(rValue)),size=7,vjust=1, hjust=1) +
+        annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
         theme(plot.title = element_text(hjust = 0.5))
       vantGgPlot
     }
-    })
+  })
 
   # Remove points from Van't Hoff plot that are clicked
   observeEvent(
