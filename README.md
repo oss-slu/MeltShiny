@@ -34,6 +34,10 @@ Double clicking MeltShinyDependenciesInstaller.command or MeltShinyDependenciesI
 
 ### Adding R to Path (Windows Only)
 
+Once I solve the issue with the windows I need to update this section of this document so that users can be more clear on what to do - Ethan
+
+The issue appears to be related to path and the R installation, but I will do more testing on lab computers
+
 The following steps will guide you through this process, which only needs to be done once.
 
 1. Using Windows search, type environment. A search option will appear titled "Edit the system environment variables". Click this.
