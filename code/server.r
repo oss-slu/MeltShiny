@@ -406,7 +406,11 @@ server <- function(input, output, session) {
       # Store the points that are kept vs excluded
       keep <- vantData[vals$keeprows, , drop = FALSE]
       exclude <- vantData[!vals$keeprows, , drop = FALSE]
+    # Check to see if all brush points are removed
 
+    if(nrow(keep) == 0){
+      vals$keeprows <- rep(TRUE, nrow(vantData))
+    }
       # Calculate the R value
       rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
 
