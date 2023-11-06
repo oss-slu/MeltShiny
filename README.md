@@ -48,6 +48,14 @@ The following steps will guide you through this process, which only needs to be 
 
 6. Once you have added the R bin folder to your PATH variable, press ok and ok again to close the environment manager.
 
+Some users may have issues regarding the installation of R packages and dependencies, which means that the folder is not writable, and access needs to be given. Follow these steps if this is the case.
+
+1. Navigate to the same folder that contains your R bin folder, as you found while adding R to your PATH variable
+
+2. Right-Click on the library folder, and click Properties
+
+3. Click Edit, and a new pop out with 2 scroll windows should open. In the top one, select Users, and in the bottom one, fill in the box under 'Allow' next to 'Write', and click Apply. Click 'OK' and re-run the DependenciesInstaller
+
 ## Running MeltShiny
 
 Double clicking the MeltShiny.command and MeltShiny.bat for Mac and Windows, respectively, will open a terminal. The terminal will show some numbers before starting the MeltShiny application in your default web browser. This program uses a local host, so the contents you provide in the program are localized to your computer. Should the application not open automatically, copy the numbers at the bottom of the terminal into a browser tab. Note, the terminal must remain open for the MeltShiny application to run. Once you are done with your MeltShiny session, close out of the application tab and close the terminal.
