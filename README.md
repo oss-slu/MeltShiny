@@ -34,10 +34,6 @@ Double clicking MeltShinyDependenciesInstaller.command or MeltShinyDependenciesI
 
 ### Adding R to Path (Windows Only)
 
-Once I solve the issue with the windows I need to update this section of this document so that users can be more clear on what to do - Ethan
-
-The issue appears to be related to path and the R installation, but I will do more testing on lab computers
-
 The following steps will guide you through this process, which only needs to be done once.
 
 1. Using Windows search, type environment. A search option will appear titled "Edit the system environment variables". Click this.
@@ -51,6 +47,14 @@ The following steps will guide you through this process, which only needs to be 
 5. In the next window that pops up, click the “Browse” button. Using the file explorer that pops up, locate your R bin folder. If you chose to install R in the default location during R installation process, the path will follow the format: "C:\Program Files\R\R-version\bin", where the R-version will depend on the version of R you have installed. For example, a user who has an R version of 4.2.2 will have a path of "C:\Program Files\R\R-4.2.2\bin".
 
 6. Once you have added the R bin folder to your PATH variable, press ok and ok again to close the environment manager.
+
+Some users may have issues regarding the installation of R packages and dependencies, which means that the folder is not writable, and access needs to be given. Follow these steps if this is the case.
+
+1. Navigate to the same folder that contains your R bin folder, as you found while adding R to your PATH variable
+
+2. Right-Click on the library folder, and click Properties
+
+3. Click Edit, and a new pop out with 2 scroll windows should open. In the top one, select Users, and in the bottom one, fill in the box under 'Allow' next to 'Write', and click Apply. Then click 'Ok' and you should be good to close all properties and re-run the Dependencies Installer.
 
 ## Running MeltShiny
 
