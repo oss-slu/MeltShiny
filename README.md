@@ -54,7 +54,7 @@ Some users may have issues regarding the installation of R packages and dependen
 
 2. Right-Click on the library folder, and click Properties
 
-3. Click Edit, and a new pop out with 2 scroll windows should open. In the top one, select Users, and in the bottom one, fill in the box under 'Allow' next to 'Write', and click Apply. Then click 'Ok' and you should be good to close all properties and re-run the Dependencies Installer.
+3. Click Edit, and a new pop out with 2 scroll windows should open. In the top one, select Users, and in the bottom one, fill in the box under 'Allow' next to 'Write', and click Apply. Click 'OK' and re-run the DependenciesInstaller
 
 ## Running MeltShiny
 
