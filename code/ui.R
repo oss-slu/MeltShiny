@@ -201,6 +201,10 @@ ui <- navbarPage(
             )
           ),
           mainPanel(
+            conditionalPanel(
+              condition = "!output.vantPlot",
+              "Loading..."
+            ),
             plotOutput(
               outputId = "vantPlot",
               click = "vantClick",

@@ -400,6 +400,16 @@ server <- function(input, output, session) {
     }
   )
 
+  # Outputs "Loading" while graphs are loading
+  output$loading <- renderUI({
+    if (input$datasetsUploadedID == TRUE) {
+      tags$div(
+        id = "loading",
+        tags$style("position: fixed; top: 50%; left: 50%;"),
+        tags$h3("Loading...")
+      )
+    }
+  })
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
     if (chosenMethods[2] == TRUE) {
@@ -422,6 +432,8 @@ server <- function(input, output, session) {
         labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "Van't Hoff") +
         annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
         theme(plot.title = element_text(hjust = 0.5))
+
+        removeUI(selector = "#vantLoading")
       vantGgPlot
     }
   })
