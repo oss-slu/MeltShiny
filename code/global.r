@@ -1,3 +1,18 @@
+# Declare packages
+library(dplyr)
+library(DT)
+library(ggplot2)
+library(glue)
+library(openxlsx)
+library(plotly)
+library(remotes)
+library(methods) 
+library(ggrepel)
+library(MeltR) 
+library(shiny)
+library(shinyjs)
+library(shinythemes)
+
 options(warn = -1)
 
 # Global variables for file inputs
