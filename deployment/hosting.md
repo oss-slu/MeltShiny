@@ -54,5 +54,6 @@ This guide provides step-by-step instructions on how to publish a Shiny applicat
 
 - For more detailed instructions on using shinyapps.io, refer to their official documentation [here](https://docs.rstudio.com/shinyapps.io/).
 - For general Shiny application development, the RStudio Shiny tutorials are an excellent resource, available [here](https://shiny.rstudio.com/tutorial/).
+- These instructions are concurrent with the process of an article, available [here](https://statsandr.com/blog/how-to-publish-shiny-app-example-with-shinyapps-io/#introduction)
 
 ---
