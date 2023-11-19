@@ -203,7 +203,7 @@ ui <- navbarPage(
           mainPanel(
             conditionalPanel(
               condition = "!output.vantPlot",
-              "Loading...", style = "font-size: 28px;"
+              "Loading...", style = "font-size: 29px;"
             ),
             plotOutput(
               outputId = "vantPlot",
