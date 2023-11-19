@@ -343,6 +343,13 @@ server <- function(input, output, session) {
                         checkboxInput(inputId = paste0("firstDerivative", i), label = "Show derivative"),
                       ),
                       mainPanel(
+                        # conditionalPanel(
+                        #   condition = "loadStatus()",
+                        #   tags$div(
+                        #     id = "loading",
+                        #     h5("Loading..."),
+                        #   )
+                        # ),
                         plotlyOutput(paste0("plotBoth", i)),
                         textOutput(paste0("xrange", i))
                       )
@@ -400,16 +407,7 @@ server <- function(input, output, session) {
     }
   )
 
-  # Outputs "Loading" while graphs are loading
-  output$loading <- renderUI({
-    if (input$datasetsUploadedID == TRUE) {
-      tags$div(
-        id = "loading",
-        tags$style("position: fixed; top: 50%; left: 50%;"),
-        tags$h3("Loading...")
-      )
-    }
-  })
+
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
     if (chosenMethods[2] == TRUE) {
