@@ -343,6 +343,13 @@ server <- function(input, output, session) {
                         checkboxInput(inputId = paste0("firstDerivative", i), label = "Show derivative"),
                       ),
                       mainPanel(
+                        # conditionalPanel(
+                        #   condition = "loadStatus()",
+                        #   tags$div(
+                        #     id = "loading",
+                        #     h5("Loading..."),
+                        #   )
+                        # ),
                         plotlyOutput(paste0("plotBoth", i)),
                         textOutput(paste0("xrange", i))
                       )
@@ -400,6 +407,7 @@ server <- function(input, output, session) {
     }
   )
 
+
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
     if (chosenMethods[2] == TRUE) {
@@ -422,6 +430,8 @@ server <- function(input, output, session) {
         labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "Van't Hoff") +
         annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
         theme(plot.title = element_text(hjust = 0.5))
+
+        removeUI(selector = "#vantLoading")
       vantGgPlot
     }
   })
