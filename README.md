@@ -18,7 +18,7 @@ Researchers hope to understand the function of different DNA and RNA molecules. 
 
 ## Current Application
 
-MeltShiny is currently hosted [here](https://p455v4-zohaib-ahmed.shinyapps.io/MeltShiny/)
+MeltShiny is currently hosted [here](https://meltshiny.shinyapps.io/MeltShiny/)
 
 ## Local MeltShiny Installation Instructions
 
