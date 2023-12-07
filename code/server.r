@@ -189,10 +189,26 @@ server <- function(input, output, session) {
     }
   )
 
+
+
   # Once all datasets have been uploaded, create the MeltR object and derive necessary information
   observeEvent(
     eventExpr = input$datasetsUploadedID,
     handlerExpr = {
+      if (input$datasetsUploadedID == TRUE) {
+        disable(selector = '.navbar-nav a[data-value="Help"')
+        disable(selector = '.navbar-nav a[data-value="File"')
+        disable("blankSampleID")
+        disable("pathlengthID")
+        disable("inputFileID")
+        disable("datasetsUploadedID")
+        disable("noBlanksID")
+        disable("uploadData")
+        Sys.sleep(5)
+        enable(selector = '.navbar-nav a[data-value="Help"')
+        enable(selector = '.navbar-nav a[data-value="File"')
+      }
+      
       if (input$datasetsUploadedID == TRUE) {
         # Send stored input values to the connecter class to create a MeltR object
         myConnecter <<- connecter(
@@ -344,12 +360,10 @@ server <- function(input, output, session) {
                       ),
                       mainPanel(
                         # conditionalPanel(
-                        #   condition = "loadStatus()",
-                        #   tags$div(
-                        #     id = "loading",
-                        #     h5("Loading..."),
-                        #   )
+                        #   # condition = "output.plotBoth1 == null",
+                        #   # h3("Loading..."),
                         # ),
+
                         plotlyOutput(paste0("plotBoth", i)),
                         textOutput(paste0("xrange", i))
                       )
