@@ -113,7 +113,7 @@ server <- function(input, output, session) {
         updateCheckboxInput(session, "noBlanksID", value = FALSE)
 
         # Store the extinction coefficient information
-        helix <<- trimws(strsplit(gsub(" ", "", input$helixID), ",")[[1]], which = "both")
+        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID,',',input$seqID)), ",")[[1]], which = "both")
 
         # Store the tm method information
         tmMethodVal <<- toString(input$Tm_methodID)
@@ -251,9 +251,13 @@ server <- function(input, output, session) {
   # Update the example information in the nucleic acid/ extinction coefficient text box depending on user choice
   observe(
     if (input$extinctConDecisionID == "Nucleic acid sequence(s)") {
-      updateTextInput(session, "helixID", placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG")
+      updateTextInput(session, "helixID", placeholder = "E.g: RNA",label = "Specify nucelic acid type")
+      updateTextInput(session, "seqID", placeholder = "E.g: CGAAAGGU,ACCUUUCG")
+      enable("seqID")
     } else if (input$extinctConDecisionID == "Custom molar extinction coefficients") {
-      updateTextInput(session, "helixID", placeholder = "E.g: Custom, 10000, 20000")
+      updateTextInput(session, "helixID", placeholder = "E.g: Custom, 10000, 20000",label="Specify coefficients")
+      updateTextInput(session, "seqID", placeholder = "Disabled")
+      disable("seqID")
     }
   )
 
