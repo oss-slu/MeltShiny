@@ -210,6 +210,7 @@ server <- function(input, output, session) {
       }
       
       if (input$datasetsUploadedID == TRUE) {
+        
         # Send stored input values to the connecter class to create a MeltR object
         myConnecter <<- connecter(
           df = masterFrame,
