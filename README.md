@@ -16,7 +16,11 @@ MeltShiny eliminates the need for the console, as it provides an intuitive graph
 
 Researchers hope to understand the function of different DNA and RNA molecules. Researchers shine light through these molecules and record the absorption data. Due to intricate baseparing and folding patterns, the absorption data for specific RNA and DNA molecules will be unique. This data can mathematically be translated through the fitting of absorbance melting curves into thermodynamic parameters to obtain folding information.
 
-## MeltShiny Installation Instructions
+## Current Application
+
+MeltShiny is currently hosted [here](https://meltshiny.shinyapps.io/MeltShiny/)
+
+## Local MeltShiny Installation Instructions
 
 ### Installing R
 
