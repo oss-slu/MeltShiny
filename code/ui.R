@@ -49,9 +49,15 @@ ui <- navbarPage(
             ),
             hr(style = "border-top: 1px solid #000000;"),
             textInput(
-              label = "Specify nucelic acid type and sequences",
-              placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
+              label = "Specify nucelic acid type",
+              placeholder = "E.g: RNA",
               inputId = "helixID"
+            ),
+            hr(style = "border-top: 1px solid #000000;"),
+            textInput(
+              label = "Specify sequences",
+              placeholder  = "E.g: CGAAAGGU,ACCUUUCG",
+              inputId = "seqID"
             ),
             radioButtons(
               inputId = "extinctConDecisionID",
