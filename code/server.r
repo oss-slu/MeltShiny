@@ -268,7 +268,7 @@ server <- function(input, output, session) {
   # Update the example information in the nucleic acid/ extinction coefficient text box depending on user choice
   observe(
     if (input$extinctConDecisionID == "Nucleic acid sequence(s)") {
-      updateTextInput(session, "helixID", placeholder = "E.g: RNA",label = "Specify nucelic acid type")
+      updateTextInput(session, "helixID", placeholder = "E.g: RNA",label = "Specify nucleic acid type")
       updateTextInput(session, "seqID", placeholder = "E.g: CGAAAGGU,ACCUUUCG")
       enable("seqID")
     } else if (input$extinctConDecisionID == "Custom molar extinction coefficients") {
