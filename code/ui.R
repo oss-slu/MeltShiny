@@ -48,9 +48,10 @@ ui <- navbarPage(
               inputId = "temperatureID"
             ),
             hr(style = "border-top: 1px solid #000000;"),
-            textInput(
+            selectInput(
               label = "Specify nucelic acid type",
-              placeholder = "E.g: RNA",
+              choices = c("RNA","DNA"), #nolint
+              selected = "RNA",
               inputId = "helixID"
             ),
             hr(style = "border-top: 1px solid #000000;"),
