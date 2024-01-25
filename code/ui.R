@@ -49,7 +49,7 @@ ui <- navbarPage(
             ),
             hr(style = "border-top: 1px solid #000000;"),
             textInput(
-              label = "Specify nucelic acid type and sequences",
+              label = "Specify nucleic acid type and sequences",
               placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
               inputId = "helixID"
             ),
