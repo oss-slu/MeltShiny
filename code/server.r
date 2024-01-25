@@ -38,7 +38,7 @@ server <- function(input, output, session) {
           ))
         }
       }
-      if (input$pathlengthID == "" || input$helixID == "" || input$blankSampleID == "" || input$temperatureID == "") {
+      if (input$pathlengthID == "" || (input$helixID == ""&& input$seqID=="") || input$blankSampleID == "" || input$temperatureID == "") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Missing Inputs",
