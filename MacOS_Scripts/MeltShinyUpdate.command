@@ -6,9 +6,10 @@ PROGRAM_DIR="$(dirname "$SCRIPT_DIR")"
 # Get the name of the program directory
 PROGRAM_NAME="$(basename "$PROGRAM_DIR")"
 
-# Check if the program directory is named 'MeltWin2.0-main'
-if [ "$PROGRAM_NAME" != "MeltWin2.0-main" ]; then
-    echo "Error: The parent directory is not 'MeltWin2.0-main'! Exiting..."
+# Check if the program directory is named 'MeltShiny-main'
+# -main signifies this was locally installed by a user from the repository.
+if [ "$PROGRAM_NAME" != "MeltShiny-main" ]; then
+    echo "Error: The parent directory is not 'MeltShiny-main'! Exiting..."
     exit 1
 fi
 
