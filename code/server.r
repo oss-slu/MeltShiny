@@ -364,12 +364,13 @@ server <- function(input, output, session) {
                         checkboxInput(inputId = paste0("firstDerivative", i), label = "Show derivative"),
                       ),
                       mainPanel(
-                        # conditionalPanel(
-                        #   # condition = "output.plotBoth1 == null",
-                        #   # h3("Loading..."),
-                        # ),
-
+                        conditionalPanel(
+                          condition = "output.plotBoth1 == null",
+                          h3("Loading..."),
+                        ),
+                        condition = "output.plotBoth1 != null",
                         plotlyOutput(paste0("plotBoth", i)),
+                        # plotlyOutput(paste0("plotBoth", i)),
                         textOutput(paste0("xrange", i))
                       )
                     )
@@ -403,6 +404,9 @@ server <- function(input, output, session) {
             xRange[[i]][2] <<- suppressWarnings(round(max(bestFitXData[[i]])))
             local({
               myI <- i
+              output[[paste0("Loading...", myI)]] <- renderUI({
+                h3(id = paste0("Loading...", myI), "Loading...")
+              })
               output[[paste0("plotBoth", myI)]] <- renderPlotly({
                 analysisPlot <- myConnecter$constructAllPlots(myI)
                 if (input[[paste0("bestFit", myI)]] == TRUE) {
@@ -411,6 +415,7 @@ server <- function(input, output, session) {
                 if (input[[paste0("firstDerivative", myI)]] == TRUE) {
                   analysisPlot <- analysisPlot %>% add_trace(x = derivativeXData[[myI]], y = derivativeYData[[myI]], marker = list(color = "green"))
                 }
+                
                 analysisPlot
               })
               observeEvent(event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event")), {
@@ -418,6 +423,9 @@ server <- function(input, output, session) {
                 output[[paste0("xrange", myI)]] <- renderText({
                   paste0(" x-range: [", round(xRange[[myI]][1], 2), ", ", round(xRange[[myI]][2], 2), "]")
                 })
+                if(!is.null(output[[paste0("Loading...", myI)]])){
+                  removeUI(selector = paste0("#", paste0("Loading...", myI)))
+                }
               })
             })
           }
@@ -450,7 +458,7 @@ server <- function(input, output, session) {
         annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
         theme(plot.title = element_text(hjust = 0.5))
 
-        removeUI(selector = "#vantLoading")
+        # removeUI(selector = "#vantLoading")
       vantGgPlot
     }
   })
