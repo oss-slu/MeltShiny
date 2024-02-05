@@ -367,6 +367,13 @@ server <- function(input, output, session) {
                         conditionalPanel(
                           condition = "output.plotBoth1 == null",
                           h3("Loading..."),
+                          tags$script(
+                            "$(document).ready(function() {
+                              setTimeout(function() {
+                                $('h3:contains(\"Loading...\")').remove();
+                              }, 1500);
+                            });"
+                          )
                         ),
                         plotlyOutput(paste0("plotBoth", i)),
                         # plotlyOutput(paste0("plotBoth", i)),
