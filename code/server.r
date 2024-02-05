@@ -368,10 +368,8 @@ server <- function(input, output, session) {
                           condition = "output.plotBoth1 == null",
                           h3("Loading..."),
                         ),
-                        condition = "output.plotBoth1 != null",
                         plotlyOutput(paste0("plotBoth", i)),
                         # plotlyOutput(paste0("plotBoth", i)),
-                        textOutput(paste0("xrange", i))
                       )
                     )
                   )
@@ -404,9 +402,7 @@ server <- function(input, output, session) {
             xRange[[i]][2] <<- suppressWarnings(round(max(bestFitXData[[i]])))
             local({
               myI <- i
-              output[[paste0("Loading...", myI)]] <- renderUI({
-                h3(id = paste0("Loading...", myI), "Loading...")
-              })
+
               output[[paste0("plotBoth", myI)]] <- renderPlotly({
                 analysisPlot <- myConnecter$constructAllPlots(myI)
                 if (input[[paste0("bestFit", myI)]] == TRUE) {
@@ -423,9 +419,6 @@ server <- function(input, output, session) {
                 output[[paste0("xrange", myI)]] <- renderText({
                   paste0(" x-range: [", round(xRange[[myI]][1], 2), ", ", round(xRange[[myI]][2], 2), "]")
                 })
-                if(!is.null(output[[paste0("Loading...", myI)]])){
-                  removeUI(selector = paste0("#", paste0("Loading...", myI)))
-                }
               })
             })
           }

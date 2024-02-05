@@ -123,10 +123,6 @@ ui <- navbarPage(
       title = "Graphs",
       tabsetPanel(id = "tabs"),
       mainPanel(
-        conditionalPanel(
-          condition = "!output.graphs",
-          div(style = "position:absolute; top: 10px; right: 10px;", "Loading...", style = "font-size: 29px;") # nolint: line_length_linter.
-        ),
       )
     ),
     tabPanel(
