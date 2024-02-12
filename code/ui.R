@@ -127,7 +127,9 @@ ui <- navbarPage(
     title = "Analysis",
     tabPanel(
       title = "Graphs",
-      tabsetPanel(id = "tabs")
+      tabsetPanel(id = "tabs"),
+      mainPanel(
+      )
     ),
     tabPanel(
       title = "Fit",
