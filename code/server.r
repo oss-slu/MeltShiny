@@ -266,19 +266,17 @@ server <- function(input, output, session) {
   )
 
   # Update the example information in the nucleic acid/ extinction coefficient text box depending on user choice
-  observe({
-    if (input$dataTypeID == "Nucleic Acid Sequence") {
-      updateTextInput(session, "helixID", placeholder = "E.g: RNA", label = "Specify nucleic acid type")
-      updateTextInput(session, "seqID", placeholder = "disabled")
+  observe(
+    if (input$extinctConDecisionID == "Nucleic acid sequence(s)") {
+      updateTextInput(session, "helixID", placeholder = "E.g: RNA",label = "Specify nucelic acid type")
+      updateTextInput(session, "seqID", placeholder = "E.g: CGAAAGGU,ACCUUUCG",label="Specify sequences")
       enable("helixID")
-      disable("seqID")
-    } else if (input$dataTypeID == "Custom Molar Extinction Coefficients") {
-      updateTextInput(session, "helixID", placeholder = "disabled", label = "Specify nucleic acid type")
-      updateTextInput(session, "seqID", placeholder = "E.g: Custom, 10000, 20000")
+    } else if (input$extinctConDecisionID == "Custom molar extinction coefficients") {
+      updateTextInput(session, "seqID", placeholder = "E.g: Custom, 10000, 20000",label="Specify coefficients")
+      updateTextInput(session, "helixID", placeholder = "Disabled")
       disable("helixID")
-      enable("seqID")
     }
-  })
+  )
 
   # Only activate the checkbox for weighted tm if method 2 and nls are selected
   observe(

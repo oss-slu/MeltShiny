@@ -47,23 +47,24 @@ ui <- navbarPage(
               value = 90,
               inputId = "temperatureID"
             ),
-           hr(style = "border-top: 1px solid #000000;"),
+            hr(style = "border-top: 1px solid #000000;"),
             selectInput(
-            inputId = "dataTypeID",
-            label = "Choose Data Type",
-            choices = c("Nucleic Acid Sequence", "Custom Molar Extinction Coefficients"),
-            selected = "Nucleic Acid Sequence"
+              label = "Specify nucelic acid type",
+              choices = c("RNA","DNA"),
+              selected = "RNA",
+              inputId = "helixID"
             ),
+            hr(style = "border-top: 1px solid #000000;"),
             textInput(
-            label = "Specify Nucleic Acid Sequence",
-            placeholder = "E.g: RNA,CGAAAGGU,ACCUUUCG",
-            inputId = "helixID"
+              label = "Specify sequences",
+              placeholder  = "E.g: CGAAAGGU,ACCUUUCG",
+              inputId = "seqID"
             ),
-            textInput(
-            label = "Specify coefficients",
-            placeholder = "E.g: Custom, 10000,20000",
-            inputId = "seqID"
-            
+            radioButtons(
+              inputId = "extinctConDecisionID",
+              label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually", # nolint
+              choices = c("Nucleic acid sequence(s)", "Custom molar extinction coefficients"), # nolint
+              selected = "Nucleic acid sequence(s)"
             ),
             hr(style = "border-top: 1px solid #000000;"),
             checkboxGroupInput(
