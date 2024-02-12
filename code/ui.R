@@ -50,7 +50,7 @@ ui <- navbarPage(
             hr(style = "border-top: 1px solid #000000;"),
             selectInput(
               label = "Specify nucelic acid type",
-              choices = c("RNA","DNA"), #nolint
+              choices = c("RNA","DNA"),
               selected = "RNA",
               inputId = "helixID"
             ),
