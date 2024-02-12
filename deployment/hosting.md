@@ -23,7 +23,15 @@ This guide provides step-by-step instructions on how to publish a Shiny applicat
      ```
    - Confirm the directory change with `getwd()`.
 
-2. **Run the Shiny Application:**
+2. **Install Shiny:**
+
+   - Install MeltShiny into your R session in order to run the application.
+     ```R
+     install.packages("shiny")
+     library("shiny")
+     ```
+
+3. **Run the Shiny Application:**
    - Use the `runApp()` command to start your Shiny application locally.
    - Ensure your application runs without any errors.
 
@@ -32,12 +40,15 @@ This guide provides step-by-step instructions on how to publish a Shiny applicat
 1. **Publish Application:**
 
    - In RStudio, click the 'Publish' button located in the top right corner of the application window after it is running.
+   - ![corner image](./assets/corner.png)
 
 2. **Add shinyapps.io Account:**
 
    - In the popup window that emerges, select 'Add New Account'.
+   - ![publish image](./assets/publish.png)
    - Enter your shinyapps.io account details.
    - Apply the secret token you copied earlier.
+   - ![connect image](./assets/connect.png)
 
 3. **Complete the Publishing Process:**
    - Follow the prompts to publish your project to shinyapps.io.

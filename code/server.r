@@ -38,7 +38,7 @@ server <- function(input, output, session) {
           ))
         }
       }
-      if (input$pathlengthID == "" || input$helixID == "" || input$blankSampleID == "" || input$temperatureID == "") {
+      if (input$pathlengthID == "" || (input$helixID == ""&& input$seqID=="") || input$blankSampleID == "" || input$temperatureID == "") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Missing Inputs",
@@ -189,11 +189,28 @@ server <- function(input, output, session) {
     }
   )
 
+
+
   # Once all datasets have been uploaded, create the MeltR object and derive necessary information
   observeEvent(
     eventExpr = input$datasetsUploadedID,
     handlerExpr = {
       if (input$datasetsUploadedID == TRUE) {
+        disable(selector = '.navbar-nav a[data-value="Help"')
+        disable(selector = '.navbar-nav a[data-value="File"')
+        disable("blankSampleID")
+        disable("pathlengthID")
+        disable("inputFileID")
+        disable("datasetsUploadedID")
+        disable("noBlanksID")
+        disable("uploadData")
+        Sys.sleep(5)
+        enable(selector = '.navbar-nav a[data-value="Help"')
+        enable(selector = '.navbar-nav a[data-value="File"')
+      }
+      
+      if (input$datasetsUploadedID == TRUE) {
+
         # Send stored input values to the connecter class to create a MeltR object
         myConnecter <<- connecter(
           df = masterFrame,
@@ -347,15 +364,19 @@ server <- function(input, output, session) {
                         checkboxInput(inputId = paste0("firstDerivative", i), label = "Show derivative"),
                       ),
                       mainPanel(
-                        # conditionalPanel(
-                        #   condition = "loadStatus()",
-                        #   tags$div(
-                        #     id = "loading",
-                        #     h5("Loading..."),
-                        #   )
-                        # ),
+                        conditionalPanel(
+                          condition = "output.plotBoth1 == null",
+                          h3("Loading..."),
+                          tags$script(
+                            "$(document).ready(function() {
+                              setTimeout(function() {
+                                $('h3:contains(\"Loading...\")').remove();
+                              }, 1500);
+                            });"
+                          )
+                        ),
                         plotlyOutput(paste0("plotBoth", i)),
-                        textOutput(paste0("xrange", i))
+                        # plotlyOutput(paste0("plotBoth", i)),
                       )
                     )
                   )
@@ -388,6 +409,7 @@ server <- function(input, output, session) {
             xRange[[i]][2] <<- suppressWarnings(round(max(bestFitXData[[i]])))
             local({
               myI <- i
+
               output[[paste0("plotBoth", myI)]] <- renderPlotly({
                 analysisPlot <- myConnecter$constructAllPlots(myI)
                 if (input[[paste0("bestFit", myI)]] == TRUE) {
@@ -396,6 +418,7 @@ server <- function(input, output, session) {
                 if (input[[paste0("firstDerivative", myI)]] == TRUE) {
                   analysisPlot <- analysisPlot %>% add_trace(x = derivativeXData[[myI]], y = derivativeYData[[myI]], marker = list(color = "green"))
                 }
+                
                 analysisPlot
               })
               observeEvent(event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event")), {
@@ -435,7 +458,7 @@ server <- function(input, output, session) {
         annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
         theme(plot.title = element_text(hjust = 0.5))
 
-        removeUI(selector = "#vantLoading")
+        # removeUI(selector = "#vantLoading")
       vantGgPlot
     }
   })

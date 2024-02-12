@@ -16,8 +16,9 @@ cd %SCRIPT_DIR%
 for %%a in (%PROGRAM_DIR%) do set PROGRAM_NAME=%%~nxa
 
 :: Check if the program directory is named 'MeltWin2.0-main'
-if /I not "%PROGRAM_NAME%"=="MeltWin2.0-main" (
-    echo Error: The parent directory is not 'MeltWin2.0-main'! Exiting...
+:: -main signifies this was locally installed by a user from the repository.
+if /I not "%PROGRAM_NAME%"=="MeltShiny-main" (
+    echo Error: The parent directory is not 'MeltShiny-main'! Exiting...
     pause
     exit /b 1
 )
