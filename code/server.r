@@ -169,6 +169,7 @@ server <- function(input, output, session) {
         readings <- ncol(noNAData)
 
         # Append each each individual processed dataset into one that holds all the datasets
+        # This is where the pathlengths input is taken from the input, but we need to gather it from the data
         p <- 1
         for (x in 2:readings) {
           col <- noNAData[x]
