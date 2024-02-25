@@ -38,7 +38,7 @@ server <- function(input, output, session) {
           ))
         }
       }
-      if (input$pathlengthID == "" || (input$helixID == ""&& input$seqID=="") || input$blankSampleID == "" || input$temperatureID == "") {
+      if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "" || input$temperatureID == "") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Missing Inputs",
@@ -93,9 +93,6 @@ server <- function(input, output, session) {
 
         # Verify that inputs are valid to display graph
         is_valid_input <<- TRUE
-
-        # Store the pathlength information
-        pathlengthInputs <- c(unlist(strsplit(gsub(" ", "", input$pathlengthID), ",")))
 
         # Store the wavelength information
         wavelengthVal <<- input$wavelengthID
@@ -167,19 +164,18 @@ server <- function(input, output, session) {
         tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
         colnames(tempFrame) <- columns
         readings <- ncol(noNAData)
+        filePathlengths <- preProcessedData[, 1]
 
         # Append each each individual processed dataset into one that holds all the datasets
         # This is where the pathlengths input is taken from the input, but we need to gather it from the data
-        p <- 1
         for (x in 2:readings) {
           col <- noNAData[x]
           sample <- rep(c(counter), times = nrow(noNAData[x]))
-          pathlength <- rep(c(as.numeric(pathlengthInputs[p])), times = nrow(noNAData[x]))
+          pathlength <- filePathlengths
           col <- noNAData[x]
           t <- data.frame(sample, pathlength, noNAData[1], noNAData[x])
           names(t) <- names(tempFrame)
           tempFrame <- rbind(tempFrame, t)
-          p <- p + 1
           counter <<- counter + 1
         }
         dataList <<- append(dataList, list(tempFrame))
@@ -200,7 +196,6 @@ server <- function(input, output, session) {
         disable(selector = '.navbar-nav a[data-value="Help"')
         disable(selector = '.navbar-nav a[data-value="File"')
         disable("blankSampleID")
-        disable("pathlengthID")
         disable("inputFileID")
         disable("datasetsUploadedID")
         disable("noBlanksID")
@@ -245,7 +240,6 @@ server <- function(input, output, session) {
     handlerExpr = {
       if (input$datasetsUploadedID == TRUE) {
         disable("blankSampleID")
-        disable("pathlengthID")
         disable("inputFileID")
         disable("datasetsUploadedID")
         disable("noBlanksID")
