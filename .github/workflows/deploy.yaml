@@ -1,8 +1,8 @@
 name: Deploy to shinyapps.io
 
 on:
-  schedule:
-    - cron: '10 16 * * 1/2'  # Every 2 weeks on Monday at 16:10 
+  push:
+    branches: [ main, master ]
 
 jobs:
   deploy:
