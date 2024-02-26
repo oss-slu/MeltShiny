@@ -29,12 +29,6 @@ ui <- navbarPage(
               inputId = "noBlanksID"
             ),
             hr(style = "border-top: 1px solid #000000;"),
-            textInput(
-              label = "Enter the pathlengths",
-              placeholder = "E.g: 2,5,3,2",
-              inputId = "pathlengthID"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
             selectInput(
               label = "Select the wavelengthID",
               choices = c("300", "295", "290", "285", "280", "275", "270", "265", "260", "255", "250", "245", "240", "235", "230"), # nolint
