@@ -91,6 +91,12 @@ server <- function(input, output, session) {
       # If there are no errors in the inputs, proceed with file upload and processing
       else {
 
+        masterFrame <- NULL
+        dataList <- list()
+        numUploads <- 0
+        counter <<- 1
+        numSamples <- NULL
+
         # Verify that inputs are valid to display graph
         is_valid_input <<- TRUE
 
@@ -341,6 +347,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = input$datasetsUploadedID,
     handlerExpr = {
+      start <<- 1
       if (input$datasetsUploadedID == TRUE) {
         lapply(
           start:numSamples,
