@@ -188,6 +188,9 @@ server <- function(input, output, session) {
         numUploads <<- numUploads + 1
         numSamples <<- counter - 1
         masterFrame <<- rbind(masterFrame, tempFrame)
+
+        # automatically check datasetsuploaded checkbox post-processing
+        updateCheckboxInput(session, "datasetsUploadedID", value = TRUE)
       }
     }
   )
