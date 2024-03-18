@@ -1,0 +1,25 @@
+name: Deploy to shinyapps.io
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # - name: Build Docker image
+    #   run: |
+    #     docker build -t myapp .
+
+    # - name: Deploy to shinyapps.io
+    #   env:
+    #     SHINYAPPS_TOKEN: ${{ secrets.SHINYAPPS_TOKEN }}
+    #   run: |
+    #     docker push myapp:latest
+    #     rsconnect::deployApp(appDir = "path/to/your/app/directory", server = "shinyapps.io", account = "your-shinyapps-username")
+    #     rsconnect::deployApp(appName = "myapp", server = "shinyapps.io", account = "your-shinyapps-username")
