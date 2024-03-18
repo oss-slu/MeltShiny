@@ -385,6 +385,18 @@ server <- function(input, output, session) {
     }
   )
 
+  observeEvent(
+    eventExpr = input$seqHelp,
+    handlerExpr = {
+      showModal(modalDialog(
+          title = "Help for Specify Sequences",
+          "placeholder text for input sequences help",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+    }
+  )
   # Dynamically create the analysis plot for each of the n sample tabs
   observeEvent(
     eventExpr = input$datasetsUploadedID,

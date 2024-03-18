@@ -61,6 +61,11 @@ ui <- navbarPage(
               placeholder  = "E.g: CGAAAGGU,ACCUUUCG",
               inputId = "seqID"
             ),
+            actionButton(
+              inputId = "seqHelp",
+              icon("question"),
+            ),
+            hr(style = "border-top: 1px solid #000000;"),
             radioButtons(
               inputId = "extinctConDecisionID",
               label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually", # nolint
