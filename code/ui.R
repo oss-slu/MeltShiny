@@ -18,6 +18,13 @@ ui <- navbarPage(
           sidebarPanel(
             useShinyjs(),
             inlineCSS(css),
+            fileInput(
+              label = "Select the dataset file",
+              multiple = FALSE,
+              accept = ".csv",
+              inputId = "inputFileID"
+            ),
+            hr(style = "border-top: 1px solid #000000;"),
             textInput(
               label = "Enter the blank",
               value = 1,
@@ -30,7 +37,7 @@ ui <- navbarPage(
             ),
             hr(style = "border-top: 1px solid #000000;"),
             selectInput(
-              label = "Select the wavelengthID",
+              label = "Select the wavelength",
               choices = c("300", "295", "290", "285", "280", "275", "270", "265", "260", "255", "250", "245", "240", "235", "230"), # nolint
               selected = "260",
               inputId = "wavelengthID"
@@ -54,6 +61,11 @@ ui <- navbarPage(
               placeholder  = "E.g: CGAAAGGU,ACCUUUCG",
               inputId = "seqID"
             ),
+            actionButton(
+              inputId = "seqHelp",
+              icon("question"),
+            ),
+            hr(style = "border-top: 1px solid #000000;"),
             radioButtons(
               inputId = "extinctConDecisionID",
               label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually", # nolint
@@ -91,13 +103,6 @@ ui <- navbarPage(
               choices = c("Heteroduplex", "Homoduplex", "Monomolecular"),
               selected = "Heteroduplex",
               inputId = "molecularStateID"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            fileInput(
-              label = "Select the dataset file",
-              multiple = FALSE,
-              accept = ".csv",
-              inputId = "inputFileID"
             ),
             hr(style = "border-top: 1px solid #000000;"),
             actionButton(
