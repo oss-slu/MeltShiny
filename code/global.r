@@ -111,6 +111,7 @@ connecter <- setRefClass(
 
     # Construct the analysis plot
     constructAllPlots = function(sampleNum) {
+      logInfo(sprintf("RENDERING ANALYSIS PLOT #%s", sampleNum))
       data <- .self$object$Derivatives.data[.self$object$Derivatives.data == sampleNum, ]
       data2 <- .self$object$Method.1.data[.self$object$Method.1.data$Sample == sampleNum, ]
       coeff <- 4000 # Static number to shrink data to scale
@@ -192,3 +193,10 @@ connecter <- setRefClass(
     }
   )
 )
+
+logInfo <- function(message) {
+  timestamp <- format(Sys.time(), "[%Y-%m-%d %H:%M:%S]")
+  level <- "INFO"
+  log <- paste(timestamp, level, message, sep=" | ")
+  cat(log, "\n") # Print the log message with a newline at the end
+}
