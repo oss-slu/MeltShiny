@@ -160,6 +160,10 @@ server <- function(input, output, session) {
         disable("weightedTmID")
         disable("extinctConDecisionID")
 
+        #marked for changes next sprint because file format was far different than
+        #the one we have been using for the entire project
+        #line 168-190ish
+
         # Open the uploaded file and remove any columns/rows with NA's
         fileName <- input$inputFileID$datapath
         preProcessedData <- read.csv(file = fileName, header = FALSE)
