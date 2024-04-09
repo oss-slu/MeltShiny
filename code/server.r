@@ -25,6 +25,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = input$uploadData,
     handlerExpr = {
+      logInfo("CHECKING PROGRAM INPUTS")
       # Error checking
       if (input$noBlanksID == FALSE) {
         if (can_convert_to_int(input$blankSampleID) == FALSE) {
@@ -90,6 +91,7 @@ server <- function(input, output, session) {
 
       # If there are no errors in the inputs, proceed with file upload and processing
       else {
+        logInfo("VALID INPUT")
 
         masterFrame <- NULL
         dataList <- list()
@@ -219,7 +221,7 @@ server <- function(input, output, session) {
       }
       
       if (input$datasetsUploadedID == TRUE) {
-
+        logInfo("CREATING MELTR OBJECT")
         # Send stored input values to the connecter class to create a MeltR object
         myConnecter <<- connecter(
           df = masterFrame,
@@ -299,6 +301,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = input$uploadData,
     handlerExpr = {
+      logInfo("DISPLAYING UPLOADED DATASET")
       if(is_valid_input) {
       divID <- toString(numUploads)
       dtID <- paste0(divID, "DT")
@@ -343,6 +346,7 @@ server <- function(input, output, session) {
         disable(selector = '.navbar-nav a[data-value="Analysis"')
         disable(selector = '.navbar-nav a[data-value="Results"')
       } else {
+        logInfo('PROCESSING COMPLETE')
         enable(selector = '.navbar-nav a[data-value="Analysis"')
         enable(selector = '.navbar-nav a[data-value="Results"')
       }
@@ -451,6 +455,7 @@ server <- function(input, output, session) {
             })
           }
         }
+        logInfo("ANALYSIS PLOTS RENDERED ")
       }
     }
   )
@@ -459,6 +464,7 @@ server <- function(input, output, session) {
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
   output$vantPlot <- renderPlot({
     if (chosenMethods[2] == TRUE) {
+      logInfo("VAN'T HOFF RENDERED")
       # Store the points that are kept vs excluded
       keep <- vantData[vals$keeprows, , drop = FALSE]
       exclude <- vantData[!vals$keeprows, , drop = FALSE]
@@ -587,6 +593,7 @@ server <- function(input, output, session) {
         ),
         escape = F
       )
+      logInfo('RESULTS TABLE RENDERED')
   })
   output$methodSummaryTable <- renderTable({
     summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData1())
