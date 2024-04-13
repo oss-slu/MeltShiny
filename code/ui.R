@@ -26,7 +26,7 @@ ui <- navbarPage(
             ),
             hr(style = "border-top: 1px solid #000000;"),
             textInput(
-              label = "Enter the blank",
+              label = "Sample number of blank",
               value = 1,
               inputId = "blankSampleID"
             ),
