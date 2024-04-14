@@ -11,18 +11,10 @@ COPY code/server.r /server.r
 COPY code/ui.R /ui.R
 COPY code/deploy.R /deploy.R
 
-
-# # Expose the port that Shiny Server listens on. This is the default port for Shiny applications.
-# EXPOSE 3838
-
-# RUN apt-get update && \
-#     DEBIAN_FRONTEND=noninteractive apt-get -qq install libssl-dev
-
-# RUN Rscript /code/install.R
-
 CMD Rscript deploy.R
 
 
+# To test the Docker image, you can run the following commands:
 # Go to root directory and run `docker build -t meltshiny .` to build the Docker image
 # Then do `docker run --network host meltshiny` to run the container
 # It will show the IP address to go to in the terminal. Copy and paste in firefox or chrome browser.
