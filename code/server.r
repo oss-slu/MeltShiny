@@ -168,7 +168,7 @@ server <- function(input, output, session) {
 
         # Open the uploaded file and remove any columns/rows with NA's
         fileName <- input$inputFileID$datapath
-        preProcessedData <- read.csv(file = fileName, header = TRUE)
+        preProcessedData <- read.csv(file = fileName, header = FALSE)
         noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
 
         # Create temporary data frame in a format acceptable to meltR and store data from an uploaded dataset
@@ -180,20 +180,22 @@ server <- function(input, output, session) {
 
         # Append each each individual processed dataset into one that holds all the datasets
         # This is where the pathlengths input is taken from the input, but we need to gather it from the data
-        for (x in 2:readings) {
-          col <- noNAData[x]
-          sample <- rep(c(counter), times = nrow(noNAData[x]))
-          pathlength <- filePathlengths
-          col <- noNAData[x]
-          t <- data.frame(sample, pathlength, noNAData[1], noNAData[x])
-          names(t) <- names(tempFrame)
-          tempFrame <- rbind(tempFrame, t)
-          counter <<- counter + 1
-        }
-        dataList <<- append(dataList, list(tempFrame))
+        #for (x in 2:readings) {
+        #  col <- noNAData[x]
+        # sample <- rep(c(counter), times = nrow(noNAData[x]))
+        #  pathlength <- filePathlengths
+        #  col <- noNAData[x]
+        #  t <- data.frame(sample, pathlength, noNAData[1], noNAData[x])
+        #  names(t) <- names(tempFrame)
+        #  tempFrame <- rbind(tempFrame, t)
+        #  counter <<- counter + 1
+        #}
+        dataList <<- list(preProcessedData)
         numUploads <<- numUploads + 1
-        numSamples <<- counter - 1
-        masterFrame <<- rbind(masterFrame, tempFrame)
+        numSamples <<- 9
+        #masterFrame <<- rbind(masterFrame, tempFrame)
+        masterFrame <<- preProcessedData
+        logInfo("DATASET ACCEPTED")
 
         # automatically check datasetsuploaded checkbox post-processing
         updateCheckboxInput(session, "datasetsUploadedID", value = TRUE)
