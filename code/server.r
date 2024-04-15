@@ -168,7 +168,7 @@ server <- function(input, output, session) {
 
         # Open the uploaded file and remove any columns/rows with NA's
         fileName <- input$inputFileID$datapath
-        preProcessedData <- read.csv(file = fileName, header = FALSE)
+        preProcessedData <- read.csv(file = fileName, header = TRUE)
         noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
 
         # Create temporary data frame in a format acceptable to meltR and store data from an uploaded dataset
