@@ -168,21 +168,21 @@ server <- function(input, output, session) {
 
         # Open the uploaded file and remove any columns/rows with NA's
         fileName <- input$inputFileID$datapath
-        preProcessedData <- read.csv(file = fileName, header = FALSE)
-        noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
+        preProcessedData <- read.csv(file = fileName, header = TRUE)
+        #noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
 
         # Create temporary data frame in a format acceptable to meltR and store data from an uploaded dataset
-        columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
-        tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
-        colnames(tempFrame) <- columns
-        readings <- ncol(noNAData)
-        filePathlengths <- preProcessedData[, 1]
+        #columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
+        #tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
+        #colnames(tempFrame) <- columns
+        #readings <- ncol(noNAData)
+        #filePathlengths <- preProcessedData[, 1]
 
         # Append each each individual processed dataset into one that holds all the datasets
         # This is where the pathlengths input is taken from the input, but we need to gather it from the data
         #for (x in 2:readings) {
         #  col <- noNAData[x]
-        # sample <- rep(c(counter), times = nrow(noNAData[x]))
+        #  sample <- rep(c(counter), times = nrow(noNAData[x]))
         #  pathlength <- filePathlengths
         #  col <- noNAData[x]
         #  t <- data.frame(sample, pathlength, noNAData[1], noNAData[x])
@@ -192,7 +192,7 @@ server <- function(input, output, session) {
         #}
         dataList <<- list(preProcessedData)
         numUploads <<- numUploads + 1
-        numSamples <<- 9
+        numSamples <<- max(preProcessedData[, 1])
         #masterFrame <<- rbind(masterFrame, tempFrame)
         masterFrame <<- preProcessedData
         logInfo("DATASET ACCEPTED")
@@ -432,8 +432,8 @@ server <- function(input, output, session) {
         # Create plots
         for (i in 1:numSamples) {
           if (i != blankInt) {
-            xRange[[i]][1] <<- suppressWarnings(round(min(bestFitXData[[i]])))
-            xRange[[i]][2] <<- suppressWarnings(round(max(bestFitXData[[i]])))
+            xRange[[i]][1] <<- suppressWarnings(round(as.numeric(min(bestFitXData[[i]]))))
+            xRange[[i]][2] <<- suppressWarnings(round(as.numeric(max(bestFitXData[[i]]))))
             local({
               myI <- i
 
@@ -451,7 +451,7 @@ server <- function(input, output, session) {
               observeEvent(event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event")), {
                 xRange[[myI]] <<- event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event"))$xaxis.range[1:2]
                 output[[paste0("xrange", myI)]] <- renderText({
-                  paste0(" x-range: [", round(xRange[[myI]][1], 2), ", ", round(xRange[[myI]][2], 2), "]")
+                  paste0(" x-range: [", round(as.numeric(xRange[[myI]][1], 2)), ", ", round(as.numeric(xRange[[myI]][2], 2), "]"))
                 })
               })
             })
@@ -526,12 +526,16 @@ server <- function(input, output, session) {
 
   # Function for dynamically creating the delete button for each row on the individual fits table
   shinyInput <- function(FUN, len, id, ...) {
+    if (!is.numeric(len) || len <= 0) {
+        return(character(0))
+    }
     inputs <- character(len)
     for (i in seq_len(len)) {
-      inputs[i] <- as.character(FUN(paste0(id, i), ...))
+        inputs[i] <- as.character(FUN(paste0(id, i), ...))
     }
     inputs
   }
+
 
   # Calls function to create delete buttons and add IDs for each row in the individual fits table
   getListUnder <- reactive({
