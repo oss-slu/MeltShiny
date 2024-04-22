@@ -1,7 +1,6 @@
 library(rsconnect)
 
-# A function to stop the script when one of the variables cannot be found
-# and to strip quotation marks from the secrets when you supplied them
+# A function to stop the script when one of the variables cannot be found and to strip quotation marks from the secrets when you supplied them
 error_on_missing_name <- function(name) {
   var <- Sys.getenv(name, unset = NA)
   if(is.na(var)) {

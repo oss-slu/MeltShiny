@@ -12,14 +12,19 @@ on:
     types:
       - completed
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allows you to run this workflow manually from the Actions tab. This is incase something needs to be updated ASAP.
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+  # Run the workflow every week on Monday at 11:59 PM
+  schedule:
+    - cron: '59 23 * * 1'
+
+# RUNNING THE DEPLOYMENT
 jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
+    # If this ever breaks down, you can make it Ubuntu-lastest
     runs-on: Ubuntu-20.04
 
     # Steps represent a sequence of tasks that will be executed as part of the job
