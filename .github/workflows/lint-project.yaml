@@ -6,27 +6,27 @@
 # # https://github.com/github/super-linter
 # name: Lint Code Base
 
-# on:
-#   push:
-#     branches: [ "main" ]
-#   pull_request:
-#     branches: [ "main" ]
-# jobs:
-#   run-lint:
-#     env:
-#       VALIDATE_ALL_CODEBASE: false
-#       VALIDATE_R: true
-#       VALIDATE_PYTHON: true
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
-#         with:
-#           # Full git history is needed to get a proper list of changed files within `super-linter`
-#           fetch-depth: 0
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  run-lint:
+    env:
+      VALIDATE_ALL_CODEBASE: false
+      VALIDATE_R: true
+      VALIDATE_PYTHON: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
 
-#       - name: Install Dependencies
-#         run: npm install -g prettier
+      - name: Install Dependencies
+        run: npm install -g prettier
 
 #       - name: Run prettier for R
 #         run: prettier --write "**/*.R"
