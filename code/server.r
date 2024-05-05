@@ -168,7 +168,7 @@ server <- function(input, output, session) {
 
         # Open the uploaded file and remove any columns/rows with NA's
         fileName <- input$inputFileID$datapath
-        preProcessedData <- read.csv(file = fileName, header = TRUE)
+        preProcessedData <- read.csv(file = fileName, header = FALSE)
         #noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
 
         # Create temporary data frame in a format acceptable to meltR and store data from an uploaded dataset
@@ -178,6 +178,8 @@ server <- function(input, output, session) {
         #readings <- ncol(noNAData)
         #filePathlengths <- preProcessedData[, 1]
 
+        newDat <- preProcessedData[2:nrow(preProcessedData), ]
+        colnames(newDat) <- c("Sample", "Pathlength", "Temperature", "Absorbance")
         # Append each each individual processed dataset into one that holds all the datasets
         # This is where the pathlengths input is taken from the input, but we need to gather it from the data
         #for (x in 2:readings) {
@@ -192,12 +194,14 @@ server <- function(input, output, session) {
         #}
         dataList <<- list(preProcessedData)
         numUploads <<- numUploads + 1
-        numSamples <<- max(preProcessedData[, 1])
-        #masterFrame <<- rbind(masterFrame, tempFrame)
-        masterFrame <<- preProcessedData
+        numSamples <<- 9
+        masterFrame <<- rbind(masterFrame, newDat)
+        
+        masterFrame <<- newDat
+        
         logInfo("DATASET ACCEPTED")
 
-        # automatically check datasetsuploaded checkbox post-processing
+        # automatically check datasets uploaded checkbox post-processing
         updateCheckboxInput(session, "datasetsUploadedID", value = TRUE)
       }
     }
