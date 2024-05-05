@@ -27,7 +27,7 @@ jobs:
           styler::style_dir("code")
         shell: Rscript {0}
 
-      # Lint R files. The errors will be displayed in the GitHub Actions logs under "Lint R files"
+      # Lint R files. The number of and specific errors will be displayed in the GitHub Actions logs under "Lint R files"
       - name: Lint R files
         run: |
           lint_results <- lintr::lint_dir("code")
@@ -35,6 +35,7 @@ jobs:
             warning("Linting issues found:", call. = FALSE)
             print(lint_results)
           }
+          cat("Number of possible errors:", length(lint_results), "\n")
         shell: Rscript {0}
 
 # There are many errors in the /code.
