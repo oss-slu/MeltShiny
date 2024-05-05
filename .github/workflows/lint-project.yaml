@@ -1,40 +1,44 @@
-# # This workflow executes several linters on changed files based on languages used in your code base whenever
-# # you push a code or open a pull request.
-# #
-# # You can adjust the behavior by modifying this file.
-# # For more information, see:
-# # https://github.com/github/super-linter
-# name: Lint Code Base
+name: Format and Lint R Code
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
 jobs:
-  run-lint:
-    env:
-      VALIDATE_ALL_CODEBASE: false
-      VALIDATE_R: true
-      VALIDATE_PYTHON: true
+  format-and-lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
 
-      - name: Install Dependencies
-        run: npm install -g prettier
+      - uses: r-lib/actions/setup-r@v2
 
-#       - name: Run prettier for R
-#         run: prettier --write "**/*.R"
-        
+      - name: Install styler and lintr
+        run: |
+          install.packages(c('styler', 'lintr'))
+        shell: Rscript {0}
 
-#       - name: Lint Code Base
-#         uses: github/super-linter@v4
-#         env:
-#           VALIDATE_ALL_CODEBASE: false
-#           DEFAULT_BRANCH: "main"
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Format R files
+        run: |
+          styler::style_dir("code")
+        shell: Rscript {0}
+
+      # Lint R files. The errors will be displayed in the GitHub Actions logs under "Lint R files"
+      - name: Lint R files
+        run: |
+          lint_results <- lintr::lint_dir("code")
+          if (length(lint_results) > 0) {
+            warning("Linting issues found:", call. = FALSE)
+            print(lint_results)
+          }
+        shell: Rscript {0}
+
+# There are many errors in the /code.
+      # You can also run the linter locally: 
+      #   1. Go to your terminal and travel to the root of the project.
+      #   2. Run the following command: Rscript -e "lintr::lint_dir('code')"
+      # This will display all the linting problems in the /code directory.
