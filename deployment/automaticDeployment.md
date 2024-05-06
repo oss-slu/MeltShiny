@@ -4,6 +4,7 @@ This provides information for the CI/CD pipeline for the automatic deployment of
 
 1. **dockerfile**
     Create a dockerfile. Inside the dockerfile use `FROM rocker/shiny:latest` to use a Shiny Server pre-installed image. You cannot run the dockerfile with an Apple Silicon chip as the rocker image is not compatible. For testing, make sure it is done on Linux. Additional testing notes are added in the dockerfile. See `dockerfile` for more info. 
+
 2. **deploy.R script**   
     This is the script that the dockerfile commands after it is activated in the deploy-shiny.yaml. the error_on_missing_name function is a function that strips quotation marks to make sure that the account info is correct. 
 
@@ -26,3 +27,6 @@ This provides information for the CI/CD pipeline for the automatic deployment of
     2. Once it builds the dockerfile image, it runs the `CMD Rscript deploy.R`. This triggers the "deploy.R script that is contained within the dockerfile, and with the github secret information provided in the workflow, it deploys the app. 
 
     Remember, the deploy.r relies on the dockerfile to execute, and the dockerfile relies on the github workflow.
+
+5. **Questions or Help**
+    Reach out to me on github (MassiPapi) or slack for any confusion or help.
