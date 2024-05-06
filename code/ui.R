@@ -97,6 +97,10 @@ ui <- navbarPage(
               value = FALSE,
               inputId = "weightedTmID"
             ),
+            actionButton(
+              inputId = "tmHelp",
+              icon("question"),
+            ),
             hr(style = "border-top: 1px solid #000000;"),
             selectInput(
               label = "Select the molecular state",

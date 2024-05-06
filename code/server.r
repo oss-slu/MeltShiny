@@ -415,6 +415,19 @@ server <- function(input, output, session) {
         ))
     }
   )
+
+  observeEvent(
+    eventExpr = input$tmHelp,
+    handlerExpr = {
+      showModal(modalDialog(
+          title = "Help for TM Methods",
+          "placeholder text for tm methods help",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+    }
+  )
   # Dynamically create the analysis plot for each of the n sample tabs
   observeEvent(
     eventExpr = input$datasetsUploadedID,
