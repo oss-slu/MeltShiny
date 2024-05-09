@@ -1,7 +1,6 @@
-"""
-ui.R is essentially the skeleton of the application and its visual component. 
-It is populated and dynamically changed by server.R
-"""
+# ui.R is essentially the skeleton of the application and its visual component. 
+# It is populated and dynamically changed by server.R
+
 css <- "
 .nav li a.disabled {
 background-color: #D4D4D4 !important;
