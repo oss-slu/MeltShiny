@@ -1,6 +1,5 @@
-'''
-Global.r defines global variables/packages/methods that are used throughout the MeltShiny application.
-'''
+# Global.r defines global variables/packages/methods that are used throughout the MeltShiny application.
+
 
 # Declare packages
 library(dplyr)

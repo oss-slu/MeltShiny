@@ -1,6 +1,5 @@
-'''
-deploy.R handles automated deployment for MeltShiny to shinyapps (hosting).
-'''
+# deploy.R handles automated deployment for MeltShiny to shinyapps (hosting).
+
 library(rsconnect)
 
 # A function to stop the script when one of the variables cannot be found and to strip quotation marks from the secrets when you supplied them
