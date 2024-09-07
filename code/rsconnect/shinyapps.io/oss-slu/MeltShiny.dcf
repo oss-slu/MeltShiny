@@ -1,12 +1,12 @@
-name: code
-title: code
+name: MeltShiny
+title: MeltShiny
 username: oss-slu
 account: oss-slu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 11537076
-bundleId: 8392577
-url: https://oss-slu.shinyapps.io/code/
+appId: 11559856
+bundleId: 8403104
+url: https://oss-slu.shinyapps.io/MeltShiny/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
