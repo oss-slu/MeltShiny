@@ -99,7 +99,8 @@ server <- function(input, output, session) {
         masterFrame <- NULL
         dataList <- list()
         numUploads <- 0
-        numSamples <- 0
+        counter <<- 1
+        numSamples <- NULL
 
         # Verify that inputs are valid to display graph
         is_valid_input <<- TRUE
@@ -164,17 +165,38 @@ server <- function(input, output, session) {
         disable("weightedTmID")
         disable("extinctConDecisionID")
 
-        # Open the uploaded file
+        #marked for changes next sprint because file format was far different than
+        #the one we have been using for the entire project
+        #line 168-190ish
+
+        # Open the uploaded file and remove any columns/rows with NA's
         fileName <- input$inputFileID$datapath
-        raw_data <- read.csv(file = fileName)
+        preProcessedData <- read.csv(file = fileName, header = FALSE)
+        noNAData <- preProcessedData %>% select_if(~ !any(is.na(.)))
 
-        # Sort Sample column from lowest to highest
-        data <- raw_data %>% arrange(Sample)
+        # Create temporary data frame in a format acceptable to meltR and store data from an uploaded dataset
+        columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
+        tempFrame <- data.frame(matrix(nrow = 0, ncol = 4))
+        colnames(tempFrame) <- columns
+        readings <- ncol(noNAData)
+        filePathlengths <- preProcessedData[, 1]
 
-        dataList <<- append(dataList, list(data))
+        # Append each each individual processed dataset into one that holds all the datasets
+        # This is where the pathlengths input is taken from the input, but we need to gather it from the data
+        for (x in 2:readings) {
+          col <- noNAData[x]
+          sample <- rep(c(counter), times = nrow(noNAData[x]))
+          pathlength <- filePathlengths
+          col <- noNAData[x]
+          t <- data.frame(sample, pathlength, noNAData[1], noNAData[x])
+          names(t) <- names(tempFrame)
+          tempFrame <- rbind(tempFrame, t)
+          counter <<- counter + 1
+        }
+        dataList <<- append(dataList, list(tempFrame))
         numUploads <<- numUploads + 1
-        numSamples <<- numSamples + length(unique(data$Sample))
-        masterFrame <<- rbind(masterFrame, data)
+        numSamples <<- counter - 1
+        masterFrame <<- rbind(masterFrame, tempFrame)
 
         # automatically check datasetsuploaded checkbox post-processing
         updateCheckboxInput(session, "datasetsUploadedID", value = TRUE)
