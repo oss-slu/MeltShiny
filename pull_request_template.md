@@ -12,4 +12,8 @@ Fixes #issue_number
 
 *Here, get into detail about what files you modified, and talk about the most important lines in regards to fixing the issue.*
 
+**How was it tested**
+
+*Here, get into detail about how you tested the files you modified.
+
 **Screenshots that show the changes (if applicable):**
