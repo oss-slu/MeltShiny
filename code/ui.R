@@ -12,120 +12,117 @@ ui <- navbarPage(
   title = "MeltShiny",
   theme = shinytheme("flatly"),
   id = "navbarPageID",
-  navbarMenu(
+  tabPanel(
     title = "File",
-    tabPanel(
-      title = "Add Dataset",
-      fluidPage(
-        sidebarLayout(
-          sidebarPanel(
-            useShinyjs(),
-            inlineCSS(css),
-            fileInput(
-              label = "Select the dataset file",
-              multiple = FALSE,
-              accept = ".csv",
-              inputId = "inputFileID"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            textInput(
-              label = "Sample number of blank",
-              value = 1,
-              inputId = "blankSampleID"
-            ),
-            checkboxInput(
-              label = "No Blanks",
-              value = FALSE,
-              inputId = "noBlanksID"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            selectInput(
-              label = "Select the wavelength",
-              choices = c("300", "295", "290", "285", "280", "275", "270", "265", "260", "255", "250", "245", "240", "235", "230"), # nolint
-              selected = "260",
-              inputId = "wavelengthID"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            textInput(
-              label = "Enter the temperature used to calculate the concentration with Beers law", # nolint
-              value = 90,
-              inputId = "temperatureID"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            selectInput(
-              label = "Specify nucelic acid type",
-              choices = c("RNA","DNA"),
-              selected = "RNA",
-              inputId = "helixID"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            textInput(
-              label = "Specify sequences",
-              placeholder  = "E.g: CGAAAGGU,ACCUUUCG",
-              inputId = "seqID"
-            ),
-            actionButton(
-              inputId = "seqHelp",
-              icon("question"),
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            radioButtons(
-              inputId = "extinctConDecisionID",
-              label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually", # nolint
-              choices = c("Nucleic acid sequence(s)", "Custom molar extinction coefficients"), # nolint
-              selected = "Nucleic acid sequence(s)"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            checkboxGroupInput(
-              label = "Optional methods",
-              inputId = "methodsID",
-              choices = list(
-                "Method 2",
-                "Method 3"
-              ),
-              selected = c(
-                "Method 2",
-                "Method 3"
-              )
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            radioButtons(
-              inputId = "Tm_methodID",
-              label = "Choose a Tm method",
-              choices = c("nls", "lm", "polynomial"),
-              selected = "nls"
-            ),
-            checkboxInput(
-              label = "Weighted tm for method 2",
-              value = FALSE,
-              inputId = "weightedTmID"
-            ),
-            actionButton(
-              inputId = "tmHelp",
-              icon("question"),
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            selectInput(
-              label = "Select the molecular state",
-              choices = c("Heteroduplex", "Homoduplex", "Monomolecular"),
-              selected = "Heteroduplex",
-              inputId = "molecularStateID"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            actionButton(
-              label = "Upload Data",
-              inputId = "uploadData"
-            ),
-            hr(style = "border-top: 1px solid #000000;"),
-            checkboxInput(
-              label = "All Datasets Uploaded?",
-              value = FALSE,
-              inputId = "datasetsUploadedID"
-            ),
-            #After all the datasets have been uploaded, the page will freeze before the analysis and results tabs are enabled.
-            
+    fluidPage(
+      sidebarLayout(
+        sidebarPanel(
+          useShinyjs(),
+          inlineCSS(css),
+          fileInput(
+            label = "Select the dataset file",
+            multiple = FALSE,
+            accept = ".csv",
+            inputId = "inputFileID"
           ),
-          mainPanel(tags$div(id = "placeholder"))
+          hr(style = "border-top: 1px solid #000000;"),
+          textInput(
+            label = "Sample number of blank",
+            value = 1,
+            inputId = "blankSampleID"
+          ),
+          checkboxInput(
+            label = "No Blanks",
+            value = FALSE,
+            inputId = "noBlanksID"
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          selectInput(
+            label = "Select the wavelength",
+            choices = c("300", "295", "290", "285", "280", "275", "270", "265", "260", "255", "250", "245", "240", "235", "230"), # nolint
+            selected = "260",
+            inputId = "wavelengthID"
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          textInput(
+            label = "Enter the temperature used to calculate the concentration with Beers law", # nolint
+            value = 90,
+            inputId = "temperatureID"
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          selectInput(
+            label = "Specify nucleic acid type",
+            choices = c("RNA","DNA"),
+            selected = "RNA",
+            inputId = "helixID"
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          textInput(
+            label = "Specify sequences",
+            placeholder = "E.g: CGAAAGGU,ACCUUUCG",
+            inputId = "seqID"
+          ),
+          actionButton(
+            inputId = "seqHelp",
+            icon("question")
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          radioButtons(
+            inputId = "extinctConDecisionID",
+            label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually", # nolint
+            choices = c("Nucleic acid sequence(s)", "Custom molar extinction coefficients"), # nolint
+            selected = "Nucleic acid sequence(s)"
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          checkboxGroupInput(
+            label = "Optional methods",
+            inputId = "methodsID",
+            choices = list(
+              "Method 2",
+              "Method 3"
+            ),
+            selected = c(
+              "Method 2",
+              "Method 3"
+            )
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          radioButtons(
+            inputId = "Tm_methodID",
+            label = "Choose a Tm method",
+            choices = c("nls", "lm", "polynomial"),
+            selected = "nls"
+          ),
+          checkboxInput(
+            label = "Weighted tm for method 2",
+            value = FALSE,
+            inputId = "weightedTmID"
+          ),
+          actionButton(
+            inputId = "tmHelp",
+            icon("question")
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          selectInput(
+            label = "Select the molecular state",
+            choices = c("Heteroduplex", "Homoduplex", "Monomolecular"),
+            selected = "Heteroduplex",
+            inputId = "molecularStateID"
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          actionButton(
+            label = "Upload Data",
+            inputId = "uploadData"
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          checkboxInput(
+            label = "All Datasets Uploaded?",
+            value = FALSE,
+            inputId = "datasetsUploadedID"
+          )
+        ),
+        mainPanel(
+          tags$div(id = "placeholder")
         )
       )
     )
