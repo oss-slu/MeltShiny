@@ -346,7 +346,7 @@ ui <- navbarPage(
         hr(style = "border-top: 1px solid #000000;"),
         h3("EXIT:"),
         hr(style = "border-top: 1px solid #000000;"),
-        HTML("To close the program, close the browser tab. Then close the terminal application.</li>") 
+        HTML("To close the program, close the browser tab. Then close the terminal application.") 
         
       )
     )
