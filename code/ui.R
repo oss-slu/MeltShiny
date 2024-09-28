@@ -112,12 +112,6 @@ ui <- navbarPage(
           actionButton(
             label = "Upload Data",
             inputId = "uploadData"
-          ),
-          hr(style = "border-top: 1px solid #000000;"),
-          checkboxInput(
-            label = "All Datasets Uploaded?",
-            value = FALSE,
-            inputId = "datasetsUploadedID"
           )
         ),
         mainPanel(

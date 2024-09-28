@@ -6,6 +6,13 @@ server <- function(input, output, session) {
   #Declare initial value for data upload button check
   is_valid_input <- FALSE
 
+  #declaring datasetsUploadedID as reactive for upload data button click
+  datasetsUploadedID <- reactiveVal(FALSE)
+
+  observeEvent(input$uploadData, {
+    datasetsUploadedID(TRUE)  # Set the reactive value to TRUE on upload data button click
+  })
+  
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
 
@@ -176,8 +183,7 @@ server <- function(input, output, session) {
         numSamples <<- numSamples + length(unique(data$Sample))
         masterFrame <<- rbind(masterFrame, data)
 
-        # automatically check datasetsuploaded checkbox post-processing
-        updateCheckboxInput(session, "datasetsUploadedID", value = TRUE)
+ 
       }
     }
   )
@@ -186,9 +192,9 @@ server <- function(input, output, session) {
 
   # Once all datasets have been uploaded, create the MeltR object and derive necessary information
   observeEvent(
-    eventExpr = input$datasetsUploadedID,
+    eventExpr = datasetsUploadedID(),
     handlerExpr = {
-      if (input$datasetsUploadedID == TRUE) {
+      if (datasetsUploadedID() == TRUE) {
         disable(selector = '.navbar-nav a[data-value="Help"')
         disable(selector = '.navbar-nav a[data-value="File"')
         disable("blankSampleID")
@@ -201,7 +207,7 @@ server <- function(input, output, session) {
         enable(selector = '.navbar-nav a[data-value="File"')
       }
       
-      if (input$datasetsUploadedID == TRUE) {
+      if (datasetsUploadedID() == TRUE) {
         logInfo("CREATING MELTR OBJECT")
         # Send stored input values to the connecter class to create a MeltR object
         myConnecter <<- connecter(
@@ -232,9 +238,9 @@ server <- function(input, output, session) {
 
   # Disable remaining widgets on "Upload" page when all datasets have been uploaded
   observeEvent(
-    eventExpr = input$datasetsUploadedID,
+    eventExpr = datasetsUploadedID(),
     handlerExpr = {
-      if (input$datasetsUploadedID == TRUE) {
+      if (datasetsUploadedID() == TRUE) {
         disable("blankSampleID")
         disable("inputFileID")
         disable("datasetsUploadedID")
@@ -309,7 +315,7 @@ server <- function(input, output, session) {
 
   # Disable "Van't Hoff" tab when method 2 is unselected
   observeEvent(
-    eventExpr = input$datasetsUploadedID,
+    eventExpr = datasetsUploadedID(),
     handlerExpr = {
       if (chosenMethods[2] == FALSE) {
         disable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
@@ -321,9 +327,9 @@ server <- function(input, output, session) {
 
   # Disable "Analysis" and "Results tabs until all files have successfully been uploaded
   observeEvent(
-    eventExpr = input$datasetsUploadedID,
+    eventExpr = datasetsUploadedID(),
     handlerExpr = {
-      if (input$datasetsUploadedID == FALSE) {
+      if (datasetsUploadedID() == FALSE) {
         disable(selector = '.navbar-nav a[data-value="Analysis"')
         disable(selector = '.navbar-nav a[data-value="Results"')
       } else {
@@ -337,10 +343,10 @@ server <- function(input, output, session) {
   # Dynamically create n tabs (n = number of samples in master data frame) for
   # the "Graphs" page under the "Analysis" navbarmenu.
   observeEvent(
-    eventExpr = input$datasetsUploadedID,
+    eventExpr = datasetsUploadedID(),
     handlerExpr = {
       start <<- 1
-      if (input$datasetsUploadedID == TRUE) {
+      if (datasetsUploadedID() == TRUE) {
         lapply(
           start:numSamples,
           function(i) {
@@ -411,9 +417,9 @@ server <- function(input, output, session) {
   )
   # Dynamically create the analysis plot for each of the n sample tabs
   observeEvent(
-    eventExpr = input$datasetsUploadedID,
+    eventExpr = datasetsUploadedID(),
     handlerExpr = {
-      if (input$datasetsUploadedID == TRUE) {
+      if (datasetsUploadedID() == TRUE) {
         # Initialize variables for accessing best fit and derivative information
         bestFitXData <<- vector("list", numSamples)
         bestFitYData <<- vector("list", numSamples)
@@ -527,7 +533,7 @@ server <- function(input, output, session) {
 
   # Calls function to create delete buttons and add IDs for each row in the individual fits table
   getListUnder <- reactive({
-    if (input$datasetsUploadedID == TRUE) {
+    if (datasetsUploadedID() == TRUE) {
       individualFitData$Delete <- shinyInput(actionButton, nrow(individualFitData), "delete_",
         label = "Remove",
         style = "color: red;background-color: white",
@@ -541,9 +547,9 @@ server <- function(input, output, session) {
 
   # Assign the reactive data frame for the individual fits table to a reactive value
   observeEvent(
-    eventExpr = input$datasetsUploadedID,
+    eventExpr = datasetsUploadedID(),
     handlerExpr = {
-      if (input$datasetsUploadedID == TRUE) {
+      if (datasetsUploadedID() == TRUE) {
         valuesT <<- reactiveValues(individualFitData = NULL)
         valuesT$individualFitData <- isolate({
           getListUnder()
