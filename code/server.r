@@ -568,6 +568,11 @@ server <- function(input, output, session) {
     }
   )
 
+  # Navigate back to the "File" tab when "Back to Home" button is pressed.
+  observeEvent(input$backToHome, {
+    updateNavbarPage(session, "navbarPageID", selected = "File")
+  })
+
   # Render all parts of the results table.
   output$individualFitsTable <- DT::renderDataTable({
     table <- valuesT$individualFitData %>%
