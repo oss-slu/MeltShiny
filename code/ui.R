@@ -39,7 +39,7 @@ ui <- navbarPage(
           ),
           hr(style = "border-top: 1px solid #000000;"),
           textInput(
-            label = "Sample number of blank",
+            label = "Cell number of blank",
             value = 1,
             inputId = "blankSampleID"
           ),
@@ -49,10 +49,9 @@ ui <- navbarPage(
             inputId = "noBlanksID"
           ),
           hr(style = "border-top: 1px solid #000000;"),
-          selectInput(
-            label = "Select the wavelength",
-            choices = c("300", "295", "290", "285", "280", "275", "270", "265", "260", "255", "250", "245", "240", "235", "230"), # nolint
-            selected = "260",
+          textInput(
+            label = "Enter the wavelength",
+            value = "260",
             inputId = "wavelengthID"
           ),
           hr(style = "border-top: 1px solid #000000;"),
@@ -125,12 +124,6 @@ ui <- navbarPage(
           actionButton(
             label = "Upload Data",
             inputId = "uploadData"
-          ),
-          hr(style = "border-top: 1px solid #000000;"),
-          checkboxInput(
-            label = "All Datasets Uploaded?",
-            value = FALSE,
-            inputId = "datasetsUploadedID"
           )
         ),
         mainPanel(
