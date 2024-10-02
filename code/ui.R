@@ -295,7 +295,10 @@ ui <- navbarPage(
   ),
   tabPanel(
   title = "Help",
-  fluidPage(tags$head(
+  fluidPage(
+    useShinyjs(),  # Include shinyjs for toggle functionality
+
+    tags$head(
         tags$style(HTML("
           .btn-custom {
             padding: 5px 10px;
@@ -316,7 +319,7 @@ ui <- navbarPage(
           class = "sidebar-panel-custom",
           actionButton("backToHome", "Back to Home", icon = icon("home"), class = "btn-custom")
         ),
-    useShinyjs(),  # Include shinyjs for toggle functionality
+      
     mainPanel(width = 12,  # Set full width for the Help page
       hr(style = "border-top: 1px solid #000000;"),
       
@@ -418,5 +421,6 @@ ui <- navbarPage(
       )
     )
   )
+)
 )
 )
