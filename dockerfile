@@ -18,9 +18,10 @@ COPY code/global.r /global.r
 COPY code/server.r /server.r
 COPY code/ui.R /ui.R
 COPY code/deploy.R /deploy.R
-
+COPY code/www /www
 # After all the necessary files have been copied, run the deploy.R script to start the deployment of the Shiny app
 CMD Rscript deploy.R
+
 
 
 # To test the Docker image, you can run the following commands:
