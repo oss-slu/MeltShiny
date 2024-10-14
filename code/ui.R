@@ -27,9 +27,10 @@ ui <- navbarPage(
   tabPanel(
     title = "File",
     fluidPage(
-      sidebarLayout(
+      sidebarLayout(  
         sidebarPanel(
           useShinyjs(),
+          id = "sidebar", #name for hiding or showing the bar
           inlineCSS(css),
           fileInput(
             label = "Select the dataset file",
@@ -127,7 +128,13 @@ ui <- navbarPage(
           )
         ),
         mainPanel(
-          tags$div(id = "placeholder")
+          tags$div(id = "placeholder"),
+          #logic for back button outside of side pannel
+          actionButton(
+            inputId = "backButton",
+            label = "Back",
+            style = "display: none;"
+          )
         )
       )
     )
