@@ -124,6 +124,12 @@ ui <- navbarPage(
           actionButton(
             label = "Upload Data",
             inputId = "uploadData"
+          ),
+          br(),
+          actionButton(
+            label = "Reset Data",
+            inputId = "resetData",
+            style = "display: none;" # initally hidden
           )
         ),
         mainPanel(

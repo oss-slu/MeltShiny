@@ -11,7 +11,13 @@ server <- function(input, output, session) {
 
   observeEvent(input$uploadData, {
     datasetsUploadedID(TRUE)  # Set the reactive value to TRUE on upload data button click
+    shinyjs::show("resetData")
   })
+
+  observeEvent(input$resetData, {
+    session$reload()
+})
+
   
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
