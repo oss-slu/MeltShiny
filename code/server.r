@@ -3,10 +3,13 @@
 
 server <- function(input, output, session) {
 
-  #Declare initial value for data upload button check
+  # Declare initial value for data upload button check
   is_valid_input <- FALSE
 
-  #declaring datasetsUploadedID as reactive for upload data button click
+  # Prevent manual input to temperatureID button
+  disable("temperatureID")
+
+  # Declaring datasetsUploadedID as reactive for upload data button click
   datasetsUploadedID <- reactiveVal(FALSE)
 
   observeEvent(input$uploadData, {
