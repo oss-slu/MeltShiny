@@ -3,16 +3,19 @@
 
 server <- function(input, output, session) {
 
-  #Declare initial value for data upload button check
+  # Declare initial value for data upload button check
   is_valid_input <- FALSE
 
-  #declaring datasetsUploadedID as reactive for upload data button click
+  # Prevent manual input to temperatureID button
+  disable("temperatureID")
+
+  # Declaring datasetsUploadedID as reactive for upload data button click
   datasetsUploadedID <- reactiveVal(FALSE)
 
   observeEvent(input$uploadData, {
     datasetsUploadedID(TRUE)  # Set the reactive value to TRUE on upload data button click
   })
-  
+
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
 
@@ -49,7 +52,7 @@ server <- function(input, output, session) {
           ))
         }
       }
-      if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "" || input$temperatureID == "") {
+      if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Missing Inputs",
@@ -158,8 +161,6 @@ server <- function(input, output, session) {
           molStateVal <<- "Monomolecular.2State"
         }
 
-        # Store the temperature used to calculate the concentration with Beers law
-        concTVal <<- as.numeric(gsub(" ", "", input$temperatureID))
 
         # Disable widgets whose values apply to all datasets
         disable("helixID")
@@ -175,6 +176,13 @@ server <- function(input, output, session) {
         fileName <- input$inputFileID$datapath
         raw_data <- read.csv(file = fileName)
 
+        highest_temp <- max(raw_data$Temperature, na.rm = TRUE)
+        updateTextInput(session, "temperatureID", value = highest_temp)
+        
+        # Store the temperature used to calculate the concentration with Beers law
+        concTVal <<- as.numeric(gsub(" ", "", highest_temp))
+
+
         # Sort Sample column from lowest to highest
         data <- raw_data %>% arrange(Sample)
 
@@ -183,7 +191,6 @@ server <- function(input, output, session) {
         numSamples <<- numSamples + length(unique(data$Sample))
         masterFrame <<- rbind(masterFrame, data)
 
- 
       }
     }
   )

@@ -56,8 +56,8 @@ ui <- navbarPage(
           ),
           hr(style = "border-top: 1px solid #000000;"),
           textInput(
-            label = "Enter the temperature used to calculate the concentration with Beers law", # nolint
-            value = 90,
+            label = "Auto-populates with the highest temperature found in the dataset. Used to calculate the concentration via Beer's law", # nolint
+            value = "",
             inputId = "temperatureID"
           ),
           hr(style = "border-top: 1px solid #000000;"),
