@@ -1,6 +1,7 @@
+#!/usr/bin/env Rscript --vanilla
+
 # install.R handles dependency injection for MeltShiny application.
 
-#!/usr/bin/env Rscript --vanilla
 requiredPackages <- c("dplyr",
                       "DT",
                       "ggplot2",
