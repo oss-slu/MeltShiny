@@ -15,41 +15,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$resetData, {
-    # Reset the file input
-    shinyjs::reset("inputFileID")  # Reset file input
-
-    # Reset all other inputs to their default values
-    updateTextInput(session, "blankSampleID", value = 1)
-    updateCheckboxInput(session, "noBlanksID", value = FALSE)
-    updateTextInput(session, "wavelengthID", value = "260")
-    updateTextInput(session, "temperatureID", value = 90)
-    updateRadioButtons(session, "extinctConDecisionID", selected = "Nucleic acid sequence(s)")
-    updateSelectInput(session, "helixID", selected = "RNA")
-    updateTextInput(session, "seqID", value = "")
-    updateCheckboxGroupInput(session, "methodsID", selected = c("Method 2", "Method 3"))
-    updateRadioButtons(session, "Tm_methodID", selected = "nls")
-    updateCheckboxInput(session, "weightedTmID", value = FALSE)
-    updateSelectInput(session, "molecularStateID", selected = "Heteroduplex")
-
-    # Re-enable all inputs
-    enable("blankSampleID")
-    enable("noBlanksID")
-    enable("wavelengthID")
-    enable("temperatureID")
-    enable("extinctConDecisionID")
-    enable("helixID")
-    enable("seqID")
-    enable("methodsID")
-    enable("Tm_methodID")
-    enable("weightedTmID")
-    enable("molecularStateID")
-    enable("uploadData")
-
-    # Hide the Reset Data button again
-    shinyjs::hide("resetData")
-
-    # Optionally clear any placeholders (like plots, results, etc.)
-    output$placeholder <- renderUI(NULL)
+    session$reload()
 })
 
   
