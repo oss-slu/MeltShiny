@@ -137,18 +137,6 @@ ui <- navbarPage(
     tabPanel(
       title = "Graphs",
       tabsetPanel(id = "tabs"),
-      sidebarPanel(
-        h5("Analyis Options"),
-        checkboxInput(
-          inputId = "showDerivative",
-          label = "Show derivative",
-          value = FALSE
-        ),
-        actionButton(
-          inputId = "applySettings",
-          label = "Apply"
-        )
-      ),
       mainPanel(
       )
     ),
