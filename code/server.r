@@ -12,6 +12,14 @@ server <- function(input, output, session) {
   observeEvent(input$uploadData, {
     datasetsUploadedID(TRUE)  # Set the reactive value to TRUE on upload data button click
   })
+  observeEvent(input$uploadData, {
+    shinyjs::hide(id = "sidebar")      # Hide the sidebar content
+    shinyjs::show(id = "backButton")   # Show the "Back" button
+  })
+  observeEvent(input$backButton, {
+    shinyjs::show(id = "sidebar")      # Show the sidebar content
+    shinyjs::hide(id = "backButton")   # Hide the "Back" button
+  })
   
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
