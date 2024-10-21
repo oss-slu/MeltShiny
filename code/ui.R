@@ -125,7 +125,7 @@ ui <- navbarPage(
             label = "Upload Data",
             inputId = "uploadData"
           ),
-          br(),
+          br(), br(),
           actionButton(
             label = "Reset Data",
             inputId = "resetData",
