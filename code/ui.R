@@ -56,8 +56,8 @@ ui <- navbarPage(
           ),
           hr(style = "border-top: 1px solid #000000;"),
           textInput(
-            label = "Enter the temperature used to calculate the concentration with Beers law", # nolint
-            value = 90,
+            label = "Auto-populates with the highest temperature found in the dataset. Used to calculate the concentration via Beer's law", # nolint
+            value = "",
             inputId = "temperatureID"
           ),
           hr(style = "border-top: 1px solid #000000;"),
@@ -192,7 +192,7 @@ ui <- navbarPage(
   navbarMenu(
     title = "Results",
     tabPanel(
-      title = "Vant Hoff Plot",
+      title = "van't Hoff Plot",
       fluidPage(
         sidebarLayout(
           sidebarPanel(
@@ -210,7 +210,7 @@ ui <- navbarPage(
               label = "Reset"
             ),
             hr(style = "border-top: 1px solid #000000;"),
-            h5("Download Vant Hoff:"),
+            h5("Download van't Hoff:"),
             textInput(
               label = "Enter the file name.",
               inputId = "saveNameVantID"
@@ -387,8 +387,8 @@ ui <- navbarPage(
         hr(style = "border-top: 1px solid #000000;"),
         h3("FITTING THE ANALYSIS GRAPHS:"),
         hr(style = "border-top: 1px solid #000000;"),
-        h3("Van't Hoff Plots:"),
-        HTML("The van't hoff page under results shows the van't hoff plot. You may click individual points to remove them from the plot. To remove multiple points in one go you can click and drag on the graph to make a box. This box can be moved to fit over the points you want to remove. Once over the correct points hit the remove button on the side panel. "),
+        h3("van't Hoff Plots:"),
+        HTML("The van't Hoff page under results shows the van't Hoff plot. You may click individual points to remove them from the plot. To remove multiple points in one go you can click and drag on the graph to make a box. This box can be moved to fit over the points you want to remove. Once over the correct points hit the remove button on the side panel. "),
         div(img(src = "VantHoff_1.png", class="img-half", alt = "Screenshot showing the how to remove box of points")),
         div(img(src = "VantHoff_2.png", class="img-half", alt = "Screenshot showing the how to removed box of points")),
         HTML("If you want to restore the plot back to the original version, press the restore button on the side panel. "), 

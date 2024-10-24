@@ -3,10 +3,13 @@
 
 server <- function(input, output, session) {
 
-  #Declare initial value for data upload button check
+  # Declare initial value for data upload button check
   is_valid_input <- FALSE
 
-  #declaring datasetsUploadedID as reactive for upload data button click
+  # Prevent manual input to temperatureID button
+  disable("temperatureID")
+
+  # Declaring datasetsUploadedID as reactive for upload data button click
   datasetsUploadedID <- reactiveVal(FALSE)
 
   observeEvent(input$uploadData, {
@@ -16,9 +19,8 @@ server <- function(input, output, session) {
 
   observeEvent(input$resetData, {
     session$reload()
-})
+  })
 
-  
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
 
@@ -55,7 +57,7 @@ server <- function(input, output, session) {
           ))
         }
       }
-      if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "" || input$temperatureID == "") {
+      if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Missing Inputs",
@@ -164,8 +166,6 @@ server <- function(input, output, session) {
           molStateVal <<- "Monomolecular.2State"
         }
 
-        # Store the temperature used to calculate the concentration with Beers law
-        concTVal <<- as.numeric(gsub(" ", "", input$temperatureID))
 
         # Disable widgets whose values apply to all datasets
         disable("helixID")
@@ -181,6 +181,13 @@ server <- function(input, output, session) {
         fileName <- input$inputFileID$datapath
         raw_data <- read.csv(file = fileName)
 
+        highest_temp <- max(raw_data$Temperature, na.rm = TRUE)
+        updateTextInput(session, "temperatureID", value = highest_temp)
+        
+        # Store the temperature used to calculate the concentration with Beers law
+        concTVal <<- as.numeric(gsub(" ", "", highest_temp))
+
+
         # Sort Sample column from lowest to highest
         data <- raw_data %>% arrange(Sample)
 
@@ -189,7 +196,6 @@ server <- function(input, output, session) {
         numSamples <<- numSamples + length(unique(data$Sample))
         masterFrame <<- rbind(masterFrame, data)
 
- 
       }
     }
   )
@@ -346,148 +352,125 @@ server <- function(input, output, session) {
     }
   )
 
-coeff <- 1
-
-# Dynamically create n tabs (n = number of samples in master data frame) for "Graphs" page under "Analysis" navbar menu
-observeEvent(
-  eventExpr = datasetsUploadedID(),
-  handlerExpr = {
-    start <<- 1
-    if (datasetsUploadedID() == TRUE) {
-      lapply(
-        start:numSamples,
-        function(i) {
-          if (i != blankInt) {
-            tabName <- paste("Sample", i, sep = " ")
-            appendTab(
-              inputId = "tabs",
-              tab = tabPanel(
-                tabName,
-                fluidPage(
-                  sidebarLayout(
-                    sidebarPanel(
-                      h4("Options:"),
-                      checkboxInput(inputId = paste0("bestFit", i), label = "Show best fit line"),
-                      checkboxInput(inputId = paste0("firstDerivative", i), label = "Show derivative")
-                    ),
-                    mainPanel(
-                      conditionalPanel(
-                        condition = "output.plotBoth1 == null",
-                        h3("Loading..."),
-                        tags$script(
-                          "$(document).ready(function() {
-                            setTimeout(function() {
-                              $('h3:contains(\"Loading...\")').remove();
-                            }, 1500);
-                          });"
-                        )
+  # Dynamically create n tabs (n = number of samples in master data frame) for
+  # the "Graphs" page under the "Analysis" navbarmenu.
+  observeEvent(
+    eventExpr = datasetsUploadedID(),
+    handlerExpr = {
+      start <<- 1
+      if (datasetsUploadedID() == TRUE) {
+        lapply(
+          start:numSamples,
+          function(i) {
+            if (i != blankInt) {
+              tabName <- paste("Sample", i, sep = " ")
+              appendTab(
+                inputId = "tabs",
+                tab = tabPanel(
+                  tabName,
+                  fluidPage(
+                    sidebarLayout(
+                      sidebarPanel(
+                        h4("Options:"),
+                        checkboxInput(inputId = paste0("bestFit", i), label = "Show best fit line"),
+                        checkboxInput(inputId = paste0("firstDerivative", i), label = "Show derivative"),
                       ),
-                      plotlyOutput(paste0("plotBoth", i))
+                      mainPanel(
+                        conditionalPanel(
+                          condition = "output.plotBoth1 == null",
+                          h3("Loading..."),
+                          tags$script(
+                            "$(document).ready(function() {
+                              setTimeout(function() {
+                                $('h3:contains(\"Loading...\")').remove();
+                              }, 1500);
+                            });"
+                          )
+                        ),
+                        plotlyOutput(paste0("plotBoth", i)),
+                        # plotlyOutput(paste0("plotBoth", i)),
+                      )
                     )
                   )
                 )
               )
-            )
+            }
           }
-        }
-      )
-      start <<- numSamples + 1
+        )
+        start <<- numSamples + 1
+      }
     }
-  }
-)
+  )
 
-# Dynamically create the analysis plot for each of the n sample tabs
-observeEvent(
-  eventExpr = datasetsUploadedID(),
-  handlerExpr = {
-    if (datasetsUploadedID() == TRUE) {
-      # Initialize variables for accessing best fit and derivative information
-      bestFitXData <<- vector("list", numSamples)
-      bestFitYData <<- vector("list", numSamples)
-      derivativeXData <<- vector("list", numSamples)
-      derivativeYData <<- vector("list", numSamples)
-      xRange <<- vector("list", numSamples)
+  observeEvent(
+    eventExpr = input$seqHelp,
+    handlerExpr = {
+      showModal(modalDialog(
+          title = "Help for Specify Sequences",
+          "placeholder text for input sequences help",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+    }
+  )
 
-      # Create plots
-      for (i in 1:numSamples) {
-        if (i != blankInt) {
-          local({
-            myI <- i
+  observeEvent(
+    eventExpr = input$tmHelp,
+    handlerExpr = {
+      showModal(modalDialog(
+          title = "Help for TM Methods",
+          "placeholder text for tm methods help",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+    }
+  )
+  # Dynamically create the analysis plot for each of the n sample tabs
+  observeEvent(
+    eventExpr = datasetsUploadedID(),
+    handlerExpr = {
+      if (datasetsUploadedID() == TRUE) {
+        # Initialize variables for accessing best fit and derivative information
+        bestFitXData <<- vector("list", numSamples)
+        bestFitYData <<- vector("list", numSamples)
+        derivativeXData <<- vector("list", numSamples)
+        derivativeYData <<- vector("list", numSamples)
+        xRange <<- vector("list", numSamples)
 
-            output[[paste0("plotBoth", myI)]] <- renderPlotly({
+        # Create plots
+        for (i in 1:numSamples) {
+          if (i != blankInt) {
+            xRange[[i]][1] <<- suppressWarnings(round(min(bestFitXData[[i]])))
+            xRange[[i]][2] <<- suppressWarnings(round(max(bestFitXData[[i]])))
+            local({
+              myI <- i
 
-              # Ensure localData is used to avoid name conflicts
-              localData <- myConnecter$constructAllPlots(myI)
-
-              # Make sure data exists for this sample
-              if (!is.null(localData)) {
-                
-                # Handle NA values in key data before plotting
-                localData$dA.dT <- ifelse(is.na(localData$dA.dT), 0, localData$dA.dT)
-                localData$Ct <- ifelse(is.na(localData$Ct), 1, localData$Ct) # Prevent division by NA or zero
-                localData$Absorbance <- ifelse(is.na(localData$Absorbance), 0, localData$Absorbance)
-
-                # Calculate upper safely by removing NAs
-                upper <- max(localData$dA.dT, na.rm = TRUE) / max(localData$Ct, na.rm = TRUE) + coeff
-                min_absorbance <- min(localData$Absorbance, na.rm = TRUE)
-
-                # Safeguard against invalid calculations
-                if (is.na(upper) || is.infinite(upper)) {
-                  upper <- 1  # Use a default value to avoid errors
-                }
-                if (is.na(min_absorbance) || is.infinite(min_absorbance)) {
-                  min_absorbance <- 0  # Use a default value
-                }
-
-                # Calculate derivative data
-                derivativeYData[[myI]] <<- (localData$dA.dT / (localData$Pathlength * localData$Ct)) / upper + min_absorbance
-
-                # Initialize analysis plot
-                analysisPlot <- localData
-
-                # Add best fit line if selected
+              output[[paste0("plotBoth", myI)]] <- renderPlotly({
+                analysisPlot <- myConnecter$constructAllPlots(myI)
                 if (input[[paste0("bestFit", myI)]] == TRUE) {
-                  analysisPlot <- analysisPlot %>%
-                    add_lines(
-                      x = bestFitXData[[myI]],
-                      y = bestFitYData[[myI]],
-                      line = list(color = "red")
-                    )
+                  analysisPlot <- analysisPlot %>% add_lines(x = bestFitXData[[myI]], y = bestFitYData[[myI]], color = "red")
                 }
-
-                # Add derivative trace if selected
                 if (input[[paste0("firstDerivative", myI)]] == TRUE) {
-                  analysisPlot <- analysisPlot %>%
-                    add_trace(
-                      x = derivativeXData[[myI]],
-                      y = derivativeYData[[myI]],
-                      marker = list(color = "green")
-                    )
+                  analysisPlot <- analysisPlot %>% add_trace(x = derivativeXData[[myI]], y = derivativeYData[[myI]], marker = list(color = "green"))
                 }
-              } else {
-                stop("Data for sample is not available.")
-              }
-
-              analysisPlot
-            })
-
-            # Observe event for x-axis relayout (adjusting the x-range of the plot)
-            observeEvent(event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event")), {
-              xRange[[myI]] <<- event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event"))$xaxis.range[1:2]
-              output[[paste0("xrange", myI)]] <- renderText({
-                paste0(" x-range: [", round(xRange[[myI]][1], 2), ", ", round(xRange[[myI]][2], 2), "]")
+                
+                analysisPlot
+              })
+              observeEvent(event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event")), {
+                xRange[[myI]] <<- event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event"))$xaxis.range[1:2]
+                output[[paste0("xrange", myI)]] <- renderText({
+                  paste0(" x-range: [", round(xRange[[myI]][1], 2), ", ", round(xRange[[myI]][2], 2), "]")
+                })
               })
             })
-          })
+          }
         }
+        logInfo("ANALYSIS PLOTS RENDERED ")
       }
-
-      logInfo("ANALYSIS PLOTS RENDERED")
     }
-  }
-)
-
-
+  )
 
 
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
@@ -510,7 +493,7 @@ observeEvent(
         geom_point() +
         geom_smooth(formula = y ~ x, method = lm, fullrange = TRUE, color = "black", se = F, linewidth = .5, linetype = "dashed") +
         geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
-        labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "Van't Hoff") +
+        labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "van't Hoff") +
         annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
         theme(plot.title = element_text(hjust = 0.5))
 
