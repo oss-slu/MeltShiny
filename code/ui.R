@@ -60,6 +60,7 @@ ui <- navbarPage(
             value = "",
             inputId = "temperatureID"
           ),
+          actionButton("submit", "Submit"),  # Submit button for temperature ID
           hr(style = "border-top: 1px solid #000000;"),
           radioButtons(
             inputId = "extinctConDecisionID",

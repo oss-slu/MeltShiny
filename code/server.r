@@ -8,13 +8,30 @@ server <- function(input, output, session) {
 
   # Prevent manual input to temperatureID button
   disable("temperatureID")
+  disable("submit")
 
   # Declaring datasetsUploadedID as reactive for upload data button click
   datasetsUploadedID <- reactiveVal(FALSE)
 
+  # Declaring temperatureUpdatedID as reactive for manual changes to the temperature
+  temperatureUpdatedID <- reactiveVal(FALSE)
+
   observeEvent(input$uploadData, {
     datasetsUploadedID(TRUE)  # Set the reactive value to TRUE on upload data button click
   })
+
+  # If temperature is manually edited, update concTVal
+  observeEvent(input$submit, {
+    if (input$temperatureID != "") {
+      concTVal <<- as.numeric(input$temperatureID)  # Set concTVal to new temperature
+      
+      # Call the MeltR analysis event with the newly updated temperature
+      logInfo(paste("TEMPERATURE UPDATED TO", concTVal, "- REPROCESSING"))
+      temperatureUpdatedID(TRUE)
+      renderVantHoffPlot()
+    }
+  })
+
 
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
@@ -182,6 +199,9 @@ server <- function(input, output, session) {
         # Store the temperature used to calculate the concentration with Beers law
         concTVal <<- as.numeric(gsub(" ", "", highest_temp))
 
+        # Re-enable the temperature field for manual input
+        enable("temperatureID")
+        enable("submit")
 
         # Sort Sample column from lowest to highest
         data <- raw_data %>% arrange(Sample)
@@ -199,7 +219,7 @@ server <- function(input, output, session) {
 
   # Once all datasets have been uploaded, create the MeltR object and derive necessary information
   observeEvent(
-    eventExpr = datasetsUploadedID(),
+    eventExpr = c(datasetsUploadedID(), temperatureUpdatedID()),
     handlerExpr = {
       if (datasetsUploadedID() == TRUE) {
         disable(selector = '.navbar-nav a[data-value="Help"')
@@ -245,7 +265,7 @@ server <- function(input, output, session) {
 
   # Disable remaining widgets on "Upload" page when all datasets have been uploaded
   observeEvent(
-    eventExpr = datasetsUploadedID(),
+    eventExpr = c(datasetsUploadedID(), temperatureUpdatedID),
     handlerExpr = {
       if (datasetsUploadedID() == TRUE) {
         disable("blankSampleID")
@@ -322,7 +342,7 @@ server <- function(input, output, session) {
 
   # Disable "Van't Hoff" tab when method 2 is unselected
   observeEvent(
-    eventExpr = datasetsUploadedID(),
+    eventExpr = c(datasetsUploadedID(), temperatureUpdatedID()),
     handlerExpr = {
       if (chosenMethods[2] == FALSE) {
         disable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
@@ -334,7 +354,7 @@ server <- function(input, output, session) {
 
   # Disable "Analysis" and "Results tabs until all files have successfully been uploaded
   observeEvent(
-    eventExpr = datasetsUploadedID(),
+    eventExpr = c(datasetsUploadedID(), temperatureUpdatedID()),
     handlerExpr = {
       if (datasetsUploadedID() == FALSE) {
         disable(selector = '.navbar-nav a[data-value="Analysis"')
@@ -469,33 +489,39 @@ server <- function(input, output, session) {
 
 
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
-  output$vantPlot <- renderPlot({
-    if (chosenMethods[2] == TRUE) {
-      logInfo("VAN'T HOFF RENDERED")
-      # Store the points that are kept vs excluded
-      keep <- vantData[vals$keeprows, , drop = FALSE]
-      exclude <- vantData[!vals$keeprows, , drop = FALSE]
-    # Check to see if all brush points are removed
+  renderVantHoffPlot <- function() {
+    output$vantPlot <- renderPlot({
+      if (chosenMethods[2] == TRUE) {
+        logInfo("VAN'T HOFF RENDERED")
+        # Store the points that are kept vs excluded
+        keep <- vantData[vals$keeprows, , drop = FALSE]
+        exclude <- vantData[!vals$keeprows, , drop = FALSE]
+      # Check to see if all brush points are removed
 
-    if(nrow(keep) == 0){
-      vals$keeprows <- rep(TRUE, nrow(vantData))
-    }
-      # Calculate the R value
-      rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
+      if(nrow(keep) == 0){
+        vals$keeprows <- rep(TRUE, nrow(vantData))
+      }
+        # Calculate the R value
+        rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
 
-      # Create vant plot, including R value
-      vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT)) +
-        geom_point() +
-        geom_smooth(formula = y ~ x, method = lm, fullrange = TRUE, color = "black", se = F, linewidth = .5, linetype = "dashed") +
-        geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
-        labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "van't Hoff") +
-        annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
-        theme(plot.title = element_text(hjust = 0.5))
+        # Create vant plot, including R value
+        vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT)) +
+          geom_point() +
+          geom_smooth(formula = y ~ x, method = lm, fullrange = TRUE, color = "black", se = F, linewidth = .5, linetype = "dashed") +
+          geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
+          labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "van't Hoff") +
+          annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
+          theme(plot.title = element_text(hjust = 0.5))
 
-        # removeUI(selector = "#vantLoading")
-      vantGgPlot
-    }
-  })
+          # removeUI(selector = "#vantLoading")
+        vantGgPlot
+      }
+    })
+  }
+  
+  # Initially render the Vant Hoff Plot
+  renderVantHoffPlot()
+
 
   # Remove points from Van't Hoff plot that are clicked
   observeEvent(
