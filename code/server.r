@@ -40,6 +40,36 @@ server <- function(input, output, session) {
     handlerExpr = {
       logInfo("CHECKING PROGRAM INPUTS")
       # Error checking
+      req(input$inputFileID)  # Ensure the file input is available
+      dataset <- read.csv(input$inputFileID$datapath)  # Read the uploaded file
+
+      # Check for blanks in the dataset
+      has_blanks <- any(is.na(dataset)) || any(dataset == "NA")  
+
+      if (input$noBlanksID) {  # If checkbox is checked
+        if (has_blanks) {
+          is_valid_input <<- FALSE
+          showModal(modalDialog(
+            title = "Blanks Found",
+            "You have checked the 'No Blanks' option, but there are blanks in your uploaded data. Please uncheck the box or remove the blanks.",
+            footer = modalButton("Understood"),
+            easyClose = FALSE,
+            fade = TRUE
+          ))
+        }
+      } else {  # If checkbox is not checked
+        if (!has_blanks) {
+          is_valid_input <<- FALSE
+          showModal(modalDialog(
+            title = "No Blanks",
+            "You have not checked the 'No Blanks' option, but your data contains no blanks. Please check the box if you want to ignore blanks.",
+            footer = modalButton("Understood"),
+            easyClose = FALSE,
+            fade = TRUE
+          ))
+        }
+      }
+
       if (input$noBlanksID == FALSE) {
         if (can_convert_to_int(input$blankSampleID) == FALSE) {
           is_valid_input <<- FALSE
@@ -104,6 +134,7 @@ server <- function(input, output, session) {
 
       # If there are no errors in the inputs, proceed with file upload and processing
       else {
+
         logInfo("VALID INPUT")
 
         masterFrame <- NULL
