@@ -29,6 +29,7 @@ server <- function(input, output, session) {
       logInfo(paste("TEMPERATURE UPDATED TO", concTVal, "- REPROCESSING"))
       temperatureUpdatedID(TRUE)
       renderVantHoffPlot()
+      temperatureUpdatedID(FALSE)
     }
   })
 
