@@ -13,8 +13,8 @@ on:
   workflow_dispatch:
 
   # Run the workflow every week on Monday at 11:59 PM
-  #schedule:
-  #  - cron: '59 23 * * 1'
+  schedule:
+    - cron: '59 23 * * 1'
 
 # RUNNING THE DEPLOYMENT
 jobs:
