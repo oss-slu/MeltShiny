@@ -3,7 +3,7 @@
 # This Dockerfile is used to build the Docker image for the MeltShiny app.
 
 # Use the Rocker Docker image with R 4.2.1 and Shiny Server pre-installed - this works best if you are not using an Apple Sillicon chip. 
-FROM rocker/shiny:latest
+FROM rocker/shiny:4.3.2
 
 # Run the following commands to install the necessary packages for MeltShiny. It installs everything that is needed in the install.R code.
 RUN install2.r rsconnect dplyr DT ggplot2 glue openxlsx plotly remotes methods ggrepel MeltR shiny shinyjs shinythemes 
