@@ -499,31 +499,40 @@ server <- function(input, output, session) {
     output$vantPlot <- renderPlot({
       if (chosenMethods[2] == TRUE) {
         logInfo("VAN'T HOFF RENDERED")
+        
         # Store the points that are kept vs excluded
         keep <- vantData[vals$keeprows, , drop = FALSE]
         exclude <- vantData[!vals$keeprows, , drop = FALSE]
-      # Check to see if all brush points are removed
+        
+        # Reset points if all are excluded
+        if (nrow(keep) == 0) {
+          vals$keeprows <- rep(TRUE, nrow(vantData))
+          keep <- vantData
+        }
 
-      if(nrow(keep) == 0){
-        vals$keeprows <- rep(TRUE, nrow(vantData))
-      }
-        # Calculate the R value
-        rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
+        # Linear regression model to calculate R² and equation parameters
+        fit <- lm(invT ~ lnCt, data = keep)
+        r_value <- format(sqrt(summary(fit)$r.squared), digits = 3)
+        slope <- round(coef(fit)[2], 3)
+        intercept <- round(coef(fit)[1], 3)
 
-        # Create vant plot, including R value
+        # Create the equation label
+        equation_text <- paste("y =", slope, "x +", intercept, "\nR² =", r_value)
+
+        # Create van't Hoff plot with regression line and equation annotation
         vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT)) +
           geom_point() +
-          geom_smooth(formula = y ~ x, method = lm, fullrange = TRUE, color = "black", se = F, linewidth = .5, linetype = "dashed") +
+          geom_smooth(formula = y ~ x, method = "lm", fullrange = TRUE, color = "black", se = FALSE, linewidth = 0.5, linetype = "dashed") +
           geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
-          labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "van't Hoff") +
-          annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
+          labs(y = "Inverse Temperature (K)", x = "ln(Concentration (M))", title = "van't Hoff Plot") +
+          annotate("text", x = Inf, y = Inf, label = equation_text, color = "#333333", hjust = 1.1, vjust = 1.1, size = 5) +
           theme(plot.title = element_text(hjust = 0.5))
 
-          # removeUI(selector = "#vantLoading")
         vantGgPlot
       }
     })
   }
+
   
   # Initially render the Vant Hoff Plot
   renderVantHoffPlot()
