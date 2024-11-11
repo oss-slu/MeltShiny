@@ -499,33 +499,27 @@ server <- function(input, output, session) {
     output$vantPlot <- renderPlot({
       if (chosenMethods[2] == TRUE) {
         logInfo("VAN'T HOFF RENDERED")
-        
-        # Store the points that are kept vs excluded
+
+        # Filter points based on keeprows (points kept on plot)
         keep <- vantData[vals$keeprows, , drop = FALSE]
         exclude <- vantData[!vals$keeprows, , drop = FALSE]
-        
+
         # Reset points if all are excluded
         if (nrow(keep) == 0) {
           vals$keeprows <- rep(TRUE, nrow(vantData))
           keep <- vantData
         }
 
-        # Linear regression model to calculate R² and equation parameters
-        fit <- lm(invT ~ lnCt, data = keep)
-        r_value <- format(sqrt(summary(fit)$r.squared), digits = 3)
-        slope <- round(coef(fit)[2], 3)
-        intercept <- round(coef(fit)[1], 3)
+        # Calculate the R value based on kept points
+        rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
 
-        # Create the equation label
-        equation_text <- paste("y =", slope, "x +", intercept, "\nR² =", r_value)
-
-        # Create van't Hoff plot with regression line and equation annotation
+        # Create Van't Hoff plot with regression line and R value annotation
         vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT)) +
           geom_point() +
-          geom_smooth(formula = y ~ x, method = "lm", fullrange = TRUE, color = "black", se = FALSE, linewidth = 0.5, linetype = "dashed") +
+          geom_smooth(formula = y ~ x, method = lm, fullrange = TRUE, color = "black", se = FALSE, linewidth = 0.5, linetype = "dashed") +
           geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
-          labs(y = "Inverse Temperature (K)", x = "ln(Concentration (M))", title = "van't Hoff Plot") +
-          annotate("text", x = Inf, y = Inf, label = equation_text, color = "#333333", hjust = 1.1, vjust = 1.1, size = 5) +
+          labs(y = "Inverse Temperature (K)", x = "ln(Concentration (M))", title = "Van't Hoff Plot") +
+          annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
           theme(plot.title = element_text(hjust = 0.5))
 
         vantGgPlot
@@ -533,10 +527,51 @@ server <- function(input, output, session) {
     })
   }
 
-  
+  # Reactive calculation of individual fits based on remaining points (depends on vals$keeprows)
+  filteredFitData <- reactive({
+    req(datasetsUploadedID())  # Ensure datasets are uploaded
+
+    # Filter individualFitData based on keeprows
+    keep <- vantData[vals$keeprows, , drop = FALSE]
+    filtered_data <- individualFitData[vals$keeprows, , drop = FALSE]
+    
+    # Add Delete button and ID column to filtered data
+    filtered_data$Delete <- shinyInput(actionButton, nrow(filtered_data), "delete_",
+      label = "Remove",
+      style = "color: red; background-color: white",
+      onclick = paste0('Shiny.onInputChange("delete_button", this.id, {priority: "event"})')
+    )
+    filtered_data$ID <- seq.int(nrow(filtered_data))
+    
+    logInfo('FILTERED DATA UPDATED')
+    return(filtered_data)
+  })
+
+  # Render updated Results Table when data changes
+  output$individualFitsTable <- DT::renderDataTable({
+    table <- filteredFitData() %>%
+      DT::datatable(
+        filter = "none",
+        rownames = FALSE,
+        extensions = "FixedColumns",
+        class = "cell-border stripe",
+        selection = "none",
+        options = list(
+          dom = "t",
+          searching = FALSE,
+          ordering = FALSE,
+          fixedColumns = list(leftColumns = 2),
+          pageLength = 100,
+          columnDefs = list(list(targets = c(7), visible = FALSE))
+        ),
+        escape = FALSE
+      )
+    logInfo('RESULTS TABLE RENDERED')
+    table
+  })
+
   # Initially render the Vant Hoff Plot
   renderVantHoffPlot()
-
 
   # Remove points from Van't Hoff plot that are clicked
   observeEvent(
@@ -585,7 +620,7 @@ server <- function(input, output, session) {
       individualFitData$Delete <- shinyInput(actionButton, nrow(individualFitData), "delete_",
         label = "Remove",
         style = "color: red;background-color: white",
-        onclick = paste0('Shiny.onInputChange( \"delete_button\" , this.id, {priority: \"event\"})')
+        onclick = paste0('Shiny.onInputChange( "delete_button" , this.id, {priority: "event"})')
       )
 
       individualFitData$ID <- seq.int(nrow(individualFitData))
@@ -608,7 +643,10 @@ server <- function(input, output, session) {
 
   # Remove row from individual fits table when its respective "Remove" button is pressed.
   observeEvent(eventExpr = input$delete_button, handlerExpr = {
-    selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
+    # Extract the row number from the delete button ID (e.g., "delete_1" -> 1)
+    selectedRow <- as.numeric(sub("delete_", "", input$delete_button))
+    
+    # Remove the row from the individualFitData
     valuesT$individualFitData <<- subset(valuesT$individualFitData, ID != selectedRow)
   })
 
@@ -627,27 +665,6 @@ server <- function(input, output, session) {
     updateNavbarPage(session, "navbarPageID", selected = "File")
   })
 
-  # Render all parts of the results table.
-  output$individualFitsTable <- DT::renderDataTable({
-    table <- valuesT$individualFitData %>%
-      DT::datatable(
-        filter = "none",
-        rownames = F,
-        extensions = "FixedColumns",
-        class = "cell-border stripe",
-        selection = "none",
-        options = list(
-          dom = "t",
-          searching = FALSE,
-          ordering = FALSE,
-          fixedColumns = list(leftColumns = 2),
-          pageLength = 100,
-          columnDefs = list(list(targets = c(7), visible = FALSE))
-        ),
-        escape = F
-      )
-      logInfo('RESULTS TABLE RENDERED')
-  })
   output$methodSummaryTable <- renderTable({
     summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData1())
     summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData2())
