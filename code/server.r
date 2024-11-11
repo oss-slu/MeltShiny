@@ -4,7 +4,7 @@
 server <- function(input, output, session) {
 
   # Declare initial value for data upload button check
-  is_valid_input <- FALSE
+  is_valid_input <- reactiveVal(FALSE)
 
   # Prevent manual input to temperatureID button
   disable("temperatureID")
@@ -63,6 +63,37 @@ server <- function(input, output, session) {
     handlerExpr = {
       logInfo("CHECKING PROGRAM INPUTS")
       # Error checking
+      req(input$inputFileID)  # Ensure the file input is available
+      dataset <- read.csv(input$inputFileID$datapath)  # Read the uploaded file
+
+      # Check for blanks in the dataset
+      has_blanks <- any(is.na(dataset)) || any(dataset == "NA")  
+
+      if (input$noBlanksID) {  # If checkbox is checked
+        if (has_blanks) {
+          is_valid_input <<- FALSE
+          showModal(modalDialog(
+            title = "Blanks Found",
+            "You have checked the 'No Blanks' option, but there are blanks in your uploaded data. Please uncheck the box or remove the blanks.",
+            footer = modalButton("Understood"),
+            easyClose = FALSE,
+            fade = TRUE
+          ))
+          return()
+        }
+      } else {  # If checkbox is not checked
+        if (!has_blanks) {
+          is_valid_input <<- FALSE
+          showModal(modalDialog(
+            title = "No Blanks",
+            "You have not checked the 'No Blanks' option, but your data contains no blanks. Please check the box if you want to ignore blanks.",
+            footer = modalButton("Understood"),
+            easyClose = FALSE,
+            fade = TRUE
+          ))
+          return()
+        }
+      }
       if (input$noBlanksID == FALSE) {
         if (can_convert_to_int(input$blankSampleID) == FALSE) {
           is_valid_input <<- FALSE
@@ -73,6 +104,7 @@ server <- function(input, output, session) {
             easyClose = FALSE,
             fade = TRUE
           ))
+          return
         }
       }
       if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "") {
@@ -84,6 +116,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        return()
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
@@ -93,6 +126,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        return()
       } else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
         ((rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
           (rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
@@ -104,6 +138,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        return()
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
         ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
           (dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
@@ -115,6 +150,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        return()
       } else if (is.null(input$inputFileID)){
         showModal(modalDialog(
           title = "No File",
@@ -123,6 +159,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        return()
       }
 
       # If there are no errors in the inputs, proceed with file upload and processing
@@ -227,6 +264,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = c(datasetsUploadedID(), temperatureUpdatedID()),
     handlerExpr = {
+      req(is_valid_input)
       if (datasetsUploadedID() == TRUE) {
         disable(selector = '.navbar-nav a[data-value="Help"')
         disable(selector = '.navbar-nav a[data-value="File"')
@@ -321,6 +359,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = input$uploadData,
     handlerExpr = {
+      req(is_valid_input)
       logInfo("DISPLAYING UPLOADED DATASET")
       if(is_valid_input) {
       divID <- toString(numUploads)
@@ -342,7 +381,6 @@ server <- function(input, output, session) {
         )
       })
     }
-    is_valid_input <<- FALSE
     }
   )
 
@@ -378,6 +416,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = datasetsUploadedID(),
     handlerExpr = {
+      req(is_valid_input)
       start <<- 1
       if (datasetsUploadedID() == TRUE) {
         lapply(
@@ -452,6 +491,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = datasetsUploadedID(),
     handlerExpr = {
+      req(is_valid_input)
       if (datasetsUploadedID() == TRUE) {
         # Initialize variables for accessing best fit and derivative information
         bestFitXData <<- vector("list", numSamples)
@@ -572,6 +612,7 @@ server <- function(input, output, session) {
 
   # Calls function to create delete buttons and add IDs for each row in the individual fits table
   getListUnder <- reactive({
+    req(is_valid_input)
     if (datasetsUploadedID() == TRUE) {
       individualFitData$Delete <- shinyInput(actionButton, nrow(individualFitData), "delete_",
         label = "Remove",
@@ -588,6 +629,7 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = datasetsUploadedID(),
     handlerExpr = {
+      req(is_valid_input)
       if (datasetsUploadedID() == TRUE) {
         valuesT <<- reactiveValues(individualFitData = NULL)
         valuesT$individualFitData <- isolate({
