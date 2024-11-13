@@ -686,9 +686,7 @@ output$downloadTableID <- downloadHandler(
     
     # Choose the file format for saving
     if (input$tableFileFormatID == "csv") {
-      lapply(names(selectedParts), function(name) {
-        write.csv(selectedParts[[name]], file = paste0(file2, "_", name, ".csv"), row.names = FALSE)
-      })
+      write.csv(selectedParts, file = file2)
     } else {
       write.xlsx(selectedParts, file = file2)
     }
