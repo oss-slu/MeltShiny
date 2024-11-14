@@ -527,49 +527,6 @@ server <- function(input, output, session) {
     })
   }
 
-  # Reactive calculation of individual fits based on remaining points (depends on vals$keeprows)
-  filteredFitData <- reactive({
-    req(datasetsUploadedID())  # Ensure datasets are uploaded
-
-    # Filter individualFitData based on keeprows
-    keep <- vantData[vals$keeprows, , drop = FALSE]
-    filtered_data <- individualFitData[vals$keeprows, , drop = FALSE]
-    
-    # Add Delete button and ID column to filtered data
-    filtered_data$Delete <- shinyInput(actionButton, nrow(filtered_data), "delete_",
-      label = "Remove",
-      style = "color: red; background-color: white",
-      onclick = paste0('Shiny.onInputChange("delete_button", this.id, {priority: "event"})')
-    )
-    filtered_data$ID <- seq.int(nrow(filtered_data))
-    
-    logInfo('FILTERED DATA UPDATED')
-    return(filtered_data)
-  })
-
-  # Render updated Results Table when data changes
-  output$individualFitsTable <- DT::renderDataTable({
-    table <- filteredFitData() %>%
-      DT::datatable(
-        filter = "none",
-        rownames = FALSE,
-        extensions = "FixedColumns",
-        class = "cell-border stripe",
-        selection = "none",
-        options = list(
-          dom = "t",
-          searching = FALSE,
-          ordering = FALSE,
-          fixedColumns = list(leftColumns = 2),
-          pageLength = 100,
-          columnDefs = list(list(targets = c(7), visible = FALSE))
-        ),
-        escape = FALSE
-      )
-    logInfo('RESULTS TABLE RENDERED')
-    table
-  })
-
   # Initially render the Vant Hoff Plot
   renderVantHoffPlot()
 
@@ -605,75 +562,81 @@ server <- function(input, output, session) {
     }
   )
 
-  # Function for dynamically creating the delete button for each row on the individual fits table
-  shinyInput <- function(FUN, len, id, ...) {
-    inputs <- character(len)
-    for (i in seq_len(len)) {
-      inputs[i] <- as.character(FUN(paste0(id, i), ...))
-    }
-    inputs
-  }
 
-  # Calls function to create delete buttons and add IDs for each row in the individual fits table
+  # Reactive calculation of individual fits based on remaining points (depends on vals$keeprows)
+  filteredFitData <- reactive({
+    # Ensure datasets are uploaded and filter the individualFitData based on vals$keeprows
+    req(datasetsUploadedID())
+    individualFitData[vals$keeprows, , drop = FALSE]
+  })
+
+  # Render the simplified Individual Fits Table without delete functionality
+  output$individualFitsTable <- DT::renderDataTable({
+    DT::datatable(
+      filteredFitData(),
+      filter = "none",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      options = list(
+        dom = "t",
+        pageLength = 100
+      )
+    )
+  })
+
+  # Initialize reactive values for storing individual fit data
+  observeEvent(datasetsUploadedID(), {
+    if (datasetsUploadedID()) {
+      valuesT <<- reactiveValues(individualFitData = getListUnder())
+    }
+  })
+
+  # Reset the individual fits table when "Reset" button is pressed
+  observeEvent(input$resetTable1ID, {
+    valuesT$individualFitData <- getListUnder()
+  })
+
+
+  # Calls function to add IDs for each row in the individual fits table
   getListUnder <- reactive({
     if (datasetsUploadedID() == TRUE) {
-      individualFitData$Delete <- shinyInput(actionButton, nrow(individualFitData), "delete_",
-        label = "Remove",
-        style = "color: red;background-color: white",
-        onclick = paste0('Shiny.onInputChange( "delete_button" , this.id, {priority: "event"})')
-      )
-
       individualFitData$ID <- seq.int(nrow(individualFitData))
       return(individualFitData)
     }
   })
 
-  # Assign the reactive data frame for the individual fits table to a reactive value
-  observeEvent(
-    eventExpr = datasetsUploadedID(),
-    handlerExpr = {
-      if (datasetsUploadedID() == TRUE) {
-        valuesT <<- reactiveValues(individualFitData = NULL)
-        valuesT$individualFitData <- isolate({
-          getListUnder()
-        })
-      }
-    }
-  )
 
-  # Remove row from individual fits table when its respective "Remove" button is pressed.
-  observeEvent(eventExpr = input$delete_button, handlerExpr = {
-    # Extract the row number from the delete button ID (e.g., "delete_1" -> 1)
-    selectedRow <- as.numeric(sub("delete_", "", input$delete_button))
-    
-    # Remove the row from the individualFitData
-    valuesT$individualFitData <<- subset(valuesT$individualFitData, ID != selectedRow)
+  # Reactive expression to update summary data based on Van't Hoff plot changes
+  summaryDataReactive <- reactive({
+    req(datasetsUploadedID())
+
+    # Filter summary data based on kept points in Van't Hoff
+    updatedData <- vantData[vals$keeprows, , drop = FALSE]
+
+    # Update summary data from the kept points
+    summaryDataTable <- rbind(
+      myConnecter$summaryData1(),
+      myConnecter$summaryData2(),
+      myConnecter$summaryData3()
+    )
+
+    logInfo("SUMMARY DATA UPDATED")
+    return(summaryDataTable)
+  })
+  
+  # Render updated Summary Methods Table when summaryDataReactive changes
+  output$methodSummaryTable <- renderTable({
+    summaryDataReactive()
   })
 
-  # Reset the individual fits table to original when "Reset" button is pressed.
-  observeEvent(
-    eventExpr = input$resetTable1ID == TRUE,
-    handlerExpr = {
-      valuesT$individualFitData <- isolate({
-        getListUnder()
-      })
-    }
-  )
+  output$errorTable <- renderTable({
+    errorDataTable <<- myConnecter$errorData()
+    return(errorDataTable)
+  })
 
   # Navigate back to the "File" tab when "Back to Home" button is pressed.
   observeEvent(input$backToHome, {
     updateNavbarPage(session, "navbarPageID", selected = "File")
-  })
-
-  output$methodSummaryTable <- renderTable({
-    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData1())
-    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData2())
-    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData3())
-    return(summaryDataTable)
-  })
-  output$errorTable <- renderTable({
-    errorDataTable <<- myConnecter$errorData()
-    return(errorDataTable)
   })
 
   # Save the Van't Hoff Plot in the chosen format
@@ -694,7 +657,7 @@ server <- function(input, output, session) {
     content = function(file2) {
       selectedParts <- list()
       if ("Individual Fits" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
+        selectedParts$IndividualFits <- individualFitsTable
       }
       if ("Method Summaries" %in% input$tableDownloadsPartsID) {
         selectedParts$MethodsSummaries <- summaryDataTable
