@@ -660,34 +660,40 @@ server <- function(input, output, session) {
     }
   )
 
-  # Save the results table in the chosen file format
-  output$downloadTableID <- downloadHandler(
-    filename = function() {
-      paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = "")
-    },
-    content = function(file2) {
-      selectedParts <- list()
-      if ("Individual Fits" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
-      }
-      if ("Method Summaries" %in% input$tableDownloadsPartsID) {
-        selectedParts$MethodsSummaries <- summaryDataTable
-      }
-      if ("Percent Error" %in% input$tableDownloadsPartsID) {
-        selectedParts$PercentError <- errorDataTable
-      }
-      if ("All of the Above" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData
-        selectedParts$MethodsSummaries <- summaryDataTable
-        selectedParts$PercentError <- errorDataTable
-      }
-      if (input$tableFileFormatID == "csv") {
-        write.csv(selectedParts, file = file2)
-      } else {
-        write.xlsx(selectedParts, file = file2)
-      }
+# Save the results table in the chosen file format
+output$downloadTableID <- downloadHandler(
+  filename = function() {
+    paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = "")
+  },
+  content = function(file2) {
+    selectedParts <- list()
+    
+    if ("Individual Fits" %in% input$tableDownloadsPartsID) {
+      individualFitData <- valuesT$individualFitData %>% select(-c(Delete, ID))
+      selectedParts$IndividualFits <- individualFitData
     }
-  )
+    if ("Method Summaries" %in% input$tableDownloadsPartsID) {
+      selectedParts$MethodsSummaries <- summaryDataTable
+    }
+    if ("Percent Error" %in% input$tableDownloadsPartsID) {
+      selectedParts$PercentError <- errorDataTable
+    }
+    if ("All of the Above" %in% input$tableDownloadsPartsID) {
+      selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
+      selectedParts$MethodsSummaries <- summaryDataTable
+      selectedParts$PercentError <- errorDataTable
+    }
+    
+    # Choose the file format for saving
+    if (input$tableFileFormatID == "csv") {
+      write.csv(selectedParts, file = file2)
+    } else {
+      write.xlsx(selectedParts, file = file2)
+    }
+  }
+)
+
+      
   # General Information Button
   observeEvent(input$btn_general_info, {
     shinyjs::hide("upload_data_content")
