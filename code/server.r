@@ -653,7 +653,12 @@ server <- function(input, output, session) {
   # Save the Van't Hoff Plot in the chosen format
   output$downloadVantID <- downloadHandler(
     filename = function() {
-      paste(input$saveNameVantID, ".", input$vantDownloadFormatID, sep = "")
+    # Check if the user has provided a filename; if not, use a default
+    if (input$saveNameVantID == "") {
+      return(paste("VantHoffPlot", ".", input$vantDownloadFormatID, sep = ""))
+    } else {
+      return(paste(input$saveNameVantID, ".", input$vantDownloadFormatID, sep = ""))
+    }
     },
     content = function(file) {
       ggsave(filename = file, plot = vantGgPlot, width = 18, height = 10)
@@ -663,7 +668,12 @@ server <- function(input, output, session) {
   # Save the results table in the chosen file format
   output$downloadTableID <- downloadHandler(
     filename = function() {
-      paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = "")
+    # Check if the user has provided a filename; if not, use a default
+    if (input$saveNameTableID == "") {
+      return(paste("ResultsTable", ".", input$tableFileFormatID, sep = ""))
+    } else {
+      return(paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = ""))
+    }
     },
     content = function(file2) {
       selectedParts <- list()
