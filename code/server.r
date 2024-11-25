@@ -373,6 +373,11 @@ server <- function(input, output, session) {
     }
   )
 
+# Check if the datasetsUploadedID() returns TRUE correctly.
+# Ensure that numSamples and start are correctly initialized and have valid values.
+# debug: Print numSamples and can verify their values.
+cat("Datasets uploaded. NumSamples:", numSamples, "Start:", start, "\n")
+
   # Dynamically create n tabs (n = number of samples in master data frame) for
   # the "Graphs" page under the "Analysis" navbarmenu.
   observeEvent(
@@ -383,7 +388,16 @@ server <- function(input, output, session) {
         lapply(
           start:numSamples,
           function(i) {
+            # debug: Print the current sample being processed
+            cat("Processing tab for sample:", i, "\n")
+
+            # Ensure the loop skips blankInt correctly
             if (i != blankInt) {
+              # Verify derivativeXData and derivativeYData are initialized
+              if (is.null(derivativeXData[[i]]) || is.null(derivativeYData[[i]])) {
+                warning(paste0("Derivative data not initialized for sample ", i))
+              }
+
               tabName <- paste("Sample", i, sep = " ")
               appendTab(
                 inputId = "tabs",
@@ -409,16 +423,44 @@ server <- function(input, output, session) {
                           )
                         ),
                         plotlyOutput(paste0("plotBoth", i)),
-                        # plotlyOutput(paste0("plotBoth", i)),
+                        conditionalPanel(
+                          condition = paste0("input.firstDerivative", i, " === true"),
+                          plotlyOutput(paste0("plotDerivative", i))
+                        )
                       )
                     )
                   )
                 )
               )
-            }
-          }
-        )
-        start <<- numSamples + 1
+              # Add observer for rendering the derivative plot
+              observeEvent(input[[paste0("firstDerivative", i)]], {
+                req(input[[paste0("firstDerivative", i)]])  # Ensure the input exists
+
+                output[[paste0("plotDerivative", i)]] <- renderPlotly({
+                  # Ensure data exists before rendering
+                  if (is.null(derivativeXData[[i]]) || is.null(derivativeYData[[i]])) {
+                    stop(paste0("Derivative data not found for sample ", i))
+                  }
+                  
+                  # Debug: Log derivative data for this sample
+                  cat("Rendering derivative plot for sample:", i, "\n")
+                  print(derivativeXData[[i]])
+                  print(derivativeYData[[i]])
+
+                  # Generate the derivative plot
+                  plot_ly(
+                    x = derivativeXData[[i]],
+                    y = derivativeYData[[i]],
+                    type = "scatter",
+                    mode = "lines",
+                    name = "Derivative"
+                  )
+                })
+              }, ignoreNULL = FALSE)  # Ensure observer is triggered even if initially NULL
+                    }
+                  }
+                )
+                start <<- numSamples + 1
       }
     }
   )

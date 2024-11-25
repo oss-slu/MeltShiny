@@ -104,6 +104,22 @@ connecter <- setRefClass(
           .self$fdData$dA.dT / (.self$fdData$Pathlength * .self$fdData$Ct) / upper
         )
       )
+      # Debug: Check that fdData has been properly initialized
+      cat("Constructed fdData:\n")
+      print(head(.self$fdData))
+      
+      # Ensure derivativeXData and derivativeYData are populated for all samples
+      for (i in unique(.self$fdData$Sample)) {
+        derivativeXData[[i]] <<- .self$fdData$Temperature[.self$fdData$Sample == i]
+        derivativeYData[[i]] <<- .self$fdData$dA.dT[.self$fdData$Sample == i] / 
+                                (.self$fdData$Pathlength[.self$fdData$Sample == i] * 
+                                  .self$fdData$Ct[.self$fdData$Sample == i]) / upper
+                                  
+        # Debug: Log derivative data for each sample
+        cat("Sample:", i, "\n")
+        print(derivativeXData[[i]])
+        print(derivativeYData[[i]])
+      }
     },
 
     # Automatically fit MeltR.A object through BLTrimmer
