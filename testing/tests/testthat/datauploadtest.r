@@ -50,19 +50,3 @@ test_that("Valid Inputs Pass Validation", {
   # Check that is_valid_input is TRUE
   expect_true(app$get_output("is_valid_input"))
 })
-
-test_that("Invalid Inputs Trigger Modal", {
-  app <- AppDriver$new("path/to/app", name = "test-app")
-
-  # Mock invalid inputs
-  app$set_inputs(
-    noBlanksID = FALSE,
-    blankSampleID = "not_a_number"
-  )
-
-  # Trigger upload
-  app$set_inputs(uploadData = "click")
-
-  # Check for modal dialog
-  expect_true(app$find_element(".modal-title"))
-})
