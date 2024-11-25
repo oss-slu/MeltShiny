@@ -627,6 +627,10 @@ server <- function(input, output, session) {
 
   # Reactive expression to update summary data based on Van't Hoff plot changes
   summaryDataReactive <- reactive({
+    
+    # Update the MeltR Object
+    updateMeltRObject()
+    
     req(datasetsUploadedID())
 
     # Filter summary data based on kept points in Van't Hoff
@@ -645,7 +649,6 @@ server <- function(input, output, session) {
   
   # Render updated Summary Methods Table when summaryDataReactive changes
   output$methodSummaryTable <- renderTable({
-    updateMeltRObject()
     summaryDataReactive()
   })
 
