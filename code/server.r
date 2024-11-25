@@ -3,16 +3,42 @@
 
 server <- function(input, output, session) {
 
-  #Declare initial value for data upload button check
+  # Declare initial value for data upload button check
   is_valid_input <- FALSE
 
-  #declaring datasetsUploadedID as reactive for upload data button click
+  # Prevent manual input to temperatureID button
+  disable("temperatureID")
+  disable("submit")
+
+  # Declaring datasetsUploadedID as reactive for upload data button click
   datasetsUploadedID <- reactiveVal(FALSE)
+
+  # Declaring temperatureUpdatedID as reactive for manual changes to the temperature
+  temperatureUpdatedID <- reactiveVal(FALSE)
 
   observeEvent(input$uploadData, {
     datasetsUploadedID(TRUE)  # Set the reactive value to TRUE on upload data button click
+    shinyjs::show("resetData")
   })
-  
+
+  observeEvent(input$resetData, {
+    session$reload()
+  })
+
+  # If temperature is manually edited, update concTVal
+  observeEvent(input$submit, {
+    if (input$temperatureID != "") {
+      concTVal <<- as.numeric(input$temperatureID)  # Set concTVal to new temperature
+      
+      # Call the MeltR analysis event with the newly updated temperature
+      logInfo(paste("TEMPERATURE UPDATED TO", concTVal, "- REPROCESSING"))
+      temperatureUpdatedID(TRUE)
+      renderVantHoffPlot()
+      temperatureUpdatedID(FALSE)
+    }
+  })
+
+
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
 
@@ -49,7 +75,7 @@ server <- function(input, output, session) {
           ))
         }
       }
-      if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "" || input$temperatureID == "") {
+      if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Missing Inputs",
@@ -158,8 +184,6 @@ server <- function(input, output, session) {
           molStateVal <<- "Monomolecular.2State"
         }
 
-        # Store the temperature used to calculate the concentration with Beers law
-        concTVal <<- as.numeric(gsub(" ", "", input$temperatureID))
 
         # Disable widgets whose values apply to all datasets
         disable("helixID")
@@ -175,6 +199,16 @@ server <- function(input, output, session) {
         fileName <- input$inputFileID$datapath
         raw_data <- read.csv(file = fileName)
 
+        highest_temp <- max(raw_data$Temperature, na.rm = TRUE)
+        updateTextInput(session, "temperatureID", value = highest_temp)
+        
+        # Store the temperature used to calculate the concentration with Beers law
+        concTVal <<- as.numeric(gsub(" ", "", highest_temp))
+
+        # Re-enable the temperature field for manual input
+        enable("temperatureID")
+        enable("submit")
+
         # Sort Sample column from lowest to highest
         data <- raw_data %>% arrange(Sample)
 
@@ -183,7 +217,6 @@ server <- function(input, output, session) {
         numSamples <<- numSamples + length(unique(data$Sample))
         masterFrame <<- rbind(masterFrame, data)
 
- 
       }
     }
   )
@@ -192,7 +225,7 @@ server <- function(input, output, session) {
 
   # Once all datasets have been uploaded, create the MeltR object and derive necessary information
   observeEvent(
-    eventExpr = datasetsUploadedID(),
+    eventExpr = c(datasetsUploadedID(), temperatureUpdatedID()),
     handlerExpr = {
       if (datasetsUploadedID() == TRUE) {
         disable(selector = '.navbar-nav a[data-value="Help"')
@@ -238,7 +271,7 @@ server <- function(input, output, session) {
 
   # Disable remaining widgets on "Upload" page when all datasets have been uploaded
   observeEvent(
-    eventExpr = datasetsUploadedID(),
+    eventExpr = c(datasetsUploadedID(), temperatureUpdatedID),
     handlerExpr = {
       if (datasetsUploadedID() == TRUE) {
         disable("blankSampleID")
@@ -315,7 +348,7 @@ server <- function(input, output, session) {
 
   # Disable "Van't Hoff" tab when method 2 is unselected
   observeEvent(
-    eventExpr = datasetsUploadedID(),
+    eventExpr = c(datasetsUploadedID(), temperatureUpdatedID()),
     handlerExpr = {
       if (chosenMethods[2] == FALSE) {
         disable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
@@ -327,7 +360,7 @@ server <- function(input, output, session) {
 
   # Disable "Analysis" and "Results tabs until all files have successfully been uploaded
   observeEvent(
-    eventExpr = datasetsUploadedID(),
+    eventExpr = c(datasetsUploadedID(), temperatureUpdatedID()),
     handlerExpr = {
       if (datasetsUploadedID() == FALSE) {
         disable(selector = '.navbar-nav a[data-value="Analysis"')
@@ -340,6 +373,11 @@ server <- function(input, output, session) {
     }
   )
 
+# Check if the datasetsUploadedID() returns TRUE correctly.
+# Ensure that numSamples and start are correctly initialized and have valid values.
+# debug: Print numSamples and can verify their values.
+cat("Datasets uploaded. NumSamples:", numSamples, "Start:", start, "\n")
+
   # Dynamically create n tabs (n = number of samples in master data frame) for
   # the "Graphs" page under the "Analysis" navbarmenu.
   observeEvent(
@@ -350,7 +388,16 @@ server <- function(input, output, session) {
         lapply(
           start:numSamples,
           function(i) {
+            # debug: Print the current sample being processed
+            cat("Processing tab for sample:", i, "\n")
+
+            # Ensure the loop skips blankInt correctly
             if (i != blankInt) {
+              # Verify derivativeXData and derivativeYData are initialized
+              if (is.null(derivativeXData[[i]]) || is.null(derivativeYData[[i]])) {
+                warning(paste0("Derivative data not initialized for sample ", i))
+              }
+
               tabName <- paste("Sample", i, sep = " ")
               appendTab(
                 inputId = "tabs",
@@ -376,16 +423,44 @@ server <- function(input, output, session) {
                           )
                         ),
                         plotlyOutput(paste0("plotBoth", i)),
-                        # plotlyOutput(paste0("plotBoth", i)),
+                        conditionalPanel(
+                          condition = paste0("input.firstDerivative", i, " === true"),
+                          plotlyOutput(paste0("plotDerivative", i))
+                        )
                       )
                     )
                   )
                 )
               )
-            }
-          }
-        )
-        start <<- numSamples + 1
+              # Add observer for rendering the derivative plot
+              observeEvent(input[[paste0("firstDerivative", i)]], {
+                req(input[[paste0("firstDerivative", i)]])  # Ensure the input exists
+
+                output[[paste0("plotDerivative", i)]] <- renderPlotly({
+                  # Ensure data exists before rendering
+                  if (is.null(derivativeXData[[i]]) || is.null(derivativeYData[[i]])) {
+                    stop(paste0("Derivative data not found for sample ", i))
+                  }
+                  
+                  # Debug: Log derivative data for this sample
+                  cat("Rendering derivative plot for sample:", i, "\n")
+                  print(derivativeXData[[i]])
+                  print(derivativeYData[[i]])
+
+                  # Generate the derivative plot
+                  plot_ly(
+                    x = derivativeXData[[i]],
+                    y = derivativeYData[[i]],
+                    type = "scatter",
+                    mode = "lines",
+                    name = "Derivative"
+                  )
+                })
+              }, ignoreNULL = FALSE)  # Ensure observer is triggered even if initially NULL
+                    }
+                  }
+                )
+                start <<- numSamples + 1
       }
     }
   )
@@ -462,33 +537,39 @@ server <- function(input, output, session) {
 
 
   # Create Van't Hoff plot for the "Van't Hoff Plot" tab under the "Results" navbar menu.
-  output$vantPlot <- renderPlot({
-    if (chosenMethods[2] == TRUE) {
-      logInfo("VAN'T HOFF RENDERED")
-      # Store the points that are kept vs excluded
-      keep <- vantData[vals$keeprows, , drop = FALSE]
-      exclude <- vantData[!vals$keeprows, , drop = FALSE]
-    # Check to see if all brush points are removed
+  renderVantHoffPlot <- function() {
+    output$vantPlot <- renderPlot({
+      if (chosenMethods[2] == TRUE) {
+        logInfo("VAN'T HOFF RENDERED")
+        # Store the points that are kept vs excluded
+        keep <- vantData[vals$keeprows, , drop = FALSE]
+        exclude <- vantData[!vals$keeprows, , drop = FALSE]
+      # Check to see if all brush points are removed
 
-    if(nrow(keep) == 0){
-      vals$keeprows <- rep(TRUE, nrow(vantData))
-    }
-      # Calculate the R value
-      rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
+      if(nrow(keep) == 0){
+        vals$keeprows <- rep(TRUE, nrow(vantData))
+      }
+        # Calculate the R value
+        rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
 
-      # Create vant plot, including R value
-      vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT)) +
-        geom_point() +
-        geom_smooth(formula = y ~ x, method = lm, fullrange = TRUE, color = "black", se = F, linewidth = .5, linetype = "dashed") +
-        geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
-        labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "Van't Hoff") +
-        annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
-        theme(plot.title = element_text(hjust = 0.5))
+        # Create vant plot, including R value
+        vantGgPlot <<- ggplot(keep, aes(x = lnCt, y = invT)) +
+          geom_point() +
+          geom_smooth(formula = y ~ x, method = lm, fullrange = TRUE, color = "black", se = F, linewidth = .5, linetype = "dashed") +
+          geom_point(data = exclude, shape = 21, fill = NA, color = "black", alpha = 0.25) +
+          labs(y = "Inverse Temperature(K)", x = "ln(Concentration(M))", title = "van't Hoff") +
+          annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
+          theme(plot.title = element_text(hjust = 0.5))
 
-        # removeUI(selector = "#vantLoading")
-      vantGgPlot
-    }
-  })
+          # removeUI(selector = "#vantLoading")
+        vantGgPlot
+      }
+    })
+  }
+  
+  # Initially render the Vant Hoff Plot
+  renderVantHoffPlot()
+
 
   # Remove points from Van't Hoff plot that are clicked
   observeEvent(
@@ -621,34 +702,40 @@ server <- function(input, output, session) {
     }
   )
 
-  # Save the results table in the chosen file format
-  output$downloadTableID <- downloadHandler(
-    filename = function() {
-      paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = "")
-    },
-    content = function(file2) {
-      selectedParts <- list()
-      if ("Individual Fits" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
-      }
-      if ("Method Summaries" %in% input$tableDownloadsPartsID) {
-        selectedParts$MethodsSummaries <- summaryDataTable
-      }
-      if ("Percent Error" %in% input$tableDownloadsPartsID) {
-        selectedParts$PercentError <- errorDataTable
-      }
-      if ("All of the Above" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData
-        selectedParts$MethodsSummaries <- summaryDataTable
-        selectedParts$PercentError <- errorDataTable
-      }
-      if (input$tableFileFormatID == "csv") {
-        write.csv(selectedParts, file = file2)
-      } else {
-        write.xlsx(selectedParts, file = file2)
-      }
+# Save the results table in the chosen file format
+output$downloadTableID <- downloadHandler(
+  filename = function() {
+    paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = "")
+  },
+  content = function(file2) {
+    selectedParts <- list()
+    
+    if ("Individual Fits" %in% input$tableDownloadsPartsID) {
+      individualFitData <- valuesT$individualFitData %>% select(-c(Delete, ID))
+      selectedParts$IndividualFits <- individualFitData
     }
-  )
+    if ("Method Summaries" %in% input$tableDownloadsPartsID) {
+      selectedParts$MethodsSummaries <- summaryDataTable
+    }
+    if ("Percent Error" %in% input$tableDownloadsPartsID) {
+      selectedParts$PercentError <- errorDataTable
+    }
+    if ("All of the Above" %in% input$tableDownloadsPartsID) {
+      selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
+      selectedParts$MethodsSummaries <- summaryDataTable
+      selectedParts$PercentError <- errorDataTable
+    }
+    
+    # Choose the file format for saving
+    if (input$tableFileFormatID == "csv") {
+      write.csv(selectedParts, file = file2)
+    } else {
+      write.xlsx(selectedParts, file = file2)
+    }
+  }
+)
+
+      
   # General Information Button
   observeEvent(input$btn_general_info, {
     shinyjs::hide("upload_data_content")
