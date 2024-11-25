@@ -269,6 +269,25 @@ server <- function(input, output, session) {
     }
   )
 
+  updateMeltRObject <- function() {
+    logInfo("UPDATING MELTR OBJECT")
+    myConnecter <<- connecter(
+      df = masterFrame,
+      NucAcid = helix,
+      wavelength = wavelengthVal,
+      blank = blank,
+      Tm_method = tmMethodVal,
+      outliers = NA,
+      Weight_Tm_M2 = weightedTmVal,
+      Mmodel = molStateVal,
+      methods = chosenMethods,
+      concT = concTVal
+    )
+    myConnecter$constructObject()
+    logInfo("MELTR OBJECT UPDATED")
+  }
+
+
   # Disable remaining widgets on "Upload" page when all datasets have been uploaded
   observeEvent(
     eventExpr = c(datasetsUploadedID(), temperatureUpdatedID),
@@ -626,6 +645,7 @@ server <- function(input, output, session) {
   
   # Render updated Summary Methods Table when summaryDataReactive changes
   output$methodSummaryTable <- renderTable({
+    updateMeltRObject()
     summaryDataReactive()
   })
 
