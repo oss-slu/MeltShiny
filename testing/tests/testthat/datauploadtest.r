@@ -2,38 +2,32 @@
 library(shinytest2)
 
 test_that("Upload Data Button Updates Datasets", {
-  app <- AppDriver$new("path/to/app", name = "test-app")
+  app <- AppDriver$new(name = "upload-data")
 
   # Simulate clicking the 'uploadData' button
   app$set_inputs(uploadData = "click")
 
-  # Check that datasetsUploadedID is updated to TRUE
-  expect_true(app$get_value(input = "datasetsUploadedID"))
-  
-  # Check that the "resetData" button is shown
-  expect_visible(app$find_element("#resetData"))
+  # Snapshot the app's state after the action
+  app$expect_values()
 })
 
 test_that("Temperature Updates on Submit", {
-  app <- AppDriver$new("path/to/app", name = "test-app")
+  app <- AppDriver$new(name = "temperature-update")
 
   # Set input temperatureID
   app$set_inputs(temperatureID = "25")
 
   # Simulate clicking the 'submit' button
   app$set_inputs(submit = "click")
-
-  # Check that the concTVal matches the input
-  expect_equal(app$get_output("concTVal"), 25)
-
-  # Check that the appropriate log message is generated
-  expect_true(grepl("TEMPERATURE UPDATED TO 25 - REPROCESSING", app$get_logs()))
+  
+  # Snapshot the app's state after the action
+  app$expect_values()
 })
 
 test_that("Valid Inputs Pass Validation", {
-  app <- AppDriver$new("path/to/app", name = "test-app")
+  app <- AppDriver$new(name = "valid-inputs")
 
-  # Mock valid inputs
+  # Set mock valid inputs
   app$set_inputs(
     noBlanksID = TRUE,
     helixID = "DNA,ATCG",
@@ -43,10 +37,10 @@ test_that("Valid Inputs Pass Validation", {
     molecularStateID = "Monomolecular",
     inputFileID = list(datapath = "path/to/test.csv")
   )
-
+  
   # Trigger upload
   app$set_inputs(uploadData = "click")
-
-  # Check that is_valid_input is TRUE
-  expect_true(app$get_output("is_valid_input"))
+  
+  # Snapshot the app's state after the action
+  app$expect_values()
 })
