@@ -665,39 +665,43 @@ server <- function(input, output, session) {
     }
   )
 
-  # Save the results table in the chosen file format
   output$downloadTableID <- downloadHandler(
-    filename = function() {
+  filename = function() {
     # Check if the user has provided a filename; if not, use a default
     if (input$saveNameTableID == "") {
       return(paste("ResultsTable", ".", input$tableFileFormatID, sep = ""))
     } else {
       return(paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = ""))
     }
-    },
-    content = function(file2) {
-      selectedParts <- list()
-      if ("Individual Fits" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
-      }
-      if ("Method Summaries" %in% input$tableDownloadsPartsID) {
-        selectedParts$MethodsSummaries <- summaryDataTable
-      }
-      if ("Percent Error" %in% input$tableDownloadsPartsID) {
-        selectedParts$PercentError <- errorDataTable
-      }
-      if ("All of the Above" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData
-        selectedParts$MethodsSummaries <- summaryDataTable
-        selectedParts$PercentError <- errorDataTable
-      }
-      if (input$tableFileFormatID == "csv") {
-        write.csv(selectedParts, file = file2)
-      } else {
-        write.xlsx(selectedParts, file = file2)
-      }
+  },
+  content = function(file2) {
+    # Default to "All of the Above" if no checkboxes are selected
+    tableParts <- if (is.null(input$tableDownloadsPartsID) || length(input$tableDownloadsPartsID) == 0) {
+      c("All of the Above")
+    } else {
+      input$tableDownloadsPartsID
     }
-  )
+    
+    selectedParts <- list()
+    if ("Individual Fits" %in% tableParts || "All of the Above" %in% tableParts) {
+      selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
+    }
+    if ("Method Summaries" %in% tableParts || "All of the Above" %in% tableParts) {
+      selectedParts$MethodsSummaries <- summaryDataTable
+    }
+    if ("Percent Error" %in% tableParts || "All of the Above" %in% tableParts) {
+      selectedParts$PercentError <- errorDataTable
+    }
+
+    # Write the selected parts to the file
+    if (input$tableFileFormatID == "csv") {
+      write.csv(selectedParts, file = file2)
+    } else {
+      write.xlsx(selectedParts, file = file2)
+    }
+  }
+)
+
   # General Information Button
   observeEvent(input$btn_general_info, {
     shinyjs::hide("upload_data_content")
