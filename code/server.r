@@ -63,6 +63,18 @@ server <- function(input, output, session) {
     handlerExpr = {
       logInfo("CHECKING PROGRAM INPUTS")
       # Error checking
+      # Check if a file is uploaded (moved to the top)
+      if (is.null(input$inputFileID)) {
+        is_valid_input <<- FALSE
+        showModal(modalDialog(
+          title = "No File Uploaded",
+          "Please upload a file before proceeding.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+        return()
+      }
       req(input$inputFileID)  # Ensure the file input is available
       dataset <- read.csv(input$inputFileID$datapath)  # Read the uploaded file
 
@@ -93,6 +105,18 @@ server <- function(input, output, session) {
           ))
           return()
         }
+      }
+      # Check specifically for an empty sequence
+      if (input$seqID == "") {
+        is_valid_input <<- FALSE
+        showModal(modalDialog(
+          title = "Missing Sequence",
+          "You did not enter a sequence. Please reset the input and try again.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+        return()
       }
       if (input$noBlanksID == FALSE) {
         if (can_convert_to_int(input$blankSampleID) == FALSE) {
@@ -146,15 +170,6 @@ server <- function(input, output, session) {
         showModal(modalDialog(
           title = "Not a DNA Nucleotide",
           "Please use the nucleotide T with DNA inputs.",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-        return()
-      } else if (is.null(input$inputFileID)){
-        showModal(modalDialog(
-          title = "No File",
-          "Please include a file upload",
           footer = modalButton("Understood"),
           easyClose = FALSE,
           fade = TRUE
