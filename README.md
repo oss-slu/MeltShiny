@@ -64,6 +64,13 @@ Some users may have issues regarding the installation of R packages and dependen
 
 Double clicking the MeltShiny.command and MeltShiny.bat for Mac and Windows, respectively, will open a terminal. The terminal will show some numbers before starting the MeltShiny application in your default web browser. This program uses a local host, so the contents you provide in the program are localized to your computer. Should the application not open automatically, copy the numbers at the bottom of the terminal into a browser tab. Note, the terminal must remain open for the MeltShiny application to run. Once you are done with your MeltShiny session, close out of the application tab and close the terminal.
 
+## Testing MeltShiny
+
+MeltShiny's Unit Tests can be run using the following command:
+```sh
+Rscript -e "Sys.setenv(NOT_CRAN = TRUE); testthat::test_file('C:/Users/ajvaz/repositories/MeltShiny/testing/tests/testthat/<test file name>.R')"
+```
+
 ### Updating the MeltShiny Program
 
 To obtain the latest version of the MeltShiny program, update scripts have been included, with names MeltShinyUpdate.command and MeltShinyUpdate.bat for MacOS and Windows, respectively. These files are found within the MacOS_Scripts and Windows_Scripts folders within the MeltShiny application bundle. Per the nature of deleting and replacing directories, ensure that you have not changed the file structure of the MeltShiny package; the code and Mac/Windows script subdirectories should remain within the MeltWin2.0-man directory the package is wrapped in. Although checks have been put in place for any deviations to this, we recommend leaving the file structure as is to ensure there are no unforeseen consequences.
