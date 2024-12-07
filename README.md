@@ -68,7 +68,7 @@ Double clicking the MeltShiny.command and MeltShiny.bat for Mac and Windows, res
 
 MeltShiny's Unit Tests can be run using the following command:
 ```sh
-Rscript -e "Sys.setenv(NOT_CRAN = TRUE); testthat::test_file('C:/Users/ajvaz/repositories/MeltShiny/testing/tests/testthat/<test file name>.R')"
+Rscript -e "Sys.setenv(NOT_CRAN = TRUE); testthat::test_file('C:/Path/to/MeltShiny/testing/tests/testthat/<test file name>.R')"
 ```
 
 ### Updating the MeltShiny Program
