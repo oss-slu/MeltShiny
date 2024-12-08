@@ -680,17 +680,17 @@ server <- function(input, output, session) {
     content = function(file2) {
       selectedParts <- list()
       if ("Individual Fits" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- individualFitsTable
+        selectedParts$IndividualFits <- filteredFitData()
       }
       if ("Method Summaries" %in% input$tableDownloadsPartsID) {
-        selectedParts$MethodsSummaries <- summaryDataTable
+        selectedParts$MethodsSummaries <- summaryDataReactive()
       }
       if ("Percent Error" %in% input$tableDownloadsPartsID) {
         selectedParts$PercentError <- errorDataTable
       }
       if ("All of the Above" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData
-        selectedParts$MethodsSummaries <- summaryDataTable
+        selectedParts$IndividualFits <- filteredFitData()
+        selectedParts$MethodsSummaries <- summaryDataReactive()
         selectedParts$PercentError <- errorDataTable
       }
       if (input$tableFileFormatID == "csv") {
