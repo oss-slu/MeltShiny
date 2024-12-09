@@ -73,6 +73,8 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        #program resets upon error
+        session$reload()
         return()
       }
       req(input$inputFileID)  # Ensure the file input is available
@@ -91,6 +93,7 @@ server <- function(input, output, session) {
             easyClose = FALSE,
             fade = TRUE
           ))
+          session$reload()
           return()
         }
       } else {  # If checkbox is not checked
@@ -103,6 +106,7 @@ server <- function(input, output, session) {
             easyClose = FALSE,
             fade = TRUE
           ))
+          session$reload()
           return()
         }
       }
@@ -116,6 +120,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        session$reload()
         return()
       }
       if (input$noBlanksID == FALSE) {
@@ -128,7 +133,8 @@ server <- function(input, output, session) {
             easyClose = FALSE,
             fade = TRUE
           ))
-          return
+          session$reload()
+          return()
         }
       }
       if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "") {
@@ -140,6 +146,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        session$reload()
         return()
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
         is_valid_input <<- FALSE
@@ -150,6 +157,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        session$reload()
         return()
       } else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
         ((rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
@@ -162,6 +170,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        session$reload()
         return()
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
         ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
@@ -174,6 +183,7 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        session$reload()
         return()
       }
 
