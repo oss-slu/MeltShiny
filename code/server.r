@@ -16,6 +16,29 @@ server <- function(input, output, session) {
   # Declaring temperatureUpdatedID as reactive for manual changes to the temperature
   temperatureUpdatedID <- reactiveVal(FALSE)
 
+
+  # reusable error catching function
+  handleError <- function(title, message) {
+    # Display a modal with a custom title and message
+    showModal(
+      modalDialog(
+        title = title,
+        message,
+        easyClose = TRUE,
+        footer = modalButton("Close")
+      )
+    )
+    
+    # After the modal is closed, reset the session
+    observeEvent(input$uploadData, {
+      # Wait for the modal to be dismissed before resetting the session
+      delay(5000, {
+        session$reload()  # Reset the session
+      })
+    })
+  }
+
+
   observeEvent(input$uploadData, {
     datasetsUploadedID(TRUE)  # Set the reactive value to TRUE on upload data button click
     shinyjs::show("resetData")
@@ -59,133 +82,86 @@ server <- function(input, output, session) {
 
   # Handle the inputs and uploaded datasets
   observeEvent(
-    eventExpr = input$uploadData,
-    handlerExpr = {
-      logInfo("CHECKING PROGRAM INPUTS")
-      # Error checking
-      # Check if a file is uploaded (moved to the top)
-      if (is.null(input$inputFileID)) {
-        is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "No File Uploaded",
-          "Please upload a file before proceeding.",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-        #program resets upon error
-        session$reload()
-        return()
-      }
-      req(input$inputFileID)  # Ensure the file input is available
-      dataset <- read.csv(input$inputFileID$datapath)  # Read the uploaded file
+  eventExpr = input$uploadData,
+  handlerExpr = {
+    logInfo("CHECKING PROGRAM INPUTS")
+    
+    # Check if a file is uploaded
+    if (is.null(input$inputFileID)) {
+      is_valid_input <<- FALSE
+      handleError("No File Uploaded", "Please upload a file before proceeding. The program will reset in 5 seconds.")
+      return()  # Stop further execution
+    }
 
-      # Check for blanks in the dataset
-      has_blanks <- any(is.na(dataset)) || any(dataset == "NA")  
+    req(input$inputFileID)  # Ensure the file input is available
+    dataset <- read.csv(input$inputFileID$datapath)  # Read the uploaded file
 
-      if (input$noBlanksID) {  # If checkbox is checked
-        if (has_blanks) {
-          is_valid_input <<- FALSE
-          showModal(modalDialog(
-            title = "Blanks Found",
-            "You have checked the 'No Blanks' option, but there are blanks in your uploaded data. Please uncheck the box or remove the blanks.",
-            footer = modalButton("Understood"),
-            easyClose = FALSE,
-            fade = TRUE
-          ))
-          session$reload()
-          return()
-        }
-      } else {  # If checkbox is not checked
-        if (!has_blanks) {
-          is_valid_input <<- FALSE
-          showModal(modalDialog(
-            title = "No Blanks",
-            "You have not checked the 'No Blanks' option, but your data contains no blanks. Please check the box if you want to ignore blanks.",
-            footer = modalButton("Understood"),
-            easyClose = FALSE,
-            fade = TRUE
-          ))
-          session$reload()
-          return()
-        }
+    # Check for blanks in the dataset
+    has_blanks <- any(is.na(dataset)) || any(dataset == "NA")  
+
+    if (input$noBlanksID) {  # 'No Blanks' checkbox is checked
+      if (has_blanks) {
+        is_valid_input <<- FALSE
+        handleError("Blanks Found", "Remove blanks or uncheck the 'No Blanks' option. The program will reset in 5 seconds.")
+        return()  # Stop further execution
       }
-      # Check specifically for an empty sequence
-      if (input$seqID == "") {
+    } else {  # Checkbox not checked
+      if (!has_blanks) {
         is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "Missing Sequence",
-          "You did not enter a sequence. Please reset the input and try again.",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-        session$reload()
-        return()
+        handleError("No Blanks", "Your data contains no blanks, but the 'No Blanks' option is unchecked. The program will reset in 5 seconds.")
+        return()  # Stop further execution
       }
-      if (input$noBlanksID == FALSE) {
-        if (can_convert_to_int(input$blankSampleID) == FALSE) {
-          is_valid_input <<- FALSE
-          showModal(modalDialog(
-            title = "Not a number",
-            "Please input an integer in the input box for blanks.",
-            footer = modalButton("Understood"),
-            easyClose = FALSE,
-            fade = TRUE
-          ))
-          session$reload()
-          return()
-        }
+    }
+
+    # Check specifically for an empty sequence
+    if (input$seqID == "") {
+      is_valid_input <<- FALSE
+      handleError("Missing Sequence", "Enter a sequence before proceeding. The program will reset in 5 seconds.")
+      return()  # Stop further execution
+    }
+
+    # Check for invalid input when 'No Blanks' is unchecked
+    if (!input$noBlanksID) {
+      if (!can_convert_to_int(input$blankSampleID)) {
+        is_valid_input <<- FALSE
+        handleError("Not a Number", "Enter an integer for blanks. The program will reset in 5 seconds.")
+        return()  # Stop further execution
       }
-      if ((input$helixID == ""&& input$seqID=="") || input$blankSampleID == "") {
-        is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "Missing Inputs",
-          "Please ensure that all text inputs have been filled out.",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-        session$reload()
-        return()
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
-        is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "Nucleotide to Absorbance Mis-Pair",
-          "Please use a wavelength value of 260 with DNA sequences.",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-        session$reload()
-        return()
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
-        ((rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
-          (rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
-        is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "Not a RNA Nucleotide",
-          "Please use nucleotide U with RNA inputs",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-        session$reload()
-        return()
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
-        ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
-          (dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
-        is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "Not a DNA Nucleotide",
-          "Please use the nucleotide T with DNA inputs.",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-        session$reload()
-        return()
-      }
+    }
+
+    # Ensure all required text inputs are filled
+    if ((input$helixID == "" && input$seqID == "") || input$blankSampleID == "") {
+      is_valid_input <<- FALSE
+      handleError("Missing Inputs", "Fill out all text inputs. The program will reset in 5 seconds.")
+      return()  # Stop further execution
+    }
+
+    # DNA-specific wavelength check
+    if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && input$wavelengthID != "260") {
+      is_valid_input <<- FALSE
+      handleError("Nucleotide to Absorbance Mis-Pair", "Use wavelength 260 for DNA sequences. The program will reset in 5 seconds.")
+      return()  # Stop further execution
+    }
+
+    # RNA nucleotide validation
+    if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && 
+        input$molecularStateID != "Monomolecular" && 
+        (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2])) || 
+         !rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
+      is_valid_input <<- FALSE
+      handleError("Not an RNA Nucleotide", "Use nucleotide U with RNA inputs. The program will reset in 5 seconds.")
+      return()  # Stop further execution
+    }
+
+    # DNA nucleotide validation
+    if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && 
+        input$molecularStateID != "Monomolecular" && 
+        (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2])) || 
+         !dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
+      is_valid_input <<- FALSE
+      handleError("Not a DNA Nucleotide", "Use nucleotide T with DNA inputs. The program will reset in 5 seconds.")
+      return()  # Stop further execution
+    }
 
       # If there are no errors in the inputs, proceed with file upload and processing
       else {
