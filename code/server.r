@@ -1,8 +1,7 @@
-# server.R handles input validation and analysis. 
+# server.R handles input validation and analysis.
 # It initiates processing and dynamically creates information displayed on analysis graphs.
 
 server <- function(input, output, session) {
-
   # Declare initial value for data upload button check
   is_valid_input <- reactiveVal(FALSE)
 
@@ -40,7 +39,7 @@ server <- function(input, output, session) {
 
 
   observeEvent(input$uploadData, {
-    datasetsUploadedID(TRUE)  # Set the reactive value to TRUE on upload data button click
+    datasetsUploadedID(TRUE) # Set the reactive value to TRUE on upload data button click
     shinyjs::show("resetData")
   })
 
@@ -51,8 +50,8 @@ server <- function(input, output, session) {
   # If temperature is manually edited, update concTVal
   observeEvent(input$submit, {
     if (input$temperatureID != "") {
-      concTVal <<- as.numeric(input$temperatureID)  # Set concTVal to new temperature
-      
+      concTVal <<- as.numeric(input$temperatureID) # Set concTVal to new temperature
+
       # Call the MeltR analysis event with the newly updated temperature
       logInfo(paste("TEMPERATURE UPDATED TO", concTVal, "- REPROCESSING"))
       temperatureUpdatedID(TRUE)
@@ -105,11 +104,54 @@ server <- function(input, output, session) {
         handleError("Blanks Found", "Remove blanks or uncheck the 'No Blanks' option. The program will reset in 5 seconds.")
         return()  # Stop further execution
       }
-    } else {  # Checkbox not checked
-      if (!has_blanks) {
+      if ((input$helixID == "" && input$seqID == "") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
-        handleError("No Blanks", "Your data contains no blanks, but the 'No Blanks' option is unchecked. The program will reset in 5 seconds.")
-        return()  # Stop further execution
+        showModal(modalDialog(
+          title = "Missing Inputs",
+          "Please ensure that all text inputs have been filled out.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+      } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
+        is_valid_input <<- FALSE
+        showModal(modalDialog(
+          title = "Nucleotide to Absorbance Mis-Pair",
+          "Please use a wavelength value of 260 with DNA sequences.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+      } else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
+        ((rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
+          (rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
+        is_valid_input <<- FALSE
+        showModal(modalDialog(
+          title = "Not a RNA Nucleotide",
+          "Please use nucleotide U with RNA inputs",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+      } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
+        ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
+          (dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
+        is_valid_input <<- FALSE
+        showModal(modalDialog(
+          title = "Not a DNA Nucleotide",
+          "Please use the nucleotide T with DNA inputs.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+      } else if (is.null(input$inputFileID)) {
+        showModal(modalDialog(
+          title = "No File",
+          "Please include a file upload",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
       }
     }
 
@@ -191,7 +233,7 @@ server <- function(input, output, session) {
         updateCheckboxInput(session, "noBlanksID", value = FALSE)
 
         # Store the extinction coefficient information
-        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID,',',input$seqID)), ",")[[1]], which = "both")
+        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID, ",", input$seqID)), ",")[[1]], which = "both")
 
         # Store the tm method information
         tmMethodVal <<- toString(input$Tm_methodID)
@@ -239,7 +281,7 @@ server <- function(input, output, session) {
 
         highest_temp <- max(raw_data$Temperature, na.rm = TRUE)
         updateTextInput(session, "temperatureID", value = highest_temp)
-        
+
         # Store the temperature used to calculate the concentration with Beers law
         concTVal <<- as.numeric(gsub(" ", "", highest_temp))
 
@@ -254,7 +296,6 @@ server <- function(input, output, session) {
         numUploads <<- numUploads + 1
         numSamples <<- numSamples + length(unique(data$Sample))
         masterFrame <<- rbind(masterFrame, data)
-
       }
     }
   )
@@ -278,7 +319,7 @@ server <- function(input, output, session) {
         enable(selector = '.navbar-nav a[data-value="Help"')
         enable(selector = '.navbar-nav a[data-value="File"')
       }
-      
+
       if (datasetsUploadedID() == TRUE) {
         logInfo("CREATING MELTR OBJECT")
         # Send stored input values to the connecter class to create a MeltR object
@@ -337,11 +378,11 @@ server <- function(input, output, session) {
   # Update the example information in the nucleic acid/ extinction coefficient text box depending on user choice
   observe(
     if (input$extinctConDecisionID == "Nucleic acid sequence(s)") {
-      updateTextInput(session, "helixID", placeholder = "E.g: RNA",label = "Specify nucelic acid type")
-      updateTextInput(session, "seqID", placeholder = "E.g: CGAAAGGU,ACCUUUCG",label="Specify sequences")
+      updateTextInput(session, "helixID", placeholder = "E.g: RNA", label = "Specify nucelic acid type")
+      updateTextInput(session, "seqID", placeholder = "E.g: CGAAAGGU,ACCUUUCG", label = "Specify sequences")
       enable("helixID")
     } else if (input$extinctConDecisionID == "Custom molar extinction coefficients") {
-      updateTextInput(session, "seqID", placeholder = "E.g: Custom, 10000, 20000",label="Specify coefficients")
+      updateTextInput(session, "seqID", placeholder = "E.g: Custom, 10000, 20000", label = "Specify coefficients")
       updateTextInput(session, "helixID", placeholder = "Disabled")
       disable("helixID")
     }
@@ -362,17 +403,18 @@ server <- function(input, output, session) {
     handlerExpr = {
       req(is_valid_input)
       logInfo("DISPLAYING UPLOADED DATASET")
-      if(is_valid_input) {
-      divID <- toString(numUploads)
-      dtID <- paste0(divID, "DT")
-      insertUI(
-        selector = "#placeholder",
-        ui = tags$div(
-          id = divID,
-          DT::dataTableOutput(dtID),
-          hr(style = "border-top: 1px solid #000000;")
+      if (is_valid_input) {
+        divID <- toString(numUploads)
+        dtID <- paste0(divID, "DT")
+        insertUI(
+          selector = "#placeholder",
+          ui = tags$div(
+            id = divID,
+            DT::dataTableOutput(dtID),
+            hr(style = "border-top: 1px solid #000000;")
+          )
         )
-      )
+      
       output[[dtID]] <- DT::renderDataTable({
         datatable(dataList[[numUploads]],
           class = "cell-border stripe",
@@ -405,7 +447,7 @@ server <- function(input, output, session) {
         disable(selector = '.navbar-nav a[data-value="Analysis"')
         disable(selector = '.navbar-nav a[data-value="Results"')
       } else {
-        logInfo('PROCESSING COMPLETE')
+        logInfo("PROCESSING COMPLETE")
         enable(selector = '.navbar-nav a[data-value="Analysis"')
         enable(selector = '.navbar-nav a[data-value="Results"')
       }
@@ -467,12 +509,12 @@ server <- function(input, output, session) {
     eventExpr = input$seqHelp,
     handlerExpr = {
       showModal(modalDialog(
-          title = "Help for Specify Sequences",
-          "placeholder text for input sequences help",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
+        title = "Help for Specify Sequences",
+        "placeholder text for input sequences help",
+        footer = modalButton("Understood"),
+        easyClose = FALSE,
+        fade = TRUE
+      ))
     }
   )
 
@@ -480,12 +522,12 @@ server <- function(input, output, session) {
     eventExpr = input$tmHelp,
     handlerExpr = {
       showModal(modalDialog(
-          title = "Help for TM Methods",
-          "placeholder text for tm methods help",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
+        title = "Help for TM Methods",
+        "placeholder text for tm methods help",
+        footer = modalButton("Understood"),
+        easyClose = FALSE,
+        fade = TRUE
+      ))
     }
   )
   # Dynamically create the analysis plot for each of the n sample tabs
@@ -517,7 +559,7 @@ server <- function(input, output, session) {
                 if (input[[paste0("firstDerivative", myI)]] == TRUE) {
                   analysisPlot <- analysisPlot %>% add_trace(x = derivativeXData[[myI]], y = derivativeYData[[myI]], marker = list(color = "green"))
                 }
-                
+
                 analysisPlot
               })
               observeEvent(event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event")), {
@@ -543,11 +585,11 @@ server <- function(input, output, session) {
         # Store the points that are kept vs excluded
         keep <- vantData[vals$keeprows, , drop = FALSE]
         exclude <- vantData[!vals$keeprows, , drop = FALSE]
-      # Check to see if all brush points are removed
+        # Check to see if all brush points are removed
 
-      if(nrow(keep) == 0){
-        vals$keeprows <- rep(TRUE, nrow(vantData))
-      }
+        if (nrow(keep) == 0) {
+          vals$keeprows <- rep(TRUE, nrow(vantData))
+        }
         # Calculate the R value
         rValue <- format(sqrt(summary(lm(invT ~ lnCt, keep))$r.squared), digits = 3)
 
@@ -560,12 +602,12 @@ server <- function(input, output, session) {
           annotate("text", x = Inf, y = Inf, color = "#333333", label = paste("r = ", toString(rValue)), size = 7, vjust = 1, hjust = 1) +
           theme(plot.title = element_text(hjust = 0.5))
 
-          # removeUI(selector = "#vantLoading")
+        # removeUI(selector = "#vantLoading")
         vantGgPlot
       }
     })
   }
-  
+
   # Initially render the Vant Hoff Plot
   renderVantHoffPlot()
 
@@ -680,7 +722,7 @@ server <- function(input, output, session) {
         ),
         escape = F
       )
-      logInfo('RESULTS TABLE RENDERED')
+    logInfo("RESULTS TABLE RENDERED")
   })
   output$methodSummaryTable <- renderTable({
     summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData1())
@@ -696,34 +738,47 @@ server <- function(input, output, session) {
   # Save the Van't Hoff Plot in the chosen format
   output$downloadVantID <- downloadHandler(
     filename = function() {
-      paste(input$saveNameVantID, ".", input$vantDownloadFormatID, sep = "")
+      # Check if the user has provided a filename; if not, use a default
+      if (input$saveNameVantID == "") {
+        return(paste("VantHoffPlot", ".", input$vantDownloadFormatID, sep = ""))
+      } else {
+        return(paste(input$saveNameVantID, ".", input$vantDownloadFormatID, sep = ""))
+      }
     },
     content = function(file) {
       ggsave(filename = file, plot = vantGgPlot, width = 18, height = 10)
     }
   )
 
-  # Save the results table in the chosen file format
   output$downloadTableID <- downloadHandler(
     filename = function() {
-      paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = "")
+      # Check if the user has provided a filename; if not, use a default
+      if (input$saveNameTableID == "") {
+        return(paste("ResultsTable", ".", input$tableFileFormatID, sep = ""))
+      } else {
+        return(paste(input$saveNameTableID, ".", input$tableFileFormatID, sep = ""))
+      }
     },
     content = function(file2) {
+      # Default to "All of the Above" if no checkboxes are selected
+      tableParts <- if (is.null(input$tableDownloadsPartsID) || length(input$tableDownloadsPartsID) == 0) {
+        c("All of the Above")
+      } else {
+        input$tableDownloadsPartsID
+      }
+
       selectedParts <- list()
-      if ("Individual Fits" %in% input$tableDownloadsPartsID) {
+      if ("Individual Fits" %in% tableParts || "All of the Above" %in% tableParts) {
         selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
       }
-      if ("Method Summaries" %in% input$tableDownloadsPartsID) {
+      if ("Method Summaries" %in% tableParts || "All of the Above" %in% tableParts) {
         selectedParts$MethodsSummaries <- summaryDataTable
       }
-      if ("Percent Error" %in% input$tableDownloadsPartsID) {
+      if ("Percent Error" %in% tableParts || "All of the Above" %in% tableParts) {
         selectedParts$PercentError <- errorDataTable
       }
-      if ("All of the Above" %in% input$tableDownloadsPartsID) {
-        selectedParts$IndividualFits <- valuesT$individualFitData
-        selectedParts$MethodsSummaries <- summaryDataTable
-        selectedParts$PercentError <- errorDataTable
-      }
+
+      # Write the selected parts to the file
       if (input$tableFileFormatID == "csv") {
         write.csv(selectedParts, file = file2)
       } else {
@@ -731,15 +786,16 @@ server <- function(input, output, session) {
       }
     }
   )
+
   # General Information Button
   observeEvent(input$btn_general_info, {
     shinyjs::hide("upload_data_content")
     shinyjs::hide("analysis_graphs_content")
-     shinyjs::hide("results_table_content")
-      shinyjs::hide("exit_content")
+    shinyjs::hide("results_table_content")
+    shinyjs::hide("exit_content")
     shinyjs::toggle("general_info_content")
   })
-  
+
   # How to Upload Data Button
   observeEvent(input$btn_upload_data, {
     shinyjs::hide("general_info_content")
@@ -748,7 +804,7 @@ server <- function(input, output, session) {
     shinyjs::hide("exit_content")
     shinyjs::toggle("upload_data_content")
   })
-  
+
   # Analysis Graphs Button
   observeEvent(input$btn_analysis_graphs, {
     shinyjs::hide("general_info_content")
@@ -757,7 +813,7 @@ server <- function(input, output, session) {
     shinyjs::hide("exit_content")
     shinyjs::toggle("analysis_graphs_content")
   })
-  
+
   # Results Table Button
   observeEvent(input$btn_results_table, {
     shinyjs::hide("general_info_content")
@@ -766,7 +822,7 @@ server <- function(input, output, session) {
     shinyjs::hide("exit_content")
     shinyjs::toggle("results_table_content")
   })
-  
+
   # Exit Instructions Button
   observeEvent(input$btn_exit, {
     shinyjs::hide("general_info_content")
