@@ -93,10 +93,13 @@ server <- function(input, output, session) {
     }
 
     req(input$inputFileID)  # Ensure the file input is available
-    dataset <- read.csv(input$inputFileID$datapath)  # Read the uploaded file
+    # Read the dataset, treating empty strings as NA
+    dataset <- read.csv(input$inputFileID$datapath, na.strings = c("NA", ""))
 
     # Check for blanks in the dataset
-    has_blanks <- any(is.na(dataset)) || any(dataset == "NA")  
+    has_blanks <- any(tolower(names(dataset)) == "blanks")
+
+
 
     if (input$noBlanksID) {  # 'No Blanks' checkbox is checked
       if (has_blanks) {
@@ -106,13 +109,9 @@ server <- function(input, output, session) {
       }
       if ((input$helixID == "" && input$seqID == "") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "Missing Inputs",
-          "Please ensure that all text inputs have been filled out.",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
+        handleError("No blanks have been found Please select the no blank option. The program will reset in 5 seconds.")
+        return()       
+      
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
@@ -163,10 +162,10 @@ server <- function(input, output, session) {
     }
 
     # Check for invalid input when 'No Blanks' is unchecked
-    if (!input$noBlanksID) {
-      if (!can_convert_to_int(input$blankSampleID)) {
+    if (!input$noBlanksID) {  # User hasn't checked "No Blanks"
+      if (!has_blanks) {  # But there are blanks in the dataset
         is_valid_input <<- FALSE
-        handleError("Not a Number", "Enter an integer for blanks. The program will reset in 5 seconds.")
+        handleError("Blanks Found", "Please check the 'No Blanks' option. The program will reset in 5 seconds.")
         return()  # Stop further execution
       }
     }
