@@ -426,7 +426,9 @@ server <- function(input, output, session) {
     handlerExpr = {
       showModal(modalDialog(
         title = "Help for Specify Sequences",
-        "placeholder text for input sequences help",
+        "Please enter the nucleotide sequence in the correct format. For DNA sequences, 
+         use only A, T, C, and G. For RNA sequences, use only A, U, C, and G. Ensure the 
+         sequence is free from spaces, special characters, or numbers.",
         footer = modalButton("Understood"),
         easyClose = FALSE,
         fade = TRUE
