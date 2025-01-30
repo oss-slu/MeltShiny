@@ -138,10 +138,17 @@ server <- function(input, output, session) {
       
       if ((input$helixID == "" && input$seqID == "") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
-        handleError("No blanks have been found Please select the no blank option. The program will reset in 5 seconds.")
-        return()       
-      
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
+        showModal(modalDialog(
+          title = "Missing Inputs",
+          "Please ensure that all text inputs have been filled out.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+        updateTextInput(session, "seqID", value = "")
+        datasetsUploadedID(FALSE)
+      } 
+      else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
           title = "Nucleotide to Absorbance Mis-Pair",
@@ -150,7 +157,10 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
+        updateTextInput(session, "seqID", value = "")
+        datasetsUploadedID(FALSE)
+      } 
+      else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
         (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2]))) || 
         (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
         is_valid_input <<- FALSE
@@ -161,7 +171,11 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
+        # Reset the input fields after error
+        updateTextInput(session, "seqID", value = "")
+        datasetsUploadedID(FALSE)
+      } 
+      else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
         (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2]))) ||
         (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
         is_valid_input <<- FALSE
@@ -172,7 +186,11 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
-      } else if (is.null(input$inputFileID)) {
+        # Reset the input fields after error
+        updateTextInput(session, "seqID", value = "")
+        datasetsUploadedID(FALSE)
+      } 
+      else if (is.null(input$inputFileID)) {
         showModal(modalDialog(
           title = "No File",
           "Please include a file upload",
