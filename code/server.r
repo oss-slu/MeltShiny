@@ -64,12 +64,12 @@ server <- function(input, output, session) {
 
   # Check the nucleotide sequence to check if it belongs to DNA
   dna_letters_only <- function(x) {
-    all(!grepl("[^A, ^G, ^C, ^T]", x))
+    grepl("^[ATGC]+$", x, ignore.case = TRUE)
   }
 
   # Check the nucleotide sequence to check if it belongs to RNA
   rna_letters_only <- function(x) {
-    all(!grepl("[^A, ^G, ^C, ^U]", x))
+    grepl("^[AUGC]+$", x, ignore.case = TRUE)
   }
   
 
@@ -151,23 +151,23 @@ server <- function(input, output, session) {
           fade = TRUE
         ))
       } else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
-        ((rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
-          (rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
+        (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2]))) || 
+        (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
         is_valid_input <<- FALSE
         showModal(modalDialog(
-          title = "Not a RNA Nucleotide",
-          "Please use nucleotide U with RNA inputs",
+          title = "Invalid RNA Sequence",
+          "Please ensure the sequence contains only valid RNA nucleotides (A, U, G, C).",
           footer = modalButton("Understood"),
           easyClose = FALSE,
           fade = TRUE
         ))
       } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
-        ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
-          (dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
+        (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2]))) ||
+        (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
         is_valid_input <<- FALSE
         showModal(modalDialog(
-          title = "Not a DNA Nucleotide",
-          "Please use the nucleotide T with DNA inputs.",
+          title = "Invalid DNA Sequence",
+          "Please ensure the sequence contains only valid DNA nucleotides (A, T, G, C).",
           footer = modalButton("Understood"),
           easyClose = FALSE,
           fade = TRUE
