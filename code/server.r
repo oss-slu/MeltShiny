@@ -62,7 +62,7 @@ server <- function(input, output, session) {
     handlerExpr = {
       logInfo("CHECKING PROGRAM INPUTS")
 
-      # Error checking for missing or invalid inputs
+      # Check if the blanks input is provided as an integer
       if (input$noBlanksID == FALSE) {
         if (can_convert_to_int(input$blankSampleID) == FALSE) {
           is_valid_input <<- FALSE
@@ -75,6 +75,8 @@ server <- function(input, output, session) {
           ))
         }
       }
+
+      # Check if the helixID, seqID, and blankSampleID fields are missing
       if ((input$helixID == "" && input$seqID == "") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
@@ -84,9 +86,12 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        # Reset the input fields after error
         updateTextInput(session, "seqID", value = "")
         datasetsUploadedID(FALSE)
-      } 
+      }
+
+      # Check for a mismatch between DNA and absorbance wavelength
       else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
@@ -96,9 +101,12 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
+        # Reset the input fields after error
         updateTextInput(session, "seqID", value = "")
         datasetsUploadedID(FALSE)
-      } 
+      }
+
+      # Check if RNA sequence contains invalid nucleotides
       else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
         (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2]))) || 
         (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
@@ -113,7 +121,9 @@ server <- function(input, output, session) {
         # Reset the input fields after error
         updateTextInput(session, "seqID", value = "")
         datasetsUploadedID(FALSE)
-      } 
+      }
+
+      # Check if DNA sequence contains invalid nucleotides
       else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
         (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2]))) ||
         (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
@@ -128,7 +138,9 @@ server <- function(input, output, session) {
         # Reset the input fields after error
         updateTextInput(session, "seqID", value = "")
         datasetsUploadedID(FALSE)
-      } 
+      }
+
+      # Check if a file has been uploaded
       else if (is.null(input$inputFileID)) {
         showModal(modalDialog(
           title = "No File",
