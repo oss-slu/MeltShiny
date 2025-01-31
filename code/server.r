@@ -91,13 +91,6 @@ server <- function(input, output, session) {
       handleError("No File Uploaded", "Please upload a file before proceeding. The program will reset in 5 seconds.")
       return()  # Stop further execution
     }
-    #Ensure file is a csv
-    ext <- tools::file_ext(input$inputFileID$datapath)
-    if (tolower(ext) != "csv") {
-      is_valid_input <<- FALSE
-      handleError("File Type Error", "The uploaded file is not a .csv file. The program will reset in 5 seconds")
-      return()
-    }
     #Try reading the CSV file
     df <- tryCatch({
       read.csv(input$inputFileID$datapath, stringsAsFactors = FALSE)
