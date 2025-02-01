@@ -78,7 +78,7 @@ server <- function(input, output, session) {
   rna_letters_only <- function(x) {
     all(!grepl("[^A, ^G, ^C, ^U]", x))
   }
-
+  
   # Handle the inputs and uploaded datasets
   observeEvent(
   eventExpr = input$uploadData,
@@ -91,7 +91,41 @@ server <- function(input, output, session) {
       handleError("No File Uploaded", "Please upload a file before proceeding. The program will reset in 5 seconds.")
       return()  # Stop further execution
     }
+    #Ensure file is a csv
+    ext <- tools::file_ext(input$inputFileID$datapath)
+    if (tolower(ext) != "csv") {
+      is_valid_input <<- FALSE
+      handleError("File Type Error", "The uploaded file is not a .csv file. The program will reset in 5 seconds")
+      return()
+    }
+    #Try reading the CSV file
+    df <- tryCatch({
+      read.csv(input$inputFileID$datapath, stringsAsFactors = FALSE)
+    }, error = function(e) {
+      is_valid_input <<- FALSE
+      handleError("File Read Error", "Error reading the CSV file. The program will reset in 5 seconds")
+      return()
+    })
+    if (is.null(df)) return()  
 
+    required_columns <- c("Sample", "Pathlength", "Temperature", "Absorbance")
+    #Ensure the file has exactly 4 columns
+    if (ncol(df) != 4) {
+      is_valid_input <<- FALSE
+      handleError("Column Error", "The CSV file must have exactly 4 columns. The program will reset in 5 seconds")
+      return()
+    }
+    if (!identical(colnames(df), required_columns)) {
+      is_valid_input <<- FALSE
+      handleError("Column Name Error", "The columns must be named in this order: Sample, Pathlength, Temperature, Absorbance")
+      return()
+    }
+    #Ensure the file has no missing values**
+    if (anyNA(df)) {
+      is_valid_input <<- FALSE
+      handleError("Missing Data Error", "The file contains missing values. The program will reset in 5 seconds")
+      return()
+    }
     req(input$inputFileID)  # Ensure the file input is available
     # Read the dataset, treating empty strings as NA
     dataset <- read.csv(input$inputFileID$datapath, na.strings = c("NA", ""))
@@ -107,6 +141,7 @@ server <- function(input, output, session) {
         handleError("Blanks Found", "Remove blanks or uncheck the 'No Blanks' option. The program will reset in 5 seconds.")
         return()  # Stop further execution
       }
+      
       if ((input$helixID == "" && input$seqID == "") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
         handleError("No blanks have been found Please select the no blank option. The program will reset in 5 seconds.")
