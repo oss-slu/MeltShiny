@@ -189,8 +189,8 @@ server <- function(input, output, session) {
         updateCheckboxInput(session, "noBlanksID", value = FALSE)
 
         # Store the extinction coefficient information
-        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID, ",", input$seqID)), ",")[[1]], which = "both")
-
+        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID, ",", toupper(input$seqID))), ",")[[1]], which = "both")
+        
         # Store the tm method information
         tmMethodVal <<- toString(input$Tm_methodID)
 
