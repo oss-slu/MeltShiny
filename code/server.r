@@ -15,7 +15,6 @@ server <- function(input, output, session) {
   # Declaring temperatureUpdatedID as reactive for manual changes to the temperature
   temperatureUpdatedID <- reactiveVal(FALSE)
 
-
   # reusable error catching function
   handleError <- function(title, message) {
     # Display a modal with a custom title and message
@@ -79,6 +78,19 @@ server <- function(input, output, session) {
     all(!grepl("[^A, ^G, ^C, ^U]", x))
   }
   
+# Validate wavelength input before proceeding
+observeEvent(input$wavelengthID, {
+  wavelength <- suppressWarnings(as.numeric(input$wavelengthID))
+
+  if (is.na(wavelength) || wavelength < 200 || wavelength > 800) {
+    is_valid_input(FALSE)
+    handleError("Invalid Wavelength", "Wavelength must be between 200 and 800 nm. The program will reset in 5 seconds.")
+    return()  # Stops execution immediately
+  }
+
+  is_valid_input(TRUE)
+})
+
   # Handle the inputs and uploaded datasets
   observeEvent(
   eventExpr = input$uploadData,
