@@ -36,12 +36,6 @@ server <- function(input, output, session) {
     })
   }
 
-
-  observeEvent(input$uploadData, {
-    datasetsUploadedID(TRUE) # Set the reactive value to TRUE on upload data button click
-    shinyjs::show("resetData")
-  })
-
   observeEvent(input$resetData, {
     session$reload()
   })
@@ -78,18 +72,6 @@ server <- function(input, output, session) {
     all(!grepl("[^A, ^G, ^C, ^U]", x))
   }
   
-# Validate wavelength input before proceeding
-observeEvent(input$wavelengthID, {
-  wavelength <- suppressWarnings(as.numeric(input$wavelengthID))
-
-  if (is.na(wavelength) || wavelength < 200 || wavelength > 800) {
-    is_valid_input(FALSE)
-    handleError("Invalid Wavelength", "Wavelength must be between 200 and 800 nm. The program will reset in 5 seconds.")
-    return()  # Stops execution immediately
-  }
-
-  is_valid_input(TRUE)
-})
 
   # Handle the inputs and uploaded datasets
   observeEvent(
@@ -251,9 +233,18 @@ observeEvent(input$wavelengthID, {
       return()  # Stop further execution
     }
 
+    if (is.null(input$wavelengthVal) || wavelengthVal < 200 || wavelengthVal > 280) {
+      is_valid_input <<- FALSE
+      handleError("Invalid Wavelength", "Wavelength must be between 200 and 280 nm. The program will reset in 5 seconds.")
+      return()
+    }
+
       # If there are no errors in the inputs, proceed with file upload and processing
-      else {
+      if (is_valid_input) {
         logInfo("VALID INPUT")
+        
+        datasetsUploadedID(TRUE) # Set the reactive value to TRUE on upload data button click
+        shinyjs::show("resetData")
 
         masterFrame <- NULL
         dataList <- list()
