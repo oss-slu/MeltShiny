@@ -183,8 +183,48 @@ server <- function(input, output, session) {
       }
       else {
         # In case helixID is neither RNA nor DNA, show an error
+        # Reset the input fields after error
+        updateTextInput(session, "helixID", value = "RNA")
+        updateTextInput(session, "seqID", value = "")
+      }
+
+      # Check if the helixID is RNA or DNA, and validate seqID accordingly
+      if (input$helixID == "RNA") {
+        if (!rna_letters_only(input$seqID)) {
+          is_valid_input <<- FALSE
+          showModal(modalDialog(
+            title = "Invalid RNA Sequence",
+            "Please ensure the sequence contains only valid RNA nucleotides (A, U, G, C).",
+            footer = modalButton("Understood"),
+            easyClose = FALSE,
+            fade = TRUE
+          ))
+          # Reset the seqID input field after error
+          updateTextInput(session, "helixID", value = "RNA")
+          updateTextInput(session, "seqID", value = "")
+        }
+      }
+      else if (input$helixID == "DNA") {
+        if (!dna_letters_only(input$seqID)) {
+          is_valid_input <<- FALSE
+          showModal(modalDialog(
+            title = "Invalid DNA Sequence",
+            "Please ensure the sequence contains only valid DNA nucleotides (A, T, G, C).",
+            footer = modalButton("Understood"),
+            easyClose = FALSE,
+            fade = TRUE
+          ))
+          # Reset the seqID input field after error
+          updateTextInput(session, "helixID", value = "DNA")
+          updateTextInput(session, "seqID", value = "")
+        }
+      }
+      else {
+        # In case helixID is neither RNA nor DNA, show an error
         is_valid_input <<- FALSE
         showModal(modalDialog(
+          title = "Invalid helixID",
+          "Please select either 'RNA' or 'DNA' for helixID.",
           title = "Invalid helixID",
           "Please select either 'RNA' or 'DNA' for helixID.",
           footer = modalButton("Understood"),
@@ -196,14 +236,27 @@ server <- function(input, output, session) {
 
       # Check for a mismatch between DNA and absorbance wavelength
       if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
+      }
+
+
+      # Check for a mismatch between DNA and absorbance wavelength
+      if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
         is_valid_input <<- FALSE
         showModal(modalDialog(
+          title = "Nucleotide to Absorbance Mis-Pair",
+          "Please use a wavelength value of 260 with DNA sequences.",
           title = "Nucleotide to Absorbance Mis-Pair",
           "Please use a wavelength value of 260 with DNA sequences.",
           footer = modalButton("Understood"),
           easyClose = FALSE,
           fade = TRUE
         ))
+        # Reset the input fields after error
+        updateTextInput(session, "seqID", value = "")
+      }
+
+      # Check if a file has been uploaded
+      if (is.null(input$inputFileID)) {
         # Reset the input fields after error
         updateTextInput(session, "seqID", value = "")
       }
@@ -278,7 +331,12 @@ server <- function(input, output, session) {
 
       # If there are no errors in the inputs, proceed with file upload and processing
       if (is_valid_input) {
+      if (is_valid_input) {
         logInfo("VALID INPUT")
+
+        # The datasets are now 'uploaded' and ready for analysis
+        datasetsUploadedID(TRUE)
+        shinyjs::show("resetData")
 
         masterFrame <- NULL
         dataList <- list()
@@ -304,6 +362,8 @@ server <- function(input, output, session) {
         updateCheckboxInput(session, "noBlanksID", value = FALSE)
 
         # Store the extinction coefficient information
+        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID, ",", toupper(input$seqID))), ",")[[1]], which = "both")
+        
         helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID, ",", toupper(input$seqID))), ",")[[1]], which = "both")
         
         # Store the tm method information
