@@ -64,12 +64,12 @@ server <- function(input, output, session) {
 
   # Check the nucleotide sequence to check if it belongs to DNA
   dna_letters_only <- function(x) {
-    all(!grepl("[^A, ^G, ^C, ^T]", x))
+    grepl("^[ATGC]+$", x, ignore.case = TRUE)
   }
 
   # Check the nucleotide sequence to check if it belongs to RNA
   rna_letters_only <- function(x) {
-    all(!grepl("[^A, ^G, ^C, ^U]", x))
+    grepl("^[AUGC]+$", x, ignore.case = TRUE)
   }
   
 
@@ -78,6 +78,8 @@ server <- function(input, output, session) {
   eventExpr = input$uploadData,
   handlerExpr = {
     logInfo("CHECKING PROGRAM INPUTS")
+    # Initially set is_valid_input to True
+    is_valid_input <<- TRUE
     
     # Check if a file is uploaded
     if (is.null(input$inputFileID)) {
@@ -138,41 +140,89 @@ server <- function(input, output, session) {
       
       if ((input$helixID == "" && input$seqID == "") || input$blankSampleID == "") {
         is_valid_input <<- FALSE
-        handleError("No blanks have been found Please select the no blank option. The program will reset in 5 seconds.")
-        return()       
-      
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
+        showModal(modalDialog(
+          title = "Missing Inputs",
+          "Please ensure that all text inputs have been filled out.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+        # Reset the input fields after error
+        updateTextInput(session, "helixID", value = "RNA")
+        updateTextInput(session, "seqID", value = "")
+      }
+
+
+      # Check if the helixID is RNA or DNA, and validate seqID accordingly
+      if (input$helixID == "RNA") {
+        if (!rna_letters_only(input$seqID)) {
+          is_valid_input <<- FALSE
+          showModal(modalDialog(
+            title = "Invalid RNA Sequence",
+            "Please ensure the sequence contains only valid RNA nucleotides (A, U, G, C).",
+            footer = modalButton("Understood"),
+            easyClose = FALSE,
+            fade = TRUE
+          ))
+          # Reset the seqID input field after error
+          updateTextInput(session, "helixID", value = "RNA")
+          updateTextInput(session, "seqID", value = "")
+        }
+      }
+      else if (input$helixID == "DNA") {
+        if (!dna_letters_only(input$seqID)) {
+          is_valid_input <<- FALSE
+          showModal(modalDialog(
+            title = "Invalid DNA Sequence",
+            "Please ensure the sequence contains only valid DNA nucleotides (A, T, G, C).",
+            footer = modalButton("Understood"),
+            easyClose = FALSE,
+            fade = TRUE
+          ))
+          # Reset the seqID input field after error
+          updateTextInput(session, "helixID", value = "DNA")
+          updateTextInput(session, "seqID", value = "")
+        }
+      }
+      else {
+        # In case helixID is neither RNA nor DNA, show an error
         is_valid_input <<- FALSE
         showModal(modalDialog(
+          title = "Invalid helixID",
+          "Please select either 'RNA' or 'DNA' for helixID.",
+          title = "Invalid helixID",
+          "Please select either 'RNA' or 'DNA' for helixID.",
+          footer = modalButton("Understood"),
+          easyClose = FALSE,
+          fade = TRUE
+        ))
+      }
+
+
+      # Check for a mismatch between DNA and absorbance wavelength
+      if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
+        is_valid_input <<- FALSE
+        showModal(modalDialog(
+          title = "Nucleotide to Absorbance Mis-Pair",
+          "Please use a wavelength value of 260 with DNA sequences.",
           title = "Nucleotide to Absorbance Mis-Pair",
           "Please use a wavelength value of 260 with DNA sequences.",
           footer = modalButton("Understood"),
           easyClose = FALSE,
           fade = TRUE
         ))
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && !(input$molecularStateID == "Monomolecular") &&
-        ((rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
-          (rna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
-        is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "Not a RNA Nucleotide",
-          "Please use nucleotide U with RNA inputs",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-      } else if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !(input$molecularStateID == "Monomolecular") &&
-        ((dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][2]))) == FALSE) ||
-          (dna_letters_only(gsub(" ", "", (strsplit(input$helixID, ",")[[1]][3]))) == FALSE))) {
-        is_valid_input <<- FALSE
-        showModal(modalDialog(
-          title = "Not a DNA Nucleotide",
-          "Please use the nucleotide T with DNA inputs.",
-          footer = modalButton("Understood"),
-          easyClose = FALSE,
-          fade = TRUE
-        ))
-      } else if (is.null(input$inputFileID)) {
+        # Reset the input fields after error
+        updateTextInput(session, "seqID", value = "")
+      }
+
+      # Check if a file has been uploaded
+      if (is.null(input$inputFileID)) {
+        # Reset the input fields after error
+        updateTextInput(session, "seqID", value = "")
+      }
+
+      # Check if a file has been uploaded
+      if (is.null(input$inputFileID)) {
         showModal(modalDialog(
           title = "No File",
           "Please include a file upload",
@@ -213,27 +263,7 @@ server <- function(input, output, session) {
       return()  # Stop further execution
     }
 
-    # RNA nucleotide validation
-    if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && 
-        input$molecularStateID != "Monomolecular" && 
-        (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2])) || 
-         !rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
-      is_valid_input <<- FALSE
-      handleError("Not an RNA Nucleotide", "Use nucleotide U with RNA inputs. The program will reset in 5 seconds.")
-      return()  # Stop further execution
-    }
-
-    # DNA nucleotide validation
-    if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && 
-        input$molecularStateID != "Monomolecular" && 
-        (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2])) || 
-         !dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
-      is_valid_input <<- FALSE
-      handleError("Not a DNA Nucleotide", "Use nucleotide T with DNA inputs. The program will reset in 5 seconds.")
-      return()  # Stop further execution
-    }
-
-    if (is.null(input$wavelengthVal) || wavelengthVal < 200 || wavelengthVal > 280) {
+    if (is.null(input$wavelengthID) || input$wavelengthID < 200 || input$wavelengthID > 280) {
       is_valid_input <<- FALSE
       handleError("Invalid Wavelength", "Wavelength must be between 200 and 280 nm. The program will reset in 5 seconds.")
       return()
@@ -242,8 +272,9 @@ server <- function(input, output, session) {
       # If there are no errors in the inputs, proceed with file upload and processing
       if (is_valid_input) {
         logInfo("VALID INPUT")
-        
-        datasetsUploadedID(TRUE) # Set the reactive value to TRUE on upload data button click
+
+        # The datasets are now 'uploaded' and ready for analysis
+        datasetsUploadedID(TRUE)
         shinyjs::show("resetData")
 
         masterFrame <- NULL
@@ -270,8 +301,10 @@ server <- function(input, output, session) {
         updateCheckboxInput(session, "noBlanksID", value = FALSE)
 
         # Store the extinction coefficient information
-        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID, ",", input$seqID)), ",")[[1]], which = "both")
-
+        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID, ",", toupper(input$seqID))), ",")[[1]], which = "both")
+        
+        helix <<- trimws(strsplit(gsub(" ", "", paste(input$helixID, ",", toupper(input$seqID))), ",")[[1]], which = "both")
+        
         # Store the tm method information
         tmMethodVal <<- toString(input$Tm_methodID)
 
