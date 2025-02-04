@@ -78,6 +78,8 @@ server <- function(input, output, session) {
   eventExpr = input$uploadData,
   handlerExpr = {
     logInfo("CHECKING PROGRAM INPUTS")
+    # Initially set is_valid_input to True
+    is_valid_input <<- TRUE
     
     # Check if a file is uploaded
     if (is.null(input$inputFileID)) {
@@ -150,43 +152,6 @@ server <- function(input, output, session) {
         updateTextInput(session, "seqID", value = "")
       }
 
-      # Check if the helixID is RNA or DNA, and validate seqID accordingly
-      if (input$helixID == "RNA") {
-        if (!rna_letters_only(input$seqID)) {
-          is_valid_input <<- FALSE
-          showModal(modalDialog(
-            title = "Invalid RNA Sequence",
-            "Please ensure the sequence contains only valid RNA nucleotides (A, U, G, C).",
-            footer = modalButton("Understood"),
-            easyClose = FALSE,
-            fade = TRUE
-          ))
-          # Reset the seqID input field after error
-          updateTextInput(session, "helixID", value = "RNA")
-          updateTextInput(session, "seqID", value = "")
-        }
-      }
-      else if (input$helixID == "DNA") {
-        if (!dna_letters_only(input$seqID)) {
-          is_valid_input <<- FALSE
-          showModal(modalDialog(
-            title = "Invalid DNA Sequence",
-            "Please ensure the sequence contains only valid DNA nucleotides (A, T, G, C).",
-            footer = modalButton("Understood"),
-            easyClose = FALSE,
-            fade = TRUE
-          ))
-          # Reset the seqID input field after error
-          updateTextInput(session, "helixID", value = "DNA")
-          updateTextInput(session, "seqID", value = "")
-        }
-      }
-      else {
-        # In case helixID is neither RNA nor DNA, show an error
-        # Reset the input fields after error
-        updateTextInput(session, "helixID", value = "RNA")
-        updateTextInput(session, "seqID", value = "")
-      }
 
       # Check if the helixID is RNA or DNA, and validate seqID accordingly
       if (input$helixID == "RNA") {
@@ -231,11 +196,6 @@ server <- function(input, output, session) {
           easyClose = FALSE,
           fade = TRUE
         ))
-      }
-
-
-      # Check for a mismatch between DNA and absorbance wavelength
-      if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && !input$wavelengthID == "260") {
       }
 
 
@@ -303,34 +263,13 @@ server <- function(input, output, session) {
       return()  # Stop further execution
     }
 
-    # RNA nucleotide validation
-    if (strsplit(input$helixID, ",")[[1]][1] == "RNA" && 
-        input$molecularStateID != "Monomolecular" && 
-        (!rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2])) || 
-         !rna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
-      is_valid_input <<- FALSE
-      handleError("Not an RNA Nucleotide", "Use nucleotide U with RNA inputs. The program will reset in 5 seconds.")
-      return()  # Stop further execution
-    }
-
-    # DNA nucleotide validation
-    if (strsplit(input$helixID, ",")[[1]][1] == "DNA" && 
-        input$molecularStateID != "Monomolecular" && 
-        (!dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][2])) || 
-         !dna_letters_only(gsub(" ", "", strsplit(input$helixID, ",")[[1]][3])))) {
-      is_valid_input <<- FALSE
-      handleError("Not a DNA Nucleotide", "Use nucleotide T with DNA inputs. The program will reset in 5 seconds.")
-      return()  # Stop further execution
-    }
-
-    if (is.null(input$wavelengthVal) || wavelengthVal < 200 || wavelengthVal > 280) {
+    if (is.null(input$wavelengthID) || input$wavelengthID < 200 || input$wavelengthID > 280) {
       is_valid_input <<- FALSE
       handleError("Invalid Wavelength", "Wavelength must be between 200 and 280 nm. The program will reset in 5 seconds.")
       return()
     }
 
       # If there are no errors in the inputs, proceed with file upload and processing
-      if (is_valid_input) {
       if (is_valid_input) {
         logInfo("VALID INPUT")
 
