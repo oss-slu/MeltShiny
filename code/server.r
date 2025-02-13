@@ -794,7 +794,6 @@ server <- function(input, output, session) {
         ),
         escape = F
       )
-    logInfo("RESULTS TABLE RENDERED")
   })
   output$methodSummaryTable <- renderTable({
     summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData1())
