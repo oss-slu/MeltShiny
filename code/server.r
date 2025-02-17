@@ -405,14 +405,13 @@ server <- function(input, output, session) {
           methods = chosenMethods,
           concT = concTVal
         )
-        myConnecter$constructObject()
-
+        myConnecter$constructObject() 
         # Store data necessary for generating the Vant Hoff plot and the results table
         vantData <<- myConnecter$gatherVantData()
         individualFitData <<- myConnecter$indFitTableData()
 
         # Variable that handles the points on the Van't Hoff plot for removal
-        if (chosenMethods[2] == TRUE) {
+        if (chosenMethods[2] == TRUE && molStateVal != "Monomolecular.2State") {
           vals <<- reactiveValues(keeprows = rep(TRUE, nrow(vantData)))
         }
       }
