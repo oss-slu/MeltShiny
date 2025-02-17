@@ -55,6 +55,23 @@ ui <- navbarPage(
             inputId = "wavelengthID"
           ),
           hr(style = "border-top: 1px solid #000000;"),
+          selectInput(
+            label = "Specify nucleic acid type",
+            choices = c("RNA","DNA"),
+            selected = "RNA",
+            inputId = "helixID"
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
+          textInput(
+            label = "Specify sequences",
+            placeholder = "E.g: CGAAAGGU,ACCUUUCG",
+            inputId = "seqID"
+          ),
+          actionButton(
+            inputId = "seqHelp",
+            icon("question")
+          ),
+          hr(style = "border-top: 1px solid #000000;"),
 
           # Advanced Settings button
           actionButton("toggleAdvanced", "Advanced Settings"),
@@ -76,23 +93,6 @@ ui <- navbarPage(
                 label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually", # nolint
                 choices = c("Nucleic acid sequence(s)", "Custom molar extinction coefficients"), # nolint
                 selected = "Nucleic acid sequence(s)"
-              ),
-              hr(style = "border-top: 1px solid #000000;"),
-              selectInput(
-                label = "Specify nucleic acid type",
-                choices = c("RNA","DNA"),
-                selected = "RNA",
-                inputId = "helixID"
-              ),
-              hr(style = "border-top: 1px solid #000000;"),
-              textInput(
-                label = "Specify sequences",
-                placeholder = "E.g: CGAAAGGU,ACCUUUCG",
-                inputId = "seqID"
-              ),
-              actionButton(
-                inputId = "seqHelp",
-                icon("question")
               ),
               hr(style = "border-top: 1px solid #000000;"),
               checkboxGroupInput(
