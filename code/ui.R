@@ -55,20 +55,6 @@ ui <- navbarPage(
             inputId = "wavelengthID"
           ),
           hr(style = "border-top: 1px solid #000000;"),
-          textInput(
-            label = "Auto-populates with the highest temperature found in the dataset. Used to calculate the concentration via Beer's law", # nolint
-            value = "",
-            inputId = "temperatureID"
-          ),
-          actionButton("submit", "Submit"),  # Submit button for temperature ID
-          hr(style = "border-top: 1px solid #000000;"),
-          radioButtons(
-            inputId = "extinctConDecisionID",
-            label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually", # nolint
-            choices = c("Nucleic acid sequence(s)", "Custom molar extinction coefficients"), # nolint
-            selected = "Nucleic acid sequence(s)"
-          ),
-          hr(style = "border-top: 1px solid #000000;"),
           selectInput(
             label = "Specify nucleic acid type",
             choices = c("RNA","DNA"),
@@ -86,40 +72,65 @@ ui <- navbarPage(
             icon("question")
           ),
           hr(style = "border-top: 1px solid #000000;"),
-          checkboxGroupInput(
-            label = "Optional methods",
-            inputId = "methodsID",
-            choices = list(
-              "Method 2",
-              "Method 3"
-            ),
-            selected = c(
-              "Method 2",
-              "Method 3"
-            )
-          ),
-          hr(style = "border-top: 1px solid #000000;"),
-          radioButtons(
-            inputId = "Tm_methodID",
-            label = "Choose a Tm method",
-            choices = c("nls", "lm", "polynomial"),
-            selected = "nls"
-          ),
-          checkboxInput(
-            label = "Weighted tm for method 2",
-            value = FALSE,
-            inputId = "weightedTmID"
-          ),
-          actionButton(
-            inputId = "tmHelp",
-            icon("question")
-          ),
-          hr(style = "border-top: 1px solid #000000;"),
-          selectInput(
-            label = "Select the molecular state",
-            choices = c("Heteroduplex", "Homoduplex", "Monomolecular"),
-            selected = "Heteroduplex",
-            inputId = "molecularStateID"
+
+          # Advanced Settings button
+          actionButton("toggleAdvanced", "Advanced Settings"),
+          br(), br(),
+
+          #Hidden Advanced Settings Panel
+          shinyjs::hidden(
+            div(id = "advancedSettings",
+            wellPanel(
+              textInput(
+                label = "Auto-populates with the highest temperature found in the dataset. Used to calculate the concentration via Beer's law", # nolint
+                value = "",
+                inputId = "temperatureID"
+              ),
+              actionButton("submit", "Submit"),  # Submit button for temperature ID
+              hr(style = "border-top: 1px solid #000000;"),
+              radioButtons(
+                inputId = "extinctConDecisionID",
+                label = "Decide if you want to have the molar extinction coefficients calculated or provide them manually", # nolint
+                choices = c("Nucleic acid sequence(s)", "Custom molar extinction coefficients"), # nolint
+                selected = "Nucleic acid sequence(s)"
+              ),
+              hr(style = "border-top: 1px solid #000000;"),
+              checkboxGroupInput(
+                label = "Optional methods",
+                inputId = "methodsID",
+                choices = list(
+                  "Method 2",
+                  "Method 3"
+                ),
+                selected = c(
+                  "Method 2",
+                  "Method 3"
+                )
+              ),
+              hr(style = "border-top: 1px solid #000000;"),
+              radioButtons(
+                inputId = "Tm_methodID",
+                label = "Choose a Tm method",
+                choices = c("nls", "lm", "polynomial"),
+                selected = "nls"
+              ),
+              checkboxInput(
+                label = "Weighted tm for method 2",
+                value = FALSE,
+                inputId = "weightedTmID"
+              ),
+              actionButton(
+                inputId = "tmHelp",
+                icon("question")
+              ),
+              hr(style = "border-top: 1px solid #000000;"),
+              selectInput(
+                label = "Select the molecular state",
+                choices = c("Heteroduplex", "Homoduplex", "Monomolecular"),
+                selected = "Heteroduplex",
+                inputId = "molecularStateID"
+              ),
+            ))
           ),
           hr(style = "border-top: 1px solid #000000;"),
           actionButton(

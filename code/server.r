@@ -27,6 +27,7 @@ server <- function(input, output, session) {
       )
     )
     
+    
     # After the modal is closed, reset the session
     observeEvent(input$uploadData, {
       # Wait for the modal to be dismissed before resetting the session
@@ -35,6 +36,10 @@ server <- function(input, output, session) {
       })
     })
   }
+
+  observeEvent(input$toggleAdvanced, {
+    shinyjs::toggle("advancedSettings")  # Toggles visibility on button click
+  })
 
   observeEvent(input$resetData, {
     session$reload()
