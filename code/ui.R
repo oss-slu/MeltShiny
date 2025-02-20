@@ -194,6 +194,7 @@ ui <- navbarPage(
     title = "Results",
     tabPanel(
       title = "van't Hoff Plot",
+      value = "vantHoffPlotTab",
       fluidPage(
         sidebarLayout(
           sidebarPanel(

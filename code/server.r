@@ -414,8 +414,11 @@ server <- function(input, output, session) {
         # Variable that handles the points on the Van't Hoff plot for removal
         if (chosenMethods[2] == TRUE && molStateVal != "Monomolecular.2State") {
           vals <<- reactiveValues(keeprows = rep(TRUE, nrow(vantData)))
+          showTab("navbarPageID", "vantHoffPlotTab")
           # Initially render the Vant Hoff Plot
           renderVantHoffPlot()
+        } else if (molStateVal == "Monomolecular.2State"){
+          hideTab("navbarPageID", "vantHoffPlotTab")
         }
       }
     }
