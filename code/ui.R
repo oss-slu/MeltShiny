@@ -205,6 +205,7 @@ ui <- navbarPage(
     title = "Results",
     tabPanel(
       title = "van't Hoff Plot",
+      value = "vantHoffPlotTab",
       fluidPage(
         sidebarLayout(
           sidebarPanel(
@@ -400,7 +401,7 @@ ui <- navbarPage(
         h3("FITTING THE ANALYSIS GRAPHS:"),
         hr(style = "border-top: 1px solid #000000;"),
         h3("van't Hoff Plots:"),
-        HTML("The van't Hoff page under results shows the van't Hoff plot. You may click individual points to remove them from the plot. To remove multiple points in one go you can click and drag on the graph to make a box. This box can be moved to fit over the points you want to remove. Once over the correct points hit the remove button on the side panel. "),
+        HTML("The van't Hoff page under results shows the van't Hoff plot. You may click individual points to remove them from the plot. To remove multiple points in one go you can click and drag on the graph to make a box. This box can be moved to fit over the points you want to remove. Once over the correct points hit the remove button on the side panel. Additionaly there will be no vant Hoff plot generated when monomolecular is selected as an option. "),
         div(img(src = "van'tHoff.png", class="img-half", alt = "Screenshot showing the how to remove box of points")),
         div(img(src = "RemovedPoints.png", class="img-half", alt = "Screenshot showing the how to removed box of points")),
         HTML("If you want to restore the plot back to the original version, press the restore button on the side panel. "), 

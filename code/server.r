@@ -410,15 +410,20 @@ server <- function(input, output, session) {
           methods = chosenMethods,
           concT = concTVal
         )
-        myConnecter$constructObject()
-
+        myConnecter$constructObject() 
         # Store data necessary for generating the Vant Hoff plot and the results table
+        # IMPORTANT NOTE there should be no vant hoff plot for molStateVal Monomolecular
         vantData <<- myConnecter$gatherVantData()
         individualFitData <<- myConnecter$indFitTableData()
 
         # Variable that handles the points on the Van't Hoff plot for removal
-        if (chosenMethods[2] == TRUE) {
+        if (chosenMethods[2] == TRUE && molStateVal != "Monomolecular.2State") {
           vals <<- reactiveValues(keeprows = rep(TRUE, nrow(vantData)))
+          showTab("navbarPageID", "vantHoffPlotTab")
+          # Initially render the Vant Hoff Plot
+          renderVantHoffPlot()
+        } else if (molStateVal == "Monomolecular.2State"){
+          hideTab("navbarPageID", "vantHoffPlotTab")
         }
       }
     }
@@ -508,7 +513,7 @@ server <- function(input, output, session) {
     handlerExpr = {
       if (chosenMethods[2] == FALSE) {
         disable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
-      } else if (chosenMethods[2] == FALSE) {
+      } else if (chosenMethods[2] == TRUE) {
         enable(selector = '.navbar-nav a[data-value="Vant Hoff Plot"')
       }
     }
@@ -685,8 +690,7 @@ server <- function(input, output, session) {
     })
   }
 
-  # Initially render the Vant Hoff Plot
-  renderVantHoffPlot()
+  
 
 
   # Remove points from Van't Hoff plot that are clicked
