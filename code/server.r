@@ -1,6 +1,8 @@
 # server.R handles input validation and analysis.
 # It initiates processing and dynamically creates information displayed on analysis graphs.
 
+
+
 server <- function(input, output, session) {
   # Declare initial value for data upload button check
   is_valid_input <- reactiveVal(FALSE)
