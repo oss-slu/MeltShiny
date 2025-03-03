@@ -81,7 +81,16 @@ validate_inputs <- function(input, session) {
     updateTextInput(session, "seqID", value = "")
     return()
   }
+    
+  # Check the nucleotide sequence to check if it belongs to DNA
+  dna_letters_only <- function(x) {
+    grepl("^[ATGC]+$", x, ignore.case = TRUE)
+  }
 
+  # Check the nucleotide sequence to check if it belongs to RNA
+  rna_letters_only <- function(x) {
+    grepl("^[AUGC]+$", x, ignore.case = TRUE)
+  }
   # Validate helixID and seqID
   if (input$helixID == "RNA" && !rna_letters_only(input$seqID)) {
     is_valid_input <<- FALSE

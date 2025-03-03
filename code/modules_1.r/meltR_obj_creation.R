@@ -1,4 +1,4 @@
-process_meltR_object <- function() {
+process_meltR_object <- function(datasetsUploadedID) {
   req(is_valid_input)
   
   if (datasetsUploadedID() == TRUE) {

@@ -1,4 +1,4 @@
-process_valid_input <- function(session, input) {
+process_valid_input <- function(input, session,datasetsUploadedID) {
   if (is_valid_input) {
     logInfo("VALID INPUT")
 

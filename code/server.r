@@ -5,7 +5,7 @@ source("modules_1.r/Input_conversion.R")
 source("modules_1.r/meltR_obj_creation.R")
 server <- function(input, output, session) {
   # Declare initial value for data upload button check
-  is_valid_input <- reactiveVal(FALSE)
+  is_valid_input <<- reactiveVal(FALSE)
 
   # Prevent manual input to temperatureID button
   disable("temperatureID")
@@ -42,20 +42,7 @@ server <- function(input, output, session) {
   # Prevent Rplots.pdf from generating
   if (!interactive()) pdf(NULL)
 
-  # Check if the value is an int
-  can_convert_to_int <- function(x) {
-    all(grepl("^(?=.)([+-]?([0-9]*)?)$", x, perl = TRUE))
-  }
 
-  # Check the nucleotide sequence to check if it belongs to DNA
-  dna_letters_only <- function(x) {
-    grepl("^[ATGC]+$", x, ignore.case = TRUE)
-  }
-
-  # Check the nucleotide sequence to check if it belongs to RNA
-  rna_letters_only <- function(x) {
-    grepl("^[AUGC]+$", x, ignore.case = TRUE)
-  }
   
   
   
@@ -64,8 +51,8 @@ server <- function(input, output, session) {
     handlerExpr = {
       validate_inputs(input,session)
       if (is_valid_input) {
-          process_uploaded_data(input, session)
-          process_meltR_object()
+          process_valid_input(input, session,datasetsUploadedID)
+          process_meltR_object(datasetsUploadedID)
       }
     }
   )
