@@ -1,4 +1,4 @@
-process_meltR_object <- function(datasetsUploadedID) {
+process_meltR_object <- function(datasetsUploadedID, VantHoffPlot) {
   req(is_valid_input)
   
   if (datasetsUploadedID() == TRUE) {
@@ -45,7 +45,7 @@ process_meltR_object <- function(datasetsUploadedID) {
       showTab("navbarPageID", "vantHoffPlotTab")
       
       # Initially render the Van't Hoff Plot
-      renderVantHoffPlot()
+      VantHoffPlot(input, output, session, chosenMethods, vantData, vals, datasetsUploadedID, temperatureUpdatedID)
     } else if (molStateVal == "Monomolecular.2State") {
       hideTab("navbarPageID", "vantHoffPlotTab")
     }
