@@ -25,5 +25,5 @@ setAccountInfo(name = error_on_missing_name("SHINY_ACC_NAME"),
 # Deploy the application.
 deployApp(
     appName = "MeltShiny",
-    appFiles = c("ui.R", "server.r", "global.r", "app.R", "install.R", "deploy.R","www"), 
+    appFiles = c("ui.R", "server.r", "global.r", "app.R", "install.R", "deploy.R", "www", "uiParts", "rsconnect", "modules_2", "modules_1.r" ), 
     forceUpdate = TRUE )
