@@ -18,6 +18,9 @@ COPY code/global.r /global.r
 COPY code/server.r /server.r
 COPY code/ui.R /ui.R
 COPY code/deploy.R /deploy.R
+COPY code/uiParts /uiParts
+COPY code/modules_2 /modules_2
+COPY code/modules_1.r /modules_1.r
 COPY code/www /www
 # After all the necessary files have been copied, run the deploy.R script to start the deployment of the Shiny app
 CMD Rscript deploy.R
