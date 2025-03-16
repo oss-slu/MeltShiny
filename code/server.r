@@ -1,7 +1,7 @@
 # server.R handles input validation and analysis.
 # It initiates processing and dynamically creates information displayed on analysis graphs.
 source("modules_1.r/error_handling.R")
-source("modules_1.r/Input_conversion.R")
+source("modules_1.r/input_conversion.R")
 source("modules_1.r/meltR_obj_creation.R")
 source("modules_2/DisplayDataTable.R")
 source("modules_2/DownloadHandler.R")
