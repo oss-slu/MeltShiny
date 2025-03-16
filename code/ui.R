@@ -1,7 +1,7 @@
-source("uiParts/File.R")
-source("uiParts/Analysis.R")
-source("uiParts/Results.R")
-source("uiParts/Help.R")
+source("uiParts/file.R")
+source("uiParts/analysis.R")
+source("uiParts/results.R")
+source("uiParts/help.R")
 
 ui <- navbarPage(
   title = "MeltShiny",
