@@ -77,6 +77,13 @@ filePanel <- tabPanel(
         actionButton("resetData", "Reset Data", style = "display: none;") # Initially hidden
       ),
       mainPanel(
+        # Spinner in main panel
+        div(
+          id = "loadingSpinner",
+          style = "display: none; text-align: center;",
+          tags$img(src = "spinner.gif", height = "100px")
+        ),
+        
         tags$div(id = "placeholder")
       )
     )
