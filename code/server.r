@@ -57,13 +57,17 @@ server <- function(input, output, session) {
   observeEvent(
     eventExpr = input$uploadData,
     handlerExpr = {
-      validate_inputs(input,session)
+      validate_inputs(input, session)
       if (is_valid_input) {
-          process_valid_input(input, session,datasetsUploadedID)
-          process_meltR_object(datasetsUploadedID)
+        process_valid_input(input, session, datasetsUploadedID)
+        process_meltR_object(datasetsUploadedID)
+
+        # Scroll to top of page
+        session$sendCustomMessage(type = 'scrollToTop', message = list())
       }
     }
   )
+
   
    FreezeUIParts(input, session, datasetsUploadedID, temperatureUpdatedID)
 

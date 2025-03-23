@@ -23,6 +23,14 @@ clear:both;
 filePanel <- tabPanel(
   title = "File",
   fluidPage(
+    tags$head(
+      # Smooth scroll-to-top JS handler
+      tags$script(HTML("
+        Shiny.addCustomMessageHandler('scrollToTop', function(message) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      "))
+    ),
     sidebarLayout(
       sidebarPanel(
         useShinyjs(),
