@@ -30,7 +30,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$molecularStateID, {
-    if (input$molecularStateID == "Monomoleculoar") {
+    if (input$molecularStateID == "Monomolecular") {
       updateCheckboxGroupInput(session, "methodsID", selected = setdiff(input$methodsID, "Method 2"))
 
       shinyjs::disable(selector = "input[value = 'Method 2']")
