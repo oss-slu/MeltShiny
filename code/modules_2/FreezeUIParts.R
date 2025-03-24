@@ -57,4 +57,3 @@ FreezeUIParts <- function(input, session, datasetsUploadedID, temperatureUpdated
     }
   )
 }
-
