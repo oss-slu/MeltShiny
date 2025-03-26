@@ -23,6 +23,14 @@ clear:both;
 filePanel <- tabPanel(
   title = "File",
   fluidPage(
+    tags$head(
+      # Smooth scroll-to-top JS handler
+      tags$script(HTML("
+        Shiny.addCustomMessageHandler('scrollToTop', function(message) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      "))
+    ),
     sidebarLayout(
       sidebarPanel(
         useShinyjs(),
@@ -69,6 +77,13 @@ filePanel <- tabPanel(
         actionButton("resetData", "Reset Data", style = "display: none;") # Initially hidden
       ),
       mainPanel(
+        # Spinner in main panel
+        div(
+          id = "loadingSpinner",
+          style = "display: none; text-align: center;",
+          tags$img(src = "spinner.gif", height = "100px")
+        ),
+        
         tags$div(id = "placeholder")
       )
     )

@@ -52,18 +52,21 @@ server <- function(input, output, session) {
 
 
   
-  
-  
-  observeEvent(
-    eventExpr = input$uploadData,
-    handlerExpr = {
-      validate_inputs(input,session)
-      if (is_valid_input) {
-          process_valid_input(input, session,datasetsUploadedID)
-          process_meltR_object(datasetsUploadedID)
-      }
+  observeEvent(input$uploadData, {
+    shinyjs::show("loadingSpinner")  # Show spinner immediately
+
+    validate_inputs(input, session)
+
+    if (is_valid_input) {
+      session$sendCustomMessage(type = 'scrollToTop', message = list())
+      process_valid_input(input, session, datasetsUploadedID)
+      process_meltR_object(datasetsUploadedID)
     }
-  )
+
+    shinyjs::hide("loadingSpinner")  # Hide spinner after work is done
+  })
+
+
   
    FreezeUIParts(input, session, datasetsUploadedID, temperatureUpdatedID)
 
