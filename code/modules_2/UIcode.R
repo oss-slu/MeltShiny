@@ -19,7 +19,33 @@ UIcode <- function(input, session) {
     handlerExpr = {
       showModal(modalDialog(
         title = "Help for TM Methods",
-        "placeholder text for tm methods help",
+        "nls: Nonlinear least squares; lm: Linear model.",
+        footer = modalButton("Understood"),
+        easyClose = FALSE,
+        fade = TRUE
+      ))
+    }
+  )
+
+  observeEvent(
+    eventExpr = input$datasetHelp,
+    handlerExpr = {
+      showModal(modalDialog(
+        title = "Help for Dataset Input",
+        "Ensure the dataset is in tidy format with headers: Sample, Pathlength, Temperature, Absorbance.",
+        footer = modalButton("Understood"),
+        easyClose = FALSE,
+        fade = TRUE
+      ))
+    }
+  )
+
+  observeEvent(
+    eventExpr = input$methodsHelp,
+    handlerExpr = {
+      showModal(modalDialog(
+        title = "Help for Optional Methods",
+        "NEED TO FIGURE OUT EXACTLY WHAT TO PUT HERE",
         footer = modalButton("Understood"),
         easyClose = FALSE,
         fade = TRUE
