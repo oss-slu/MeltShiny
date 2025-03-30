@@ -1,5 +1,3 @@
-# Contains the File Upload UI, Advanced Settings, and Dataset-related inputs
-
 css <- "
 .nav li a.disabled {
 background-color: #D4D4D4 !important;
@@ -7,18 +5,17 @@ color: #333 !important;
 cursor: not-allowed !important;
 }
 .img-half {
-  width: 50%;    /* Image width will never exceed 100% of the container */
-  max-widh:50%,
-  height: auto;       /* Height will adjust automatically to maintain aspect ratio */
-  display: block;     /* Ensure the image takes up the full block */
-  margin: 0 auto;     /* Center the image */
-  padding:0;
+  width: 50%;
+  max-width: 50%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  padding: 0;
 }
 img{
-clear:both;
+clear: both;
 }
 "
-
 
 filePanel <- tabPanel(
   title = "File",
@@ -36,6 +33,7 @@ filePanel <- tabPanel(
         useShinyjs(),
         inlineCSS(css),
         fileInput("inputFileID", "Select the dataset file", multiple = FALSE, accept = ".csv"),
+        actionButton("datasetHelp", icon("question")),
         hr(),
         textInput("blankSampleID", "Cell number of blank", value = 1),
         checkboxInput("noBlanksID", "No Blanks", value = FALSE),
@@ -46,6 +44,10 @@ filePanel <- tabPanel(
         hr(),
         textInput("seqID", "Specify sequences", placeholder = "E.g: CGAAAGGU,ACCUUUCG"),
         actionButton("seqHelp", icon("question")),
+        hr(),
+        selectInput("molecularStateID", "Select the Molecular State", 
+                    choices = c("Heteroduplex", "Homoduplex", "Monomolecular"), 
+                    selected = "Heteroduplex"),
         hr(),
         actionButton("toggleAdvanced", "Advanced Settings"),
         br(), br(),
@@ -59,22 +61,20 @@ filePanel <- tabPanel(
                            choices = c("Nucleic acid sequence(s)", "Custom molar extinction coefficients"), 
                            selected = "Nucleic acid sequence(s)"),
               hr(),
-              checkboxGroupInput("methodsID", "Optional methods", choices = list("Method 2", "Method 3"), 
+              checkboxGroupInput("methodsID", "Optional Methods", choices = list("Method 2", "Method 3"), 
                                  selected = c("Method 2", "Method 3")),
+              actionButton("methodsHelp", icon("question")),
               hr(),
-              radioButtons("Tm_methodID", "Choose a Tm method", choices = c("nls", "lm", "polynomial"), selected = "nls"),
-              checkboxInput("weightedTmID", "Weighted tm for method 2", value = FALSE),
-              actionButton("tmHelp", icon("question")),
-              hr(),
-              selectInput("molecularStateID", "Select the molecular state", 
-                          choices = c("Heteroduplex", "Homoduplex", "Monomolecular"), selected = "Heteroduplex")
+              radioButtons("Tm_methodID", "Choose a Tm Method", choices = c("nls", "lm", "polynomial"), selected = "nls"),
+              checkboxInput("weightedTmID", "Weighted Tm for Method 2", value = FALSE),
+              actionButton("tmHelp", icon("question"))
             )
           )
         ),
         hr(),
         actionButton("uploadData", "Upload Data"),
         br(), br(),
-        actionButton("resetData", "Reset Data", style = "display: none;") # Initially hidden
+        actionButton("resetData", "Reset Data", style = "display: none;")
       ),
       mainPanel(
         # Spinner in main panel

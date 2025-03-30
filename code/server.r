@@ -29,6 +29,16 @@ server <- function(input, output, session) {
     shinyjs::toggle("advancedSettings")  # Toggles visibility on button click
   })
 
+  observeEvent(input$molecularStateID, {
+    if (input$molecularStateID == "Monomolecular") {
+      updateCheckboxGroupInput(session, "methodsID", selected = setdiff(input$methodsID, "Method 2"))
+
+      shinyjs::disable(selector = "input[value = 'Method 2']")
+    } else {
+      shinyjs::enable(selector = "input[value='Method 2']")
+    }
+  })
+
   observeEvent(input$resetData, {
     session$reload()
   })
