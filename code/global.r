@@ -115,7 +115,7 @@ connecter <- setRefClass(
     # Construct the analysis plot
     constructAllPlots = function(sampleNum) {
       logInfo(sprintf("RENDERING ANALYSIS PLOT #%s", sampleNum))
-      data <- .self$object$Derivatives.data[.self$object$Derivatives.data == sampleNum, ]
+      data <- .self$object$Derivatives.data[.self$object$Derivatives.data$Sample == sampleNum, ]
       data2 <- .self$object$Method.1.data[.self$object$Method.1.data$Sample == sampleNum, ]
       coeff <- 4000 # Static number to shrink data to scale
       upper <- max(data$dA.dT) / max(data$Ct) + coeff
