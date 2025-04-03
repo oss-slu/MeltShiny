@@ -1,4 +1,4 @@
-process_meltR_object <- function(datasetsUploadedID, VantHoffPlot) {
+process_meltR_object <- function(datasetsUploadedID, temperatureUpdatedID, VantHoffPlot, input, output, session) {
   req(is_valid_input)
   
   if (datasetsUploadedID() == TRUE) {
