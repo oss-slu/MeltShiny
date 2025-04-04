@@ -70,7 +70,7 @@ server <- function(input, output, session) {
     if (is_valid_input) {
       session$sendCustomMessage(type = 'scrollToTop', message = list())
       process_valid_input(input, session, datasetsUploadedID)
-      process_meltR_object(datasetsUploadedID)
+      process_meltR_object(datasetsUploadedID, temperatureUpdatedID, VantHoffPlot, input, output, session)
     }
 
     shinyjs::hide("loadingSpinner")  # Hide spinner after work is done
