@@ -1,4 +1,4 @@
-### modules_2/VantHoffPlot.R
+
 VantHoffPlot <- function(input, output, session, chosenMethods, vantData, vals, datasetsUploadedID, temperatureUpdatedID) {
   output$vantPlot <- renderPlot({
     if (chosenMethods[2] == TRUE) {
