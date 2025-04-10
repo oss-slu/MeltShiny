@@ -37,7 +37,7 @@ counter <- 1
 numSamples <- NULL
 
 # Global variables for the MeltR object
-myConnector <- NULL
+myConnecter <- NULL
 
 # Global variables for the Van't Hoff plot
 vantData <- NULL
