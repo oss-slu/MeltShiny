@@ -67,8 +67,6 @@ ResultsTable <- function(input, output, session, valuesT, datasetsUploadedID, in
       sampleToRemove_num <- as.numeric(as.character(sampleToRemove))
       removedSamples(c(current, sampleToRemove_num))
       
-      # For MeltR.A, we might need to recreate the object each time
-      # This is inefficient but might be necessary given the constraints
       myConnecter$outliers <- NA  # Reset outliers
       myConnecter$constructObject()  # Reconstruct without outliers
       
