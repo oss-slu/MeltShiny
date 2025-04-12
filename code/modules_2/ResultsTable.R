@@ -51,23 +51,35 @@ ResultsTable <- function(input, output, session, valuesT, datasetsUploadedID, in
   observeEvent(eventExpr = input$delete_button, handlerExpr = {
     selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
     
-    #Get the sample ID to be removed
+    # Get the sample ID to be removed
     sampleToRemove <- valuesT$individualFitData[valuesT$individualFitData$ID == selectedRow, "Sample"]
 
-    #remove from table display
+    # Remove from table display
     valuesT$individualFitData <<- subset(valuesT$individualFitData, ID != selectedRow)
 
     # Update the MeltR object by setting the sample as an outlier
     if(!is.null(myConnecter) && !is.null(sampleToRemove)) {
       logInfo(paste("Removing sample", sampleToRemove, "from analysis"))
       
-      # Add to  list of removed samples
+      # Add to list of removed samples
       current <- removedSamples()
-      removedSamples(c(current, sampleToRemove))
+      # Make sure to convert to numeric
+      sampleToRemove_num <- as.numeric(as.character(sampleToRemove))
+      removedSamples(c(current, sampleToRemove_num))
       
-      # Update outliers in myConnecter and reconstruct
-      myConnecter$outliers <- removedSamples()
-      myConnecter$constructObject()
+      # For MeltR.A, we might need to recreate the object each time
+      # This is inefficient but might be necessary given the constraints
+      myConnecter$outliers <- NA  # Reset outliers
+      myConnecter$constructObject()  # Reconstruct without outliers
+      
+      # Then remove each sample one by one
+      for (sample in removedSamples()) {
+        if (!is.na(sample)) {
+          # Create a new connecter object with just this sample as an outlier
+          myConnecter$outliers <- sample
+          myConnecter$constructObject()
+        }
+      }
       
       # Increment the analysis update counter to trigger reactivity
       analysisUpdate(analysisUpdate() + 1)

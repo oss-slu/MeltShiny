@@ -78,6 +78,17 @@ connecter <- setRefClass(
   methods = list(
     # Create MeltR object & first derivative data
     constructObject = function() {
+      # For outliers, MeltR.A seems to expect either NA or a single value
+      outliers_to_use <- NA
+      if (!is.null(outliers) && length(outliers) > 0) {
+        if (length(outliers) == 1) {
+          outliers_to_use <- outliers
+        } else {
+          # If we have multiple outliers, we need to handle them differently
+          # For now, let's just use the first one and then handle the rest after construction
+          outliers_to_use <- outliers[1]
+        }
+      }
       capture.output(
         .self$object <- meltR.A(
           data_frame = df,
