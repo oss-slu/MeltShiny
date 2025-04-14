@@ -74,7 +74,15 @@ server <- function(input, output, session) {
     }
 
     shinyjs::hide("loadingSpinner")  # Hide spinner after work is done
+    # Hide just the sidebar contents, show the toggle button inside the panel
+    shinyjs::hide("fileSidebarContents")
+    shinyjs::show("sidebarToggleButton")
   })
+
+  observeEvent(input$showSidebar, {
+  shinyjs::show("fileSidebarContents")
+  shinyjs::hide("sidebarToggleButton")
+})
 
 
   
