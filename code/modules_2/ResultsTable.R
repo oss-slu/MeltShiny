@@ -1,5 +1,9 @@
 ### modules_2/ResultsTable.R
 ResultsTable <- function(input, output, session, valuesT, datasetsUploadedID, individualFitData, summaryDataTable, errorDataTable, is_valid_input) {
+  # Create reactive values to track when analysis should be updated
+  analysisUpdate <- reactiveVal(0)
+  
+  
   # Function for dynamically creating the delete button for each row on the individual fits table
   shinyInput <- function(FUN, len, id, ...) {
     inputs <- character(len)
@@ -31,20 +35,74 @@ ResultsTable <- function(input, output, session, valuesT, datasetsUploadedID, in
         valuesT$individualFitData <- isolate({
           getListUnder()
         })
+
+        #Initialize analysis counter
+        analysisUpdate(1)
       }
     }
   )
   
+
+  # Keep track of removed samples
+  removedSamples <- reactiveVal(c())
+
+
   # Remove row from individual fits table when its respective "Remove" button is pressed.
   observeEvent(eventExpr = input$delete_button, handlerExpr = {
     selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
+    
+    # Get the sample ID to be removed
+    sampleToRemove <- valuesT$individualFitData[valuesT$individualFitData$ID == selectedRow, "Sample"]
+
+    # Remove from table display
     valuesT$individualFitData <<- subset(valuesT$individualFitData, ID != selectedRow)
+
+    # Update the MeltR object by setting the sample as an outlier
+    if(!is.null(myConnecter) && !is.null(sampleToRemove)) {
+      logInfo(paste("Removing sample", sampleToRemove, "from analysis"))
+      
+      # Add to list of removed samples
+      current <- removedSamples()
+      # Make sure to convert to numeric
+      sampleToRemove_num <- as.numeric(as.character(sampleToRemove))
+      removedSamples(c(current, sampleToRemove_num))
+      
+      myConnecter$outliers <- NA  # Reset outliers
+      myConnecter$constructObject()  # Reconstruct without outliers
+      
+      # Then remove each sample one by one
+      for (sample in removedSamples()) {
+        if (!is.na(sample)) {
+          # Create a new connecter object with just this sample as an outlier
+          myConnecter$outliers <- sample
+          myConnecter$constructObject()
+        }
+      }
+      
+      # Increment the analysis update counter to trigger reactivity
+      analysisUpdate(analysisUpdate() + 1)
+    }
   })
 
   # Reset the individual fits table to original when "Reset" button is pressed.
   observeEvent(
     eventExpr = input$resetTable1ID == TRUE,
     handlerExpr = {
+      # Reset outliers in the MeltR object
+      if(!is.null(myConnecter)) {
+        logInfo("Resetting analysis to include all samples")
+        
+        # Clear our list of removed samples
+        removedSamples(c())
+        
+        # Reset outliers and reconstruct
+        myConnecter$outliers <- NA
+        myConnecter$constructObject()
+        
+        # Increment the analysis update counter to trigger reactivity
+        analysisUpdate(analysisUpdate() + 1)
+      }
+
       valuesT$individualFitData <- isolate({
         getListUnder()
       })
@@ -72,13 +130,28 @@ ResultsTable <- function(input, output, session, valuesT, datasetsUploadedID, in
   })
   
   output$methodSummaryTable <- renderTable({
-    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData1())
-    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData2())
-    summaryDataTable <<- rbind(summaryDataTable, myConnecter$summaryData3())
-    return(summaryDataTable)
+
+    analysisUpdate()
+
+    sumData1 <- myConnecter$summaryData1()
+    sumData2 <- myConnecter$summaryData2()
+    sumData3 <- myConnecter$summaryData3()
+    
+    # Combine them within the function scope
+    updatedTable <- rbind(sumData1, sumData2, sumData3)
+    
+    # Update the global variable
+    summaryDataTable <<- updatedTable
+    
+    return(updatedTable)
   })
   
   output$errorTable <- renderTable({
+
+    analysisUpdate()
+    
+    updatedErrorTable <- myConnecter$errorData()
+    
     errorDataTable <<- myConnecter$errorData()
     return(errorDataTable)
   })

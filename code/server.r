@@ -62,30 +62,27 @@ server <- function(input, output, session) {
 
 
   
-observeEvent(input$uploadData, {
-  shinyjs::show("loadingSpinner")
+  observeEvent(input$uploadData, {
+    shinyjs::show("loadingSpinner")  # Show spinner immediately
 
-  validate_inputs(input, session)
+    validate_inputs(input, session)
 
-  if (is_valid_input) {
-    session$sendCustomMessage(type = 'scrollToTop', message = list())
-    process_valid_input(input, session, datasetsUploadedID)
-    process_meltR_object(datasetsUploadedID)
-  }
+    if (is_valid_input) {
+      session$sendCustomMessage(type = 'scrollToTop', message = list())
+      process_valid_input(input, session, datasetsUploadedID)
+      process_meltR_object(datasetsUploadedID, temperatureUpdatedID, VantHoffPlot, input, output, session)
+    }
 
-  shinyjs::hide("loadingSpinner")
+    shinyjs::hide("loadingSpinner")  # Hide spinner after work is done
+    # Hide just the sidebar contents, show the toggle button inside the panel
+    shinyjs::hide("fileSidebarContents")
+    shinyjs::show("sidebarToggleButton")
+  })
 
-  # Hide just the sidebar contents, show the toggle button inside the panel
-  shinyjs::hide("fileSidebarContents")
-  shinyjs::show("sidebarToggleButton")
-})
-
-observeEvent(input$showSidebar, {
+  observeEvent(input$showSidebar, {
   shinyjs::show("fileSidebarContents")
   shinyjs::hide("sidebarToggleButton")
 })
-
-
 
 
   
