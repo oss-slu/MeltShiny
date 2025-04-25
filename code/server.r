@@ -25,6 +25,10 @@ server <- function(input, output, session) {
   # Declaring temperatureUpdatedID as reactive for manual changes to the temperature
   temperatureUpdatedID <- reactiveVal(FALSE)
 
+  # Declaring fittingTriggered as a reactive for manual baseline trimming
+  fittingTriggered <- reactiveVal(FALSE)
+  plotRefreshTrigger <- reactiveVal(0)
+
   observeEvent(input$toggleAdvanced, {
     shinyjs::toggle("advancedSettings")  # Toggles visibility on button click
   })
@@ -54,6 +58,11 @@ server <- function(input, output, session) {
       VantHoffPlot(input, output, session, chosenMethods, vantData, vals, datasetsUploadedID, temperatureUpdatedID)
       temperatureUpdatedID(FALSE)
     }
+  })
+
+  observeEvent(input$manualFitID, {
+    fittingTriggered(TRUE)
+    plotRefreshTrigger(plotRefreshTrigger() + 1)
   })
 
 
@@ -93,7 +102,7 @@ server <- function(input, output, session) {
 
   # Dynamically create n tabs (n = number of samples in master data frame) for
   # the "Graphs" page under the "Analysis" navbarmenu.
-  DynamicTabs(input, output, session, numSamples, blankInt, datasetsUploadedID, is_valid_input)
+  DynamicTabs(input, output, session, numSamples, blankInt, datasetsUploadedID, is_valid_input, fittingTriggered, plotRefreshTrigger)
 
   # Create the Results Table
   ResultsTable(input, output, session, valuesT, datasetsUploadedID, individualFitData, summaryDataTable, errorDataTable, is_valid_input)
