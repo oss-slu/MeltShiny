@@ -122,29 +122,47 @@ connecter <- setRefClass(
     #                                  n.combinations = iterations)
     # },
 
-    # Construct the analysis plot
-    constructAllPlots = function(sampleNum) {
+    # Modified constructAllPlots with baseline trimming logic
+    constructAllPlots = function(sampleNum, fittingTriggered = NULL) {
       logInfo(sprintf("RENDERING ANALYSIS PLOT #%s", sampleNum))
+
+      # Grab the original full data
       data <- .self$object$Derivatives.data[.self$object$Derivatives.data$Sample == sampleNum, ]
       data2 <- .self$object$Method.1.data[.self$object$Method.1.data$Sample == sampleNum, ]
-      coeff <- 4000 # Static number to shrink data to scale
+      coeff <- 4000
       upper <- max(data$dA.dT) / max(data$Ct) + coeff
 
-      # Filter data within the temperature range 20 to 70 (transition range)
+      # Filter for max derivative temperature
       filteredData <- data[data$Temperature >= 20 & data$Temperature <= 70, ]
-      
-      # Find the temperature of the max derivative within the filtered data
       maxDerivativeTemp <- filteredData$Temperature[which.max(filteredData$dA.dT)]
+            
+      # Apply baseline trim if triggered and xRange is valid
+      if (!is.null(fittingTriggered) &&
+          is.function(fittingTriggered) && 
+          isTRUE(fittingTriggered()) &&
+          !is.null(xRange[[sampleNum]]) &&
+          length(xRange[[sampleNum]]) == 2 &&
+          !any(is.na(xRange[[sampleNum]]))) {
 
-      # Store the necessary information for use in the server for adding the best fit and first derivative
+        # Filter the data
+        data <- data[data$Temperature >= xRange[[sampleNum]][1] & data$Temperature <= xRange[[sampleNum]][2], ]
+        data2 <- data2[data2$Temperature >= xRange[[sampleNum]][1] & data2$Temperature <= xRange[[sampleNum]][2], ]
+
+        logInfo(sprintf("BASELINE TRIM FILTERED Sample %s to range [%.2f, %.2f]",
+                        sampleNum,
+                        xRange[[sampleNum]][1],
+                        xRange[[sampleNum]][2]))
+      }
+
+      # Store line/derivative data
       bestFitXData[[sampleNum]] <<- data2$Temperature
       bestFitYData[[sampleNum]] <<- data2$Model
       derivativeXData[[sampleNum]] <<- data$Temperature
       derivativeYData[[sampleNum]] <<- data$dA.dT / (data$Pathlength * data$Ct) / upper + min(data$Absorbance)
 
-      # Start with the base plot with just the absorbance data
-      plot_ly(type = "scatter", mode = "markers", source = paste0("plotBoth", sampleNum)) %>%
-        add_trace(data = data2, x = data2$Temperature, y = data2$Absorbance, marker = list(color = "blue")) %>%
+      # Start building the plot
+      p <- plot_ly(type = "scatter", mode = "markers", source = paste0("plotBoth", sampleNum)) %>%
+        add_trace(data = data2, x = ~Temperature, y = ~Absorbance, marker = list(color = "blue")) %>%
         layout(
           shapes = list(
             list(
@@ -155,7 +173,7 @@ connecter <- setRefClass(
           annotations = list(
             list(
               x = maxDerivativeTemp,
-              y = 1.02, # slightly above the dotted line
+              y = 1.02,
               yref = "paper",
               text = sprintf("Transition @ %.2f°C", maxDerivativeTemp),
               showarrow = FALSE,
@@ -164,14 +182,17 @@ connecter <- setRefClass(
           )
         ) %>%
         layout(
-          xaxis = list(dtick = 5)
+          xaxis = list(dtick = 5, fixedrange = TRUE, title = "Temperature (°C)"),
+          yaxis = list(fixedrange = TRUE, title = "Absorbance(nm)"),
+          showlegend = FALSE
         ) %>%
         rangeslider(xRange[[sampleNum]][1], xRange[[sampleNum]][2], thickness = .1) %>%
-        layout(showlegend = FALSE) %>%
-        layout(xaxis = list(fixedrange = TRUE, title = "Temperature (\u00B0C)")) %>%
-        layout(yaxis = list(fixedrange = TRUE, title = "Absorbance(nm)")) %>%
         config(displayModeBar = FALSE)
+
+      logInfo(sprintf("RENDERED ANALYSIS PLOT #%s", sampleNum))
+      return(p)
     },
+
 
     # Return the data needed to create the Van't Hoff plot
     gatherVantData = function() {

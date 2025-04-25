@@ -1,4 +1,4 @@
-DynamicTabs <- function(input, output, session, numSamples, blankInt, datasetsUploadedID, is_valid_input) {
+DynamicTabs <- function(input, output, session, numSamples, blankInt, datasetsUploadedID, is_valid_input, fittingTriggered, plotRefreshTrigger) {
   observeEvent(
     eventExpr = datasetsUploadedID(),
     handlerExpr = {
@@ -52,20 +52,18 @@ DynamicTabs <- function(input, output, session, numSamples, blankInt, datasetsUp
         # Create plots
         for (i in 1:numSamples) {
           if (i != blankInt) {
-            xRange[[i]][1] <<- suppressWarnings(round(min(bestFitXData[[i]])))
-            xRange[[i]][2] <<- suppressWarnings(round(max(bestFitXData[[i]])))
             local({
               myI <- i
 
               output[[paste0("plotBoth", myI)]] <- renderPlotly({
-                analysisPlot <- myConnecter$constructAllPlots(myI)
+                plotRefreshTrigger()
+                analysisPlot <- myConnecter$constructAllPlots(myI, fittingTriggered)
                 if (input[[paste0("bestFit", myI)]] == TRUE) {
                   analysisPlot <- analysisPlot %>% add_lines(x = bestFitXData[[myI]], y = bestFitYData[[myI]], color = "red")
                 }
                 if (input[[paste0("firstDerivative", myI)]] == TRUE) {
                   analysisPlot <- analysisPlot %>% add_trace(x = derivativeXData[[myI]], y = derivativeYData[[myI]], marker = list(color = "green"))
                 }
-
                 analysisPlot
               })
               observeEvent(event_data(source = paste0("plotBoth", myI), event = "plotly_relayout", priority = c("event")), {
