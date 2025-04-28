@@ -91,19 +91,52 @@ validate_inputs <- function(input, session) {
   rna_letters_only <- function(x) {
     grepl("^[AUGC]+$", x, ignore.case = TRUE)
   }
-  # Validate helixID and seqID
-  if (input$helixID == "RNA" && !rna_letters_only(input$seqID)) {
-    is_valid_input <<- FALSE
-    showErrorModal("Invalid RNA Sequence", "Ensure the sequence contains only valid RNA nucleotides (A, U, G, C).")
-    updateTextInput(session, "seqID", value = "")
-    return()
-  }
 
-  if (input$helixID == "DNA" && !dna_letters_only(input$seqID)) {
-    is_valid_input <<- FALSE
-    showErrorModal("Invalid DNA Sequence", "Ensure the sequence contains only valid DNA nucleotides (A, T, G, C).")
-    updateTextInput(session, "seqID", value = "")
-    return()
+  # Sequence validation depending on molecular state
+  molecular_state <- input$molecularStateID
+  seq_input <- gsub(" ", "", input$seqID)  # Remove spaces
+  sequences <- unlist(strsplit(seq_input, ","))
+
+  if (molecular_state == "Heteroduplex") {
+    if (length(sequences) != 2) {
+      is_valid_input <<- FALSE
+      showErrorModal("Sequence Input Error", "Please provide exactly two sequences separated by a comma for Heteroduplex.")
+      updateTextInput(session, "seqID", value = "")
+      return()
+    }
+    for (seq in sequences) {
+      if (input$helixID == "RNA" && !rna_letters_only(seq)) {
+        is_valid_input <<- FALSE
+        showErrorModal("Invalid RNA Sequence", "Each sequence must contain only valid RNA nucleotides (A, U, G, C).")
+        updateTextInput(session, "seqID", value = "")
+        return()
+      }
+      if (input$helixID == "DNA" && !dna_letters_only(seq)) {
+        is_valid_input <<- FALSE
+        showErrorModal("Invalid DNA Sequence", "Each sequence must contain only valid DNA nucleotides (A, T, G, C).")
+        updateTextInput(session, "seqID", value = "")
+        return()
+      }
+    }
+  } else {
+    if (length(sequences) != 1) {
+      is_valid_input <<- FALSE
+      showErrorModal("Sequence Input Error", "Only a single sequence should be provided for Homoduplex or Monomolecular.")
+      updateTextInput(session, "seqID", value = "")
+      return()
+    }
+    if (input$helixID == "RNA" && !rna_letters_only(sequences[1])) {
+      is_valid_input <<- FALSE
+      showErrorModal("Invalid RNA Sequence", "Ensure the sequence contains only valid RNA nucleotides (A, U, G, C).")
+      updateTextInput(session, "seqID", value = "")
+      return()
+    }
+    if (input$helixID == "DNA" && !dna_letters_only(sequences[1])) {
+      is_valid_input <<- FALSE
+      showErrorModal("Invalid DNA Sequence", "Ensure the sequence contains only valid DNA nucleotides (A, T, G, C).")
+      updateTextInput(session, "seqID", value = "")
+      return()
+    }
   }
 
   # DNA-specific wavelength check
