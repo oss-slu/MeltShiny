@@ -1,5 +1,4 @@
-DownloadHandler <- function(input, output, vantGgPlot, summaryDataTable, errorDataTable, valuesT) {
-  
+DownloadHandler <- function(input, output, vantGgPlot, summaryDataTable, errorDataTable, valuesT, individualFitData) {
   # Save the Van't Hoff Plot in the chosen format
   output$downloadVantID <- downloadHandler(
     filename = function() {
@@ -33,7 +32,11 @@ DownloadHandler <- function(input, output, vantGgPlot, summaryDataTable, errorDa
 
       selectedParts <- list()
       if ("Individual Fits" %in% tableParts || "All of the Above" %in% tableParts) {
-        selectedParts$IndividualFits <- valuesT$individualFitData %>% select(-c(Delete, ID))
+        if(is.null(individualFitData$Delete)){
+          selectedParts$IndividualFits <- individualFitData
+        }else{
+          selectedParts$IndividualFits <- individualFitData %>% select(-c(individualFitData$Delete, individualFitData$ID))
+        }
       }
       if ("Method Summaries" %in% tableParts || "All of the Above" %in% tableParts) {
         selectedParts$MethodsSummaries <- summaryDataTable
