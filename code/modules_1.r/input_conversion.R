@@ -1,4 +1,47 @@
+validate_sequences <- function(sequence_input, molecular_state) {
+  sequence_input <- gsub(" ", "", sequence_input)  # remove any spaces
+  allowed_chars <- "ACGUT"
+
+  if (molecular_state == "Heteroduplex") {
+    if (lengths(gregexpr(",", sequence_input))[[1]] != 1) {
+      return(FALSE)  # must contain exactly one comma
+    }
+    sequences <- unlist(strsplit(sequence_input, ","))
+    if (length(sequences) != 2) {
+      return(FALSE)  # must split into exactly two sequences
+    }
+    if (any(!grepl(paste0("^[" , allowed_chars , "]+$"), sequences))) {
+      return(FALSE)  # each sequence must contain only ACGUT
+    }
+  } else {
+    # For Homoduplex and Monomolecular
+    if (grepl(",", sequence_input)) {
+      return(FALSE)  # comma not allowed
+    }
+    if (!grepl(paste0("^[" , allowed_chars , "]+$"), sequence_input)) {
+      return(FALSE)  # only valid characters allowed
+    }
+  }
+  return(TRUE)
+}
+
+
 process_valid_input <- function(input, session,datasetsUploadedID) {
+  if (!validate_sequences(input$seqID, input$molecularStateID)) {
+    shinyalert::shinyalert(
+      title = "Invalid Sequence Input",
+      text = if (input$molecularStateID == "Heteroduplex") {
+        "Please input two valid sequences separated by exactly one comma (only A, C, G, U, T allowed)."
+      } else {
+        "Please input a valid single sequence with only A, C, G, U, T characters (no commas)."
+      },
+      type = "error"
+    )
+    return()  # stop processing if invalid
+  }
+
+  logInfo("VALID INPUT")
+  
   if (is_valid_input) {
     logInfo("VALID INPUT")
 
