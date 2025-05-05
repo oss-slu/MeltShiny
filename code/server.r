@@ -80,6 +80,8 @@ server <- function(input, output, session) {
       session$sendCustomMessage(type = 'scrollToTop', message = list())
       process_valid_input(input, session, datasetsUploadedID)
       process_meltR_object(datasetsUploadedID, temperatureUpdatedID, VantHoffPlot, input, output, session)
+      ResultsTable(input, output, session, valuesT, datasetsUploadedID, individualFitData, summaryDataTable, errorDataTable, is_valid_input)
+      DownloadHandler(input, output, vantGgPlot, summaryDataTable, errorDataTable, valuesT, individualFitData)
     }
 
     shinyjs::hide("loadingSpinner")  # Hide spinner after work is done
@@ -89,13 +91,13 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$showSidebar, {
-  shinyjs::show("fileSidebarContents")
-  shinyjs::hide("sidebarToggleButton")
-})
+    shinyjs::show("fileSidebarContents")
+    shinyjs::hide("sidebarToggleButton")
+  })
 
 
   
-   FreezeUIParts(input, session, datasetsUploadedID, temperatureUpdatedID)
+  FreezeUIParts(input, session, datasetsUploadedID, temperatureUpdatedID)
 
   # Show the uploaded datasets separately on the uploads page
   DisplayDataTable(input, output, session, dataList, numUploads, is_valid_input)
@@ -105,10 +107,10 @@ server <- function(input, output, session) {
   DynamicTabs(input, output, session, numSamples, blankInt, datasetsUploadedID, is_valid_input, fittingTriggered, plotRefreshTrigger)
 
   # Create the Results Table
-  ResultsTable(input, output, session, valuesT, datasetsUploadedID, individualFitData, summaryDataTable, errorDataTable, is_valid_input)
+  
 
   # Download Hanlder to download parts (or all) of the Results Table or Van't Hoff Plot
-  DownloadHandler(input, output, vantGgPlot, summaryDataTable, errorDataTable, valuesT)
+  
 
   # observeEvents for the UI elements
   UIcode(input, session)  
